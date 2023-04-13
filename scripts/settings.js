@@ -72,5 +72,44 @@ export function registerSettings() {
 }
 
 class ActionConfigureMenu extends FormApplication {
+  /** @override */
+  static get defaultOptions() {
+    const opts = super.defaultOptions;
+    opts.template = "modules/actioninitiative/templates/settings-config.html"
+    opts.height = "auto",
+    opts.width = 600,
+    opts.classes = [MODULE_ID, "settings"],
+    opts.tabs = [
+      {
+        navSelector: ".tabs",
+        contentSelector: "form",
+        initial: "basic"
+      }
+    ];
+    opts.submitOnClose = false
+    return opts;
+  }
 
+  getData() {
+    const data = super.getData();
+    data.actioninitiative = {};
+    data.actioninitiative.diceCombinations = {
+      d4: "1d4",
+      d6: "1d6",
+      d8: "1d8",
+      d10: "1d10",
+      d12: "1d12",
+      dd4: "2d4",
+      dd6: "2d6",
+      dd8: "2d8",
+      dd10: "2d10",
+      dd12: "2d12"
+    };
+
+    return data;
+  }
+
+  async _updateObject(_, formData) {
+    const data = expandObject(formData);
+  }
 }

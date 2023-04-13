@@ -8,5 +8,12 @@
   "actioninitiative.settings.configure-menu.Hint": "Configure specific die combinations used for the variants. Options will vary based on choices here.",
   "actioninitiative.settings.configure-menu.Label": "Configure",
   "actioninitiative.settings.spell-levels.Name": "Use Spell Levels",
-  "actioninitiative.settings.spell-levels.Hint": "When enabled, combatant must select the spell level they intend to cast."
+  "actioninitiative.settings.spell-levels.Hint": "When enabled, combatant must select the spell level they intend to cast.",
+
+  "actioninitiative.template.settings-config.tabs.basic": "Basic",
+  "actioninitiative.template.settings-config.tabs.weapon-damage": "Weapon Damage",
+  "actioninitiative.template.settings-config.tabs.weapon-type": "Weapon Type",
+  "actioninitiative.template.settings-config.tabs.spell-levels": "Spell Levels"
+
+
 }

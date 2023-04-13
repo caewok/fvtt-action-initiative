@@ -1,0 +1,62 @@
+<form class="flexcol" autocomplete="off">
+  <nav class="sheet-tabs tabs" data-group="sections">
+    <a class="item" data-tab="basic">
+      {{localize "actioninitiative.template.settings-config.tabs.basic"}}
+    </a>
+
+    <a class="item" data-tab="weapon-damage">
+      {{localize "actioninitiative.template.settings-config.tabs.weapon-damage"}}
+    </a>
+
+    <a class="item" data-tab="weapon-type">
+      {{localize "actioninitiative.template.settings-config.tabs.weapon-type"}}
+    </a>
+
+    <a class="item" data-tab="spell-levels">
+      {{localize "actioninitiative.template.settings-config.tabs.spell-levels"}}
+    </a>
+  </nav>
+
+  <h1>
+    Header 1 Title
+  </h1>
+
+  <p>
+    Some paragraph
+  </p>
+
+  <section class="content">
+    <div class="tab" data-tab="basic" data-group="sections">
+
+      <p> This is the Basic Tab <p>
+
+      <div class="form-group">
+        <label>Melee</label>
+        <div class="form-fields">
+          <select name="melee">
+            {{ selectOptions actioninitiative.diceCombinations selected=data.actioninitiative.melee localize=true }}
+          </select>
+        </div>
+        <p class="hint">Hint</p>
+      </div>
+
+    </div>
+
+    <div class="tab" data-tab="weapon-damage" data-group="sections">
+      <p> This is the Weapon Damage Tab </p>
+    </div>
+
+    <div class="tab" data-tab="weapon-type" data-group="sections">
+      <p> This is the Weapon Type Tab </p>
+    </div>
+
+    <div class="tab" data-tab="spell-levels" data-group="sections">
+      <p> This is the Spell Levels Tab </p>
+    </div>
+
+  </section>
+
+  <footer class="sheet-footer flexrow">
+    <button type='submit' name='submit' value='1'><i class='far fa-floppy-disk'></i>{{submitText}}</button>
+  </footer>
+</form>
