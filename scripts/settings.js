@@ -93,23 +93,19 @@ class ActionConfigureMenu extends FormApplication {
   getData() {
     const data = super.getData();
     data.actioninitiative = {};
-    data.actioninitiative.diceCombinations = {
-      d4: "1d4",
-      d6: "1d6",
-      d8: "1d8",
-      d10: "1d10",
-      d12: "1d12",
-      dd4: "2d4",
-      dd6: "2d6",
-      dd8: "2d8",
-      dd10: "2d10",
-      dd12: "2d12"
-    };
-
     return data;
   }
 
   async _updateObject(_, formData) {
     const data = expandObject(formData);
+    for ( const [key, formula] of Object.entries(data.dice) ) {
+      if ( formula === "" ) continue;
+      if ( !Roll.validate(formula) ) {
+        ui.notifications.warn("Die formula for ${key} is not valid.");
+        continue;
+      }
+      setSetting(`${key}Dice`, formula);
+    }
+
   }
 }

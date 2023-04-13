@@ -13,7 +13,15 @@
   "actioninitiative.template.settings-config.tabs.basic": "Basic",
   "actioninitiative.template.settings-config.tabs.weapon-damage": "Weapon Damage",
   "actioninitiative.template.settings-config.tabs.weapon-type": "Weapon Type",
-  "actioninitiative.template.settings-config.tabs.spell-levels": "Spell Levels"
+  "actioninitiative.template.settings-config.tabs.spell-levels": "Spell Levels",
 
-
+  "actioninitiative.phrases.BasicVariant": "Basic Variant",
+  "actioninitiative.phrases.Ranged": "Ranged",
+  "actioninitiative.phrases.Melee": "Melee",
+  "actioninitiative.phrases.Movement": "Movement",
+  "actioninitiative.phrases.SwapGear": "Swap Gear",
+  "actioninitiative.phrases.CastSpell": "Cast a Spell",
+  "actioninitiative.phrases.OtherAction": "Other Action",
+  "actioninitiative.phrases.SurprisePenalty": "Surprise Penalty",
+  "actioninitiative.phrases.BonusAction": "Bonus Action"
 }
