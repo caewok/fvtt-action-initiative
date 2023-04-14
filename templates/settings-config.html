@@ -30,20 +30,16 @@
 
       <h2> {{localize "actioninitiative.phrases.BasicVariant"}} </h2>
 
-      {{#each basic}}
-
-        <div class="form-group">
-          <label>{{localize "actioninitiative.phrases.MeleeAttack" }} </label>
-          <div class="form-fields">
-            <input type="text" name="MeleeAttack" value="{{MeleeAttack}}" placeholder="{{placeholder.MeleeAttack}}"
-          </div>
+      <div class="form-group">
+        <label> {{localize "actioninitiative.phrases.RangedAttack"}} </label>
+        <div class="form-fields">
+          <input type="text" id="basic.RangedAttack" name="basic.RangedAttack" value="{{basic.RangedAttack}}" placeholder="{{placeholder.BASIC.RangedAttack}}" >
         </div>
+      </div>
 
-      {{/each}}
-
-        <p class="hint">Input a valid dice formula (or numeric value) for each type. Combatants will select their
-        appropriate action(s) from these categories when rolling initiative. Delete to return to default.
-        Entering "0" will cause the action to not affect initiative.</p>
+      <p class="hint">Input a valid dice formula (or numeric value) for each type. Combatants will select their
+      appropriate action(s) from these categories when rolling initiative. Delete to return to default.
+      Entering "0" will cause the action to not affect initiative.</p>
 
     </div>
 
