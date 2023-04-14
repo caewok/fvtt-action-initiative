@@ -26,23 +26,20 @@ export const SETTINGS = {
 
 
 export const FORMULA_DEFAULTS = {
-  MISC: {
-    BONUS: "",
-    SURPRISE: "+10",
-  },
-
   BASIC: {
-    MELEE: "1d6",
-    MOVEMENT: "1d6",
-    RANGED: "1d4",
-    OTHER: "1d6",
-    SPELL: "1d10",
-    SWAP: "1d6"
+    CastSpell: "1d10",
+    MeleeAttack: "1d6",
+    Movement: "1d6",
+    OtherAction: "1d6",
+    RangedAttack: "1d4",
+    SurprisePenalty: "+10",
+    SwapGear: "1d6"
   },
 
   // Added dynamically
   WEAPON_TYPES: {},
   WEAPON_PROPERTIES: {},
+  SPELL_LEVELS: {}
 }
 
 /**
@@ -95,6 +92,16 @@ function dnd5eDefaultWeaponTypes() {
   return props;
 }
 
+function dnd5eDefaultSpellLevels() {
+  // Each spell level is 1d10 + spell_level
+  // Take advantage of fact that DND5e keys spell levels by number
+  const props = {}
+  for ( const key of Object.keys(CONFIG.DND5E.spellLevels) ) {
+    props[key] = `1d10 + ${key}`;
+  }
+  return props;
+}
+
 function defaultDiceFormulaObject() {
   const flat = flattenObject(FORMULA_DEFAULTS);
   Object.keys(flat).forEach(key => flat[key] = "");
@@ -143,10 +150,10 @@ export function registerSettings() {
     config: true
   });
 
-
   // Register defaults for weapon types and properties
   FORMULA_DEFAULTS.WEAPON_TYPES = dnd5eDefaultWeaponTypes();
   FORMULA_DEFAULTS.WEAPON_PROPERTIES = dnd5eDefaultWeaponProperties();
+  FORMULA_DEFAULTS.SPELL_LEVELS = dnd5eDefaultSpellLevels();
   game.settings.register(MODULE_ID, SETTINGS.DICE_FORMULAS, {
     name: `${MODULE_ID}.settings.${SETTINGS.DICE_FORMULAS}.Name`,
     type: Object,
@@ -154,6 +161,8 @@ export function registerSettings() {
     scope: "world",
     config: false
   });
+
+  setSetting(SETTINGS.DICE_FORMULAS, defaultDiceFormulaObject());
 }
 
 class ActionConfigureMenu extends FormApplication {
@@ -178,8 +187,12 @@ class ActionConfigureMenu extends FormApplication {
   getData() {
     const data = super.getData();
     const formulae = getSetting(SETTINGS.DICE_FORMULAS);
-    data.dice = expandObject(formulae);
-    data.defaultDice = FORMULA_DEFAULTS;
+    const formulaeObj = expandObject(formulae);
+    data.basic = formulaeObj
+
+    data.dice =
+    data.placeholder = FORMULA_DEFAULTS;
+    data.placeholder.BonusAction = game.i18n.localize(`${MODULE_ID}.template.settings-config.BonusAction.placeholder`);
     return data;
   }
 

@@ -30,45 +30,57 @@
 
       <h2> {{localize "actioninitiative.phrases.BasicVariant"}} </h2>
 
+      {{ #each basic }}
+        <div class="form-group">
+          <label>{{localize "actioninitiative.phrases.RangedAttack"}} </label>
+          <div class="form-fields">
+            <input type="text" id="dice.RangedAttack" name="RangedAttack" value="{{dice.RangedAttack}}" placeholder="{{placeholder.RangedAttack}}">
+          </div>
+        </div>
+
+
+      {{ /each }}
+
+
       <div class="form-group">
-        <label>{{localize "actioninitiative.phrases.Ranged"}} </label>
+        <label>{{localize "actioninitiative.phrases.RangedAttack"}} </label>
         <div class="form-fields">
-          <input type="text" id="dice.BASIC.RANGED" name="BASIC.RANGED" value="{{dice.BASIC.RANGED}}" placeholder="{{defaultDice.BASIC.RANGED}}">
+          <input type="text" id="dice.RangedAttack" name="RangedAttack" value="{{dice.RangedAttack}}" placeholder="{{placeholder.RangedAttack}}">
         </div>
       </div>
 
       <div class="form-group">
-        <label>{{localize "Movement"}} </label>
+        <label>{{localize "actioninitiative.phrases.Movement"}} </label>
         <div class="form-fields">
-          <input type="text" id="dice.BASIC.MOVEMENT" name="BASIC.MOVEMENT" value="{{dice.BASIC.MOVEMENT}}" placeholder="{{defaultDice.BASIC.MOVEMENT}}">
+          <input type="text" id="dice.Movement" name="Movement" value="{{dice.Movement}}" placeholder="{{placeholder.Movement}}">
         </div>
       </div>
 
       <div class="form-group">
         <label>{{localize "actioninitiative.phrases.SwapGear"}} </label>
         <div class="form-fields">
-          <input type="text" id="dice.BASIC.SWAP" name="BASIC.SWAP" value="{{dice.BASIC.SWAP}}" placeholder="{{defaultDice.BASIC.SWAP}}">
+          <input type="text" id="dice.SwapGear" name="SwapGear" value="{{dice.SwapGear}}" placeholder="{{placeholder.SwapGear}}">
         </div>
       </div>
 
       <div class="form-group">
-        <label>{{localize "actioninitiative.phrases.Melee"}} </label>
+        <label>{{localize "actioninitiative.phrases.MeleeAttack"}} </label>
         <div class="form-fields">
-          <input type="text" id="dice.BASIC.MELEE" name="BASIC.MELEE" value="{{dice.BASIC.MELEE}}" placeholder="{{defaultDice.BASIC.MELEE}}">
+          <input type="text" id="dice.MeleeAttack" name="MeleeAttack" value="{{dice.MeleeAttack}}" placeholder="{{placeholder.MeleeAttack}}">
         </div>
       </div>
 
       <div class="form-group">
         <label>{{localize "actioninitiative.phrases.CastSpell"}} </label>
         <div class="form-fields">
-          <input type="text" id="dice.BASIC.SPELL" name="BASIC.SPELL" value="{{dice.BASIC.SPELL}}" placeholder="{{defaultDice.BASIC.SPELL}}">
+          <input type="text" id="dice.CastSpell" name="CastSpell" value="{{dice.CastSpell}}" placeholder="{{placeholder.CastSpell}}">
         </div>
       </div>
 
       <div class="form-group">
         <label>{{localize "actioninitiative.phrases.OtherAction"}} </label>
         <div class="form-fields">
-          <input type="text" id="dice.BASIC.OTHER" name="BASIC.OTHER" value="{{dice.BASIC.OTHER}}" placeholder="{{defaultDice.BASIC.OTHER}}">
+          <input type="text" id="dice.OtherAction" name="OtherAction" value="{{dice.OtherAction}}" placeholder="{{placeholder.OtherAction}}">
         </div>
       </div>
 
@@ -77,14 +89,14 @@
       <div class="form-group">
         <label>{{localize "actioninitiative.phrases.SurprisePenalty"}} </label>
         <div class="form-fields">
-          <input type="text" id="dice.MISC.SURPRISE" name="MISC.SURPRISE" value="{{dice.MISC.SURPRISE}}" placeholder="{{defaultDice.MISC.SURPRISE}}">
+          <input type="text" id="dice.SurprisePenalty" name="SurprisePenalty" value="{{dice.SurprisePenalty}}" placeholder="{{placeholder.SurprisePenalty}}">
         </div>
       </div>
 
       <div class="form-group">
-        <label>{{localize "BonusAction"}} </label>
+        <label>{{localize "actioninitiative.phrases.BonusAction"}} </label>
         <div class="form-fields">
-          <input type="text" id="dice.MISC.BONUS" name="MISC.BONUS" value="{{dice.MISC.BONUS}}" placeholder="Leave blank if combatant should input">
+          <input type="text" id="dice.BonusAction" name="BonusAction" value="{{dice.BonusAction}}" placeholder="{{placeholder.BonusAction}}">
         </div>
       </div>
 

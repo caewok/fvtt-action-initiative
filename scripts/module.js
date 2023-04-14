@@ -8,7 +8,7 @@ import { MODULE_ID } from "./const.js";
 import { log } from "./util.js";
 
 // Patching
-import { registerZipInitiative } from "./patching.js";
+import { registerActionInitiative } from "./patching.js";
 
 // Settings
 import { registerSettings } from "./settings.js";
@@ -26,7 +26,7 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 
 Hooks.once("init", () => {
   log("Initializing...");
-  registerZipInitiative();
+  registerActionInitiative();
 
   // Set configuration values used internally
   CONFIG[MODULE_ID] = {
@@ -43,6 +43,29 @@ Hooks.once("init", () => {
 Hooks.once("setup", () => {
   registerSettings();
 });
+
+/* DND5e combat initiative dialog
+CombatTracker5e.prototype._onCombatControl (extends CombatTracker)
+--> combatant.actor.rollInitiativeDialog()
+
+Actor5e.prototype.rollInitiativeDialog (extends Actor)
+--> this.getInitiativeRoll(rollOptions)
+--> roll.configureDialog
+
+D20Roll.prototype.configureDialog (extends Roll)
+--> resolves using D20Roll.prototype._onDialogSubmit
+
+Dialog now rendered
+
+Click Normal
+
+Actor5e.prototype.rollInitiative
+--> Hook dnd5e.preRollInitiative
+--> super.rollInitiative
+--> Hook dnd5e.rollInitiative
+
+
+*/
 
 /* Combat Tracker Hooks
 
