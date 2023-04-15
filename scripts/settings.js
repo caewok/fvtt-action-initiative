@@ -187,11 +187,18 @@ class ActionConfigureMenu extends FormApplication {
     const formulae = getSetting(SETTINGS.DICE_FORMULAS);
     const formulaeObj = expandObject(formulae);
     data.basic = formulaeObj.BASIC;
-    data.weaponTypes = formulaeObj.WEAPON_TYPE;
+    data.weaponTypes = formulaeObj.WEAPON_TYPES;
     data.weaponProperties = formulaeObj.WEAPON_PROPERTIES;
     data.spellLevels = formulaeObj.SPELL_LEVELS;
     data.placeholder = FORMULA_DEFAULTS;
     data.placeholder.BonusAction = game.i18n.localize(`${MODULE_ID}.template.settings-config.BonusAction.placeholder`);
+
+    data.localized = {
+      spellLevels: CONFIG.DND5E.spellLevels,
+      weaponTypes: CONFIG.DND5E.weaponTypes,
+      weaponProperties: CONFIG.DND5E.weaponProperties
+    };
+
     return data;
   }
 
