@@ -38,21 +38,36 @@
 
   <div style="display:none" id="actioninitiative-sectionWeaponTypeMelee">
     <br>
-    <h2>Weapon Type: Melee</h2>
+    <h2>Melee Weapons</h2>
 
-    <div class="form-fields">
-      {{ radioBoxes "Melee" localized.meleeWeapons }}
+    {{#each weapons.melee}}
+
+    <div class="flexrow" style="align-items:baseline">
+      <input type="checkbox" name="{{this.id}}"/>
+      <img src="{{this.img}}" width="24" height="24" class="flex0"/>
+      <h4 style="align-self:center"> {{this.name}} </hr>
+
     </div>
+
+    {{/each}}
+
   </div>
 
 
   <div style="display:none" id="actioninitiative-sectionWeaponTypeRanged">
     <br>
-    <h2>Weapon Type: Ranged</h2>
+    <h2>Ranged Weapons</h2>
 
-    <div class="form-fields">
-      {{ radioBoxes "Ranged" localized.rangedWeapons }}
+    {{#each weapons.ranged}}
+
+    <div class="flexrow" style="align-items:center">
+      <input type="checkbox" name="{{this.id}}"/>
+      <h4> {{this.name}} </hr>
+      <img src="{{this.img}}" width="24" height="24" class="flex0" style="align-self:end"/>
     </div>
+
+    {{/each}}
+
   </div>
 
   <div style="display:none" id="actioninitiative-sectionWeaponProperties">

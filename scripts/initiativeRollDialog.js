@@ -19,11 +19,11 @@ import { getSetting, SETTINGS, FORMULA_DEFAULTS } from "./settings.js";
  * @returns {Promise<void>}
  */
 export async function rollInitiativeDialogActor5e(rollOptions = {}) {
-  const test = await configureDialog();
+  const test = await configureDialog(this);
   return this.rollInitiativeDialog(rollOptions);
 }
 
-async function configureDialog() {
+async function configureDialog(actor) {
   const { meleeWeapons, rangedWeapons, spellLevels, weaponTypes, weaponProperties } = CONFIG[MODULE_ID];
 
   const options = {};
@@ -64,6 +64,20 @@ async function configureDialog() {
     spellLevels: Math.ceil(data.spellLevels.length * 0.5)
   }
 
+  // Add weapons
+  data.weapons = {
+    melee: filterMeleeWeapons(actor.items).map(i => {
+      const { id, name, img } = i;
+      return { id, name, img };
+    }),
+
+    ranged: filterRangedWeapons(actor.items).map(i => {
+      const { id, name, img } = i;
+      return { id, name, img };
+    }),
+  }
+
+
   // Disable optional sections
   data.weaponTypeMeleeDisabled = true;
   data.weaponTypeRangedDisabled = false;
@@ -77,7 +91,7 @@ async function configureDialog() {
   });
 
   const content = await renderTemplate(`modules/${MODULE_ID}/templates/combatant.html`, data);
-  const modes = CONFIG.DND5E.dice.D20Roll.ADV_MODE;
+  const modes = dnd5e.dice.D20Roll.ADV_MODE;
 
   return new Promise(resolve => {
     new ActionInitDialog({
@@ -154,7 +168,7 @@ function meleeAttackFormula(params) {
  * @param {EmbeddedCollection[Item]} items     Items to filter
  * @returns {Item[]} Array of weapons.
  */
-function filterMeleeWeapons(actor) {
+function filterMeleeWeapons(items) {
   const { weaponTypeProperty, meleeWeapons } = CONFIG[MODULE_ID];
   return items.filter(i => {
     if ( i.type !== "weapon" ) return;
@@ -168,7 +182,7 @@ function filterMeleeWeapons(actor) {
  * @param {EmbeddedCollection[Item]} items    Items to filter
  * @returns {Item[]} Array of weapons.
  */
-function filterRangedWeapons(actor) {
+function filterRangedWeapons(items) {
   const { weaponTypeProperty, rangedWeapons, canThrowWeapon } = CONFIG[MODULE_ID];
   return items.filter(i => {
     if ( i.type !== "weapon" ) return;
