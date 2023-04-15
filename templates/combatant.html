@@ -1,3 +1,15 @@
+<style>
+
+.row {
+  display: flex;
+}
+
+.column {
+  flex: 50%;
+}
+
+</style>
+
 <form class="flexcol">
 
   <p>{{localize "actioninitiative.template.combatant.intro"}}</p>
@@ -26,7 +38,11 @@
 
   <h2>Weapon Properties</h2>
 
+  <div class="row">
+  <div class="column">
+
   {{#each weaponProperties}}
+
 
   <div class="form-fields">
     <input type="checkbox" name="{{this}}" />
@@ -34,6 +50,9 @@
   </div>
 
   {{/each}}
+  </div>
+
+  <div class="column">
 
   <h2>Spell Levels</h2>
 
@@ -46,4 +65,8 @@
 
   {{/each}}
 
+  </div>
+  </div>
+
 </form>
+
