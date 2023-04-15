@@ -30,12 +30,20 @@
 
       <h2> {{localize "actioninitiative.phrases.BasicVariant"}} </h2>
 
-      <div class="form-group">
-        <label> {{localize "actioninitiative.phrases.RangedAttack"}} </label>
-        <div class="form-fields">
-          <input type="text" id="basic.RangedAttack" name="basic.RangedAttack" value="{{basic.RangedAttack}}" placeholder="{{placeholder.BASIC.RangedAttack}}" >
+      {{#each basic as |basicType basicKey|}}
+
+        <br>
+        {{lookup placeholder [basicKey]}}
+        <br>
+
+        <div class="form-group">
+          <label> {{localize (concat "actioninitiative.phrases." basicKey)}} </label>
+          <div class="form-fields">
+            <input type="text" name="{{concat 'basic.' basicKey}}" value="{{basicType}}" placeholder="{{lookup ../placeholder.BASIC basicKey}}">
+          </div>
         </div>
-      </div>
+
+      {{/each}}
 
       <p class="hint">Input a valid dice formula (or numeric value) for each type. Combatants will select their
       appropriate action(s) from these categories when rolling initiative. Delete to return to default.
