@@ -64,7 +64,7 @@ function expand(obj) {
 }
 
 function dnd5eDefaultWeaponProperties() {
-  const keys = Object.keys(CONFIG.DND5E.weaponProperties).join(",");
+  const keys = Object.keys(CONFIG[MODULE_ID].weaponProperties).join(",");
   const props = expand({[`${keys}`]: "0"});
 
   // Set some of the defaults
@@ -78,7 +78,7 @@ function dnd5eDefaultWeaponProperties() {
 }
 
 function dnd5eDefaultWeaponTypes() {
-  const keys = Object.keys(CONFIG.DND5E.weaponTypes).join(",");
+  const keys = Object.keys(CONFIG[MODULE_ID].weaponTypes).join(",");
   const props = expand({[`${keys}`]: "0"});
 
   // Set some of the defaults
@@ -96,7 +96,7 @@ function dnd5eDefaultSpellLevels() {
   // Each spell level is 1d10 + spell_level
   // Take advantage of fact that DND5e keys spell levels by number
   const props = {}
-  for ( const key of Object.keys(CONFIG.DND5E.spellLevels) ) {
+  for ( const key of Object.keys(CONFIG[MODULE_ID].spellLevels) ) {
     props[key] = `1d10 + ${key}`;
   }
   return props;
