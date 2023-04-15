@@ -38,13 +38,33 @@ async function configureDialog() {
     spellLevels: Object.keys(FORMULA_DEFAULTS.SPELL_LEVELS)
   };
 
+  // Organize actions into specific order
+  data.actions = [
+    "CastSpell",
+    "MeleeAttack",
+    "RangedAttack",
+    "OtherAction",
+
+    "Movement",
+    "SwapGear",
+    "SurprisePenalty"
+  ];
+
   data.localized = {
     spellLevels: CONFIG.DND5E.spellLevels,
     meleeWeapons: {},
     rangedWeapons: {},
     weaponTypes: CONFIG.DND5E.weaponTypes,
-    weaponProperties: CONFIG.DND5E.weaponProperties
+    weaponProperties: CONFIG.DND5E.weaponProperties,
+    spellLevels: CONFIG.DND5E.spellLevels
   };
+
+  // Add column splits
+  data.splits = {
+    actions: Math.ceil(data.actions.length * 0.5),
+    weaponProperties: Math.ceil(data.weaponProperties.length * 0.5),
+    spellLevels: Math.ceil(data.spellLevels.length * 0.5)
+  }
 
   Object.keys(dnd.weaponTypes).forEach(wpn => {
     if ( meleeWeapons.has(wpn) ) data.localized.meleeWeapons[wpn] = dnd.weaponTypes[wpn];

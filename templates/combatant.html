@@ -12,9 +12,19 @@
 
 <form class="flexcol">
 
+  <h2>Actions</h2>
+
   <p>{{localize "actioninitiative.template.combatant.intro"}}</p>
 
+  <div class="row">
+  <div class="column">
+
   {{#each actions}}
+
+  {{#if (eq @index ../splits.actions) }}
+  </div>
+  <div class="column">
+  {{/if}}
 
   <div class="form-fields">
     <input type="checkbox" name="{{this}}" />
@@ -23,19 +33,24 @@
 
   {{/each}}
 
+  </div>
+  </div>
+
+  <br>
   <h2>Weapon Type: Melee</h2>
 
   <div class="form-fields">
     {{ radioBoxes "Melee" localized.meleeWeapons }}
   </div>
 
-
+  <br>
   <h2>Weapon Type: Ranged</h2>
 
   <div class="form-fields">
     {{ radioBoxes "Ranged" localized.rangedWeapons }}
   </div>
 
+  <br>
   <h2>Weapon Properties</h2>
 
   <div class="row">
@@ -43,6 +58,10 @@
 
   {{#each weaponProperties}}
 
+  {{#if (eq @index ../splits.weaponProperties) }}
+  </div>
+  <div class="column">
+  {{/if}}
 
   <div class="form-fields">
     <input type="checkbox" name="{{this}}" />
@@ -50,23 +69,19 @@
   </div>
 
   {{/each}}
+
+  </div>
   </div>
 
-  <div class="column">
-
-  <h2>Spell Levels</h2>
-
-  {{#each spellLevels}}
+  <br>
+  <h2>Spell Level</h2>
 
   <div class="form-fields">
-    <input type="checkbox" name="{{this}}" />
-    <label> {{ lookup ../localized.spellLevels this }} </label>
+    {{ radioBoxes "spellLevels" localized.spellLevels }}
   </div>
 
-  {{/each}}
 
-  </div>
-  </div>
+  <br><br>
 
 </form>
 
