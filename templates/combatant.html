@@ -27,7 +27,7 @@
   {{/if}}
 
   <div class="form-fields">
-    <input type="checkbox" name="{{this}}" />
+    <input type="checkbox" name="{{this}}" id="actioninitiative-actionCheckbox" />
     <label> {{ localize (concat "actioninitiative.phrases." this) }} </label>
   </div>
 
@@ -36,48 +36,58 @@
   </div>
   </div>
 
-  <br>
-  <h2>Weapon Type: Melee</h2>
+  <div style="display:none" id="actioninitiative-sectionWeaponTypeMelee">
+    <br>
+    <h2>Weapon Type: Melee</h2>
 
-  <div class="form-fields">
-    {{ radioBoxes "Melee" localized.meleeWeapons }}
+    <div class="form-fields">
+      {{ radioBoxes "Melee" localized.meleeWeapons }}
+    </div>
   </div>
 
-  <br>
-  <h2>Weapon Type: Ranged</h2>
 
-  <div class="form-fields">
-    {{ radioBoxes "Ranged" localized.rangedWeapons }}
+  <div style="display:none" id="actioninitiative-sectionWeaponTypeRanged">
+    <br>
+    <h2>Weapon Type: Ranged</h2>
+
+    <div class="form-fields">
+      {{ radioBoxes "Ranged" localized.rangedWeapons }}
+    </div>
   </div>
 
-  <br>
-  <h2>Weapon Properties</h2>
+  <div style="display:none" id="actioninitiative-sectionWeaponProperties">
 
-  <div class="row">
-  <div class="column">
+    <br>
+    <h2>Weapon Properties</h2>
 
-  {{#each weaponProperties}}
+    <div class="row">
+    <div class="column">
 
-  {{#if (eq @index ../splits.weaponProperties) }}
+    {{#each weaponProperties}}
+
+    {{#if (eq @index ../splits.weaponProperties) }}
+    </div>
+    <div class="column">
+    {{/if}}
+
+    <div class="form-fields">
+      <input type="checkbox" name="{{this}}" />
+      <label> {{ lookup ../localized.weaponProperties this }} </label>
+    </div>
+
+    {{/each}}
+
+    </div>
+    </div>
   </div>
-  <div class="column">
-  {{/if}}
 
-  <div class="form-fields">
-    <input type="checkbox" name="{{this}}" />
-    <label> {{ lookup ../localized.weaponProperties this }} </label>
-  </div>
+  <div style="display:none" id="actioninitiative-sectionSpellLevel">
+    <br>
+    <h2>Spell Level</h2>
 
-  {{/each}}
-
-  </div>
-  </div>
-
-  <br>
-  <h2>Spell Level</h2>
-
-  <div class="form-fields">
-    {{ radioBoxes "spellLevels" localized.spellLevels }}
+    <div class="form-fields">
+      {{ radioBoxes "spellLevels" localized.spellLevels }}
+    </div>
   </div>
 
 

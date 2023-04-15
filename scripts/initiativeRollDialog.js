@@ -66,6 +66,10 @@ async function configureDialog() {
     spellLevels: Math.ceil(data.spellLevels.length * 0.5)
   }
 
+  // Disable optional sections
+  data.weaponTypeMeleeDisabled = true;
+  data.weaponTypeRangedDisabled = false;
+
   Object.keys(dnd.weaponTypes).forEach(wpn => {
     if ( meleeWeapons.has(wpn) ) data.localized.meleeWeapons[wpn] = dnd.weaponTypes[wpn];
   });
@@ -78,7 +82,7 @@ async function configureDialog() {
   const modes = dnd5e.dice.D20Roll.ADV_MODE;
 
   return new Promise(resolve => {
-    new Dialog({
+    new ActionInitDialog({
       title: "Action Initiative",
       content,
       buttons: {
@@ -120,13 +124,50 @@ function onDialogSubmit(html, advantageMode) {
 
 class ActionInitDialog extends Dialog {
 
+  static get defaultOptions() {
+    const opts = super.defaultOptions;
+    opts.height = "auto";
+    return opts;
+  }
+
   /**
    * Activate additional listeners to display/hide spell levels and weapon properties
    */
   activateListeners(html) {
-    html.find("#actioninitiative.melee");
+    super.activateListeners(html);
+    html.on("change", "#actioninitiative-actionCheckbox", this._actionChanged.bind(this))
   }
 
+  _actionChanged(event) {
+    console.log("Action changed", event);
+
+    let id;
+    let propsId;
+    switch ( event.target.name ) {
+      case "MeleeAttack": {
+        id = "actioninitiative-sectionWeaponTypeMelee";
+        propsId = "actioninitiative-sectionWeaponProperties";
+        break;
+      }
+
+      case "RangedAttack": {
+        id = "actioninitiative-sectionWeaponTypeRanged";
+        propsId = "actioninitiative-sectionWeaponProperties";
+        break;
+      }
+
+      case "CastSpell": {
+        id = "actioninitiative-sectionSpellLevel";
+        break;
+      }
+    }
+
+    const elem = document.getElementById(id);
+    if ( elem ) elem.style.display = event.target.checked ? "block" : "none";
+
+    const secondary = document.getElementById(propsId);
+    if ( secondary ) secondary.style.display = event.target.checked ? "block" : "none";
+  }
 }
 
 

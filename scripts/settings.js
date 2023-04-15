@@ -167,10 +167,10 @@ class ActionConfigureMenu extends FormApplication {
   /** @override */
   static get defaultOptions() {
     const opts = super.defaultOptions;
-    opts.template = "modules/actioninitiative/templates/settings-config.html"
-    opts.height = "auto",
-    opts.width = 600,
-    opts.classes = [MODULE_ID, "settings"],
+    opts.template = "modules/actioninitiative/templates/settings-config.html";
+    opts.height = "auto";
+    opts.width = 600;
+    opts.classes = [MODULE_ID, "settings"];
     opts.tabs = [
       {
         navSelector: ".tabs",
@@ -178,7 +178,7 @@ class ActionConfigureMenu extends FormApplication {
         initial: "basic"
       }
     ];
-    opts.submitOnClose = false
+    opts.submitOnClose = false;
     return opts;
   }
 
