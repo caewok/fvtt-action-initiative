@@ -24,8 +24,7 @@ export async function rollInitiativeDialogActor5e(rollOptions = {}) {
 }
 
 async function configureDialog() {
-  const dnd = CONFIG.DND5E;
-  const { meleeWeapons, rangedWeapons } = CONFIG[MODULE_ID];
+  const { meleeWeapons, rangedWeapons, spellLevels, weaponTypes, weaponProperties } = CONFIG[MODULE_ID];
 
   const options = {};
   const data = {
@@ -51,12 +50,11 @@ async function configureDialog() {
   ];
 
   data.localized = {
-    spellLevels: CONFIG.DND5E.spellLevels,
+    spellLevels: CONFIG[MODULE_ID].spellLevels,
     meleeWeapons: {},
     rangedWeapons: {},
-    weaponTypes: CONFIG.DND5E.weaponTypes,
-    weaponProperties: CONFIG.DND5E.weaponProperties,
-    spellLevels: CONFIG.DND5E.spellLevels
+    weaponTypes: CONFIG[MODULE_ID].weaponTypes,
+    weaponProperties: CONFIG[MODULE_ID].weaponProperties
   };
 
   // Add column splits
@@ -70,16 +68,16 @@ async function configureDialog() {
   data.weaponTypeMeleeDisabled = true;
   data.weaponTypeRangedDisabled = false;
 
-  Object.keys(dnd.weaponTypes).forEach(wpn => {
-    if ( meleeWeapons.has(wpn) ) data.localized.meleeWeapons[wpn] = dnd.weaponTypes[wpn];
+  Object.keys(weaponTypes).forEach(wpn => {
+    if ( meleeWeapons.has(wpn) ) data.localized.meleeWeapons[wpn] = weaponTypes[wpn];
   });
 
-  Object.keys(dnd.weaponTypes).forEach(wpn => {
-    if ( rangedWeapons.has(wpn) ) data.localized.rangedWeapons[wpn] = dnd.weaponTypes[wpn];
+  Object.keys(weaponTypes).forEach(wpn => {
+    if ( rangedWeapons.has(wpn) ) data.localized.rangedWeapons[wpn] = weaponTypes[wpn];
   });
 
   const content = await renderTemplate(`modules/${MODULE_ID}/templates/combatant.html`, data);
-  const modes = dnd5e.dice.D20Roll.ADV_MODE;
+  const modes = CONFIG.DND5E.dice.D20Roll.ADV_MODE;
 
   return new Promise(resolve => {
     new ActionInitDialog({
@@ -112,15 +110,73 @@ function onDialogSubmit(html, advantageMode) {
   const diceFormulas = getSetting(SETTINGS.DICE_FORMULAS);
 
   let formula = [];
-  data.forEach((value, key) => {
+  data.object.forEach((value, key) => {
     if ( !value ) return;
-    const f = diceFormulas.BASIC[key] ?? FORMULA_DEFAULTS[key];
-    formula.push(f);
+
+    switch ( value ) {
+      case "MeleeAttack": {
+        formula.push(meleeAttackFormula(data.object));
+        break;
+      }
+    }
+
   });
 
 
   return advantageMode;
 }
+
+
+function meleeAttackFormula(params) {
+  const { KEY, TYPES } = SETTINGS.VARIANTS;
+  const diceFormulas = getSetting(SETTINGS.DICE_FORMULAS);
+
+  const variant = getSetting(KEY);
+  switch ( variant ) {
+    case TYPES.BASIC: {
+      return diceFormulas.BASIC.MeleeAttack ?? FORMULA_DEFAULTS.MeleeAttack;
+    }
+    case TYPES.WEAPON_SPEED: {
+
+    }
+
+    case TYPES.WEAPON_TYPES: {
+
+    }
+
+
+
+  }
+}
+
+/**
+ * Filter an actor's time for melee weapons.
+ * @param {EmbeddedCollection[Item]} items     Items to filter
+ * @returns {Item[]} Array of weapons.
+ */
+function filterMeleeWeapons(actor) {
+  const { weaponTypeProperty, meleeWeapons } = CONFIG[MODULE_ID];
+  return items.filter(i => {
+    if ( i.type !== "weapon" ) return;
+    const type = foundry.utils.getProperty(i, weaponTypeProperty);
+    return meleeWeapons.has(type);
+  });
+}
+
+/**
+ * Filter an actor's time for ranged or thrown weapons.
+ * @param {EmbeddedCollection[Item]} items    Items to filter
+ * @returns {Item[]} Array of weapons.
+ */
+function filterRangedWeapons(actor) {
+  const { weaponTypeProperty, rangedWeapons, canThrowWeapon } = CONFIG[MODULE_ID];
+  return items.filter(i => {
+    if ( i.type !== "weapon" ) return;
+    const type = foundry.utils.getProperty(i, weaponTypeProperty);
+    return canThrowWeapon(i) || rangedWeapons.has(type);
+  });
+}
+
 
 class ActionInitDialog extends Dialog {
 
