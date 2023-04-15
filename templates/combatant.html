@@ -1,0 +1,49 @@
+<form class="flexcol">
+
+  <p>{{localize "actioninitiative.template.combatant.intro"}}</p>
+
+  {{#each actions}}
+
+  <div class="form-fields">
+    <input type="checkbox" name="{{this}}" />
+    <label> {{ localize (concat "actioninitiative.phrases." this) }} </label>
+  </div>
+
+  {{/each}}
+
+  <h2>Weapon Type: Melee</h2>
+
+  <div class="form-fields">
+    {{ radioBoxes "Melee" localized.meleeWeapons }}
+  </div>
+
+
+  <h2>Weapon Type: Ranged</h2>
+
+  <div class="form-fields">
+    {{ radioBoxes "Ranged" localized.rangedWeapons }}
+  </div>
+
+  <h2>Weapon Properties</h2>
+
+  {{#each weaponProperties}}
+
+  <div class="form-fields">
+    <input type="checkbox" name="{{this}}" />
+    <label> {{ lookup ../localized.weaponProperties this }} </label>
+  </div>
+
+  {{/each}}
+
+  <h2>Spell Levels</h2>
+
+  {{#each spellLevels}}
+
+  <div class="form-fields">
+    <input type="checkbox" name="{{this}}" />
+    <label> {{ lookup ../localized.spellLevels this }} </label>
+  </div>
+
+  {{/each}}
+
+</form>

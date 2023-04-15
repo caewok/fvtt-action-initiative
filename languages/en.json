@@ -14,6 +14,8 @@
   "actioninitiative.template.settings-config.tabs.weapons": "Weapons",
   "actioninitiative.template.settings-config.tabs.spell-levels": "Spell Levels",
 
+  "actioninitiative.template.combatant.intro": "Select one or more actions.",
+
   "actioninitiative.phrases.BasicVariant": "Basic Variant",
   "actioninitiative.phrases.RangedAttack": "Ranged Attack",
   "actioninitiative.phrases.MeleeAttack": "Melee Attack",

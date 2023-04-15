@@ -31,11 +31,27 @@ Hooks.once("init", () => {
   // Set configuration values used internally
   CONFIG[MODULE_ID] = {
     /**
-     * Maximum number of seconds to wait before timing out of the rollNPCs due to
-     * players not yet rolling. If this value is 0 or less, it will never time out.
-     * @type {number}
+     * Melee weapon categories
+     * @type {string[]}
      */
-    maxSeconds: 15
+    meleeWeapons: new Set([
+      "simpleM",
+      "martialM",
+      "natural",
+      "improv"
+    ]),
+
+    /**
+     * Melee weapon categories
+     * @type {string[]}
+     */
+    rangedWeapons: new Set([
+      "simpleR",
+      "martialR",
+      "natural",
+      "improv",
+      "siege"
+    ])
   }
 
 });
