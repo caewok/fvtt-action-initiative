@@ -212,19 +212,16 @@ class ActionInitDialog extends Dialog {
     console.log("Action changed", event);
 
     let elem;
-    let secondary;
     switch ( event.target.name ) {
       case "MeleeAttack": {
         if ( getSetting(SETTINGS.VARIANTS.KEY) !== SETTINGS.VARIANTS.TYPES.WEAPON_TYPE ) break;
         elem = document.getElementById("actioninitiative-sectionWeaponTypeMelee");
-        secondary = document.getElementById("actioninitiative-sectionWeaponProperties");
         break;
       }
 
       case "RangedAttack": {
         if ( getSetting(SETTINGS.VARIANTS.KEY) !== SETTINGS.VARIANTS.TYPES.WEAPON_TYPE ) break;
         elem = document.getElementById("actioninitiative-sectionWeaponTypeRanged");
-        secondary = document.getElementById("actioninitiative-sectionWeaponProperties");
         break;
       }
 
@@ -236,7 +233,6 @@ class ActionInitDialog extends Dialog {
     }
 
     if ( elem ) elem.style.display = event.target.checked ? "block" : "none";
-    if ( secondary ) secondary.style.display = event.target.checked ? "block" : "none";
   }
 }
 

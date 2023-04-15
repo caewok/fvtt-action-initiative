@@ -70,31 +70,6 @@
 
   </div>
 
-  <div style="display:none" id="actioninitiative-sectionWeaponProperties">
-
-    <br>
-    <h2>Weapon Properties</h2>
-
-    <div class="row">
-    <div class="column">
-
-    {{#each weaponProperties}}
-
-    {{#if (eq @index ../splits.weaponProperties) }}
-    </div>
-    <div class="column">
-    {{/if}}
-
-    <div class="form-fields">
-      <input type="checkbox" name="{{this}}" />
-      <label> {{ lookup ../localized.weaponProperties this }} </label>
-    </div>
-
-    {{/each}}
-
-    </div>
-    </div>
-  </div>
 
   <div style="display:none" id="actioninitiative-sectionSpellLevel">
     <br>
