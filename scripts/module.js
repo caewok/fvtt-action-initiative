@@ -51,7 +51,43 @@ Hooks.once("init", () => {
       "natural",
       "improv",
       "siege"
-    ])
+    ]),
+
+    /**
+     * Properties of weapons.
+     * An object with key:name for each. Names are assumed to be localized.
+     * @type {object}
+     */
+    weaponProperties: CONFIG.DND5E.weaponProperties,
+
+    /**
+     * Types of weapons.
+     * An object with key:name for each. Names are assumed to be localized.
+     * @type {object}
+     */
+    weaponTypes: CONFIG.DND5E.weaponTypes,
+
+    /**
+     * Spell levels
+     * An object with key:name for each. Names are assumed to be localized.
+
+     * @type {object}
+     */
+    spellLevels: CONFIG.DND5E.spellLevels,
+
+    /**
+     * In items, where to find the weapon type. (See meleeWeapons and rangedWeapons for types.)
+     * @type {string}
+     */
+    weaponTypeProperty: "system.weaponType",
+
+    /**
+     * Callback to determine if a weapon can be thrown.
+     * Thrown weapons are listed as both melee and ranged.
+     * @type {function}
+     */
+    canThrowWeapon: i => i.system.properties.thr
+
   }
 
 });
