@@ -11,15 +11,23 @@
   "actioninitiative.settings.spell-levels.Hint": "When enabled, combatant must select the spell level they intend to cast.",
 
   "actioninitiative.template.settings-config.tabs.basic": "Basic",
-  "actioninitiative.template.settings-config.tabs.weapon-damage": "Weapon Damage",
-  "actioninitiative.template.settings-config.tabs.weapon-type": "Weapon Type",
+  "actioninitiative.template.settings-config.tabs.weapons": "Weapons",
   "actioninitiative.template.settings-config.tabs.spell-levels": "Spell Levels",
 
+  "actioninitiative.template.combatant.intro": "Select one or more actions.",
+
   "actioninitiative.phrases.BasicVariant": "Basic Variant",
-  "actioninitiative.phrases.Ranged": "Ranged",
-  "actioninitiative.phrases.Melee": "Melee",
+  "actioninitiative.phrases.RangedAttack": "Ranged Attack",
+  "actioninitiative.phrases.MeleeAttack": "Melee Attack",
   "actioninitiative.phrases.SwapGear": "Swap Gear",
   "actioninitiative.phrases.CastSpell": "Cast a Spell",
   "actioninitiative.phrases.OtherAction": "Other Action",
-  "actioninitiative.phrases.SurprisePenalty": "Surprise Penalty"
+  "actioninitiative.phrases.BonusAction": "Bonus Action",
+  "actioninitiative.phrases.Movement": "Movement",
+  "actioninitiative.phrases.SurprisePenalty": "Surprise Penalty",
+
+  "actioninitiative.phrases.WeaponTypes": "Weapon Types",
+  "actioninitiative.phrases.WeaponProperties": "Weapon Properties",
+
+  "actioninitiative.template.settings-config.BonusAction.placeholder": "Leave blank if combatant should select die roll."
 }

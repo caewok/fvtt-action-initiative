@@ -8,7 +8,7 @@ import { MODULE_ID } from "./const.js";
 import { log } from "./util.js";
 
 // Patching
-import { registerZipInitiative } from "./patching.js";
+import { registerActionInitiative } from "./patching.js";
 
 // Settings
 import { registerSettings } from "./settings.js";
@@ -26,16 +26,32 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 
 Hooks.once("init", () => {
   log("Initializing...");
-  registerZipInitiative();
+  registerActionInitiative();
 
   // Set configuration values used internally
   CONFIG[MODULE_ID] = {
     /**
-     * Maximum number of seconds to wait before timing out of the rollNPCs due to
-     * players not yet rolling. If this value is 0 or less, it will never time out.
-     * @type {number}
+     * Melee weapon categories
+     * @type {string[]}
      */
-    maxSeconds: 15
+    meleeWeapons: new Set([
+      "simpleM",
+      "martialM",
+      "natural",
+      "improv"
+    ]),
+
+    /**
+     * Melee weapon categories
+     * @type {string[]}
+     */
+    rangedWeapons: new Set([
+      "simpleR",
+      "martialR",
+      "natural",
+      "improv",
+      "siege"
+    ])
   }
 
 });
@@ -43,6 +59,29 @@ Hooks.once("init", () => {
 Hooks.once("setup", () => {
   registerSettings();
 });
+
+/* DND5e combat initiative dialog
+CombatTracker5e.prototype._onCombatControl (extends CombatTracker)
+--> combatant.actor.rollInitiativeDialog()
+
+Actor5e.prototype.rollInitiativeDialog (extends Actor)
+--> this.getInitiativeRoll(rollOptions)
+--> roll.configureDialog
+
+D20Roll.prototype.configureDialog (extends Roll)
+--> resolves using D20Roll.prototype._onDialogSubmit
+
+Dialog now rendered
+
+Click Normal
+
+Actor5e.prototype.rollInitiative
+--> Hook dnd5e.preRollInitiative
+--> super.rollInitiative
+--> Hook dnd5e.rollInitiative
+
+
+*/
 
 /* Combat Tracker Hooks
 

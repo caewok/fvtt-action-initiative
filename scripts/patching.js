@@ -9,7 +9,7 @@ canvas
 
 import { MODULE_ID } from "./const.js";
 import { _sortCombatantsCombat, rollAllCombat, rollNPCCombat } from "./combat.js";
-
+import { rollInitiativeDialogActor5e } from "./initiativeRollDialog.js";
 
 /**
  * Helper to wrap methods.
@@ -28,8 +28,10 @@ function override(method, fn) { libWrapper.register(MODULE_ID, method, fn, libWr
 /**
  * Register libWrapper patches for this module.
  */
-export function registerZipInitiative() {
+export function registerActionInitiative() {
   override("Combat.prototype._sortCombatants", _sortCombatantsCombat);
   override("Combat.prototype.rollAll", rollAllCombat);
   override("Combat.prototype.rollNPC", rollNPCCombat);
+
+  override("dnd5e.documents.Actor5e.prototype.rollInitiativeDialog", rollInitiativeDialogActor5e);
 }
