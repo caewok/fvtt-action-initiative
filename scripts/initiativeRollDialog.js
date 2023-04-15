@@ -141,31 +141,31 @@ class ActionInitDialog extends Dialog {
   _actionChanged(event) {
     console.log("Action changed", event);
 
-    let id;
-    let propsId;
+    let elem;
+    let secondary;
     switch ( event.target.name ) {
       case "MeleeAttack": {
-        id = "actioninitiative-sectionWeaponTypeMelee";
-        propsId = "actioninitiative-sectionWeaponProperties";
+        if ( getSetting(SETTINGS.VARIANTS.KEY) !== SETTINGS.VARIANTS.TYPES.WEAPON_TYPE ) break;
+        elem = document.getElementById("actioninitiative-sectionWeaponTypeMelee");
+        secondary = document.getElementById("actioninitiative-sectionWeaponProperties");
         break;
       }
 
       case "RangedAttack": {
-        id = "actioninitiative-sectionWeaponTypeRanged";
-        propsId = "actioninitiative-sectionWeaponProperties";
+        if ( getSetting(SETTINGS.VARIANTS.KEY) !== SETTINGS.VARIANTS.TYPES.WEAPON_TYPE ) break;
+        elem = document.getElementById("actioninitiative-sectionWeaponTypeRanged");
+        secondary = document.getElementById("actioninitiative-sectionWeaponProperties");
         break;
       }
 
       case "CastSpell": {
-        id = "actioninitiative-sectionSpellLevel";
+        if ( !getSetting(SETTINGS.SPELL_LEVELS) ) break;
+        elem = document.getElementById("actioninitiative-sectionSpellLevel");
         break;
       }
     }
 
-    const elem = document.getElementById(id);
     if ( elem ) elem.style.display = event.target.checked ? "block" : "none";
-
-    const secondary = document.getElementById(propsId);
     if ( secondary ) secondary.style.display = event.target.checked ? "block" : "none";
   }
 }
