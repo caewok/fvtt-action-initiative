@@ -11,7 +11,7 @@ import { log } from "./util.js";
 import { registerActionInitiative } from "./patching.js";
 
 // Settings
-import { registerSettings } from "./settings.js";
+import { registerSettings, FORMULA_DEFAULTS } from "./settings.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";
@@ -28,8 +28,12 @@ Hooks.once("init", () => {
   log("Initializing...");
   registerActionInitiative();
 
+
+
   // Set configuration values used internally
   CONFIG[MODULE_ID] = {
+    FORMULA_DEFAULTS: FORMULA_DEFAULTS,
+
     /**
      * Melee weapon categories
      * @type {string[]}
@@ -79,7 +83,21 @@ Hooks.once("init", () => {
      * In items, where to find the weapon type. (See meleeWeapons and rangedWeapons for types.)
      * @type {string}
      */
-    weaponTypeProperty: "system.weaponType",
+    weaponTypeKey: "system.weaponType",
+
+    /**
+     * In items, where to find the weapon properties.
+     * @type {string}
+     */
+    weaponPropertiesKey: "system.properties",
+
+    /**
+     * In items, where to find the weapon damage formula.
+     * The first term of this string may be used as the formula for purposes of initiative,
+     * if the Weapon Damage variant is selected.
+     * @type {string}
+     */
+    weaponDamageKey: "labels.damage",
 
     /**
      * Callback to determine if a weapon can be thrown.

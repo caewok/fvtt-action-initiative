@@ -43,7 +43,7 @@
     {{#each weapons.melee}}
 
     <div class="flexrow" style="align-items:baseline">
-      <input type="checkbox" name="{{this.id}}"/>
+      <input type="checkbox" name="{{concat 'meleeWeapon.' this.id}}"/>
       <img src="{{this.img}}" width="24" height="24" class="flex0"/>
       <h4 style="align-self:center"> {{this.name}} </hr>
 
@@ -61,7 +61,7 @@
     {{#each weapons.ranged}}
 
     <div class="flexrow" style="align-items:center">
-      <input type="checkbox" name="{{this.id}}"/>
+      <input type="checkbox" name="{{concat 'rangeWeapon.' this.id}}"/>
       <h4> {{this.name}} </hr>
       <img src="{{this.img}}" width="24" height="24" class="flex0" style="align-self:end"/>
     </div>
