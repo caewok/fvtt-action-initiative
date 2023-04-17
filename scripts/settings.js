@@ -1,5 +1,12 @@
 /* globals
-game
+game,
+getProperty,
+CONFIG,
+FormApplication,
+expandObject,
+flattenObject,
+Roll,
+ui
 */
 
 "use strict";
@@ -13,7 +20,7 @@ export const SETTINGS = {
     KEY: "variants",
     TYPES: {
       BASIC: "variant-basic",
-      WEAPON_SPEED: "variant-weapon-speed",
+      WEAPON_DAMAGE: "variant-weapon-damage",
       WEAPON_TYPE: "variant-weapon-type"
     }
   },
@@ -24,6 +31,35 @@ export const SETTINGS = {
   DICE_FORMULAS: "dice-formulas"
 };
 
+/* Dice Formulas
+
+User configured:
+- "": Use the default.
+- "0": Ignore; do not use or (for basic) present to user
+- "value": use this formula value
+- (config ?? "0") || def
+
+def = "2d4"
+config = ""
+==> "2d4"
+
+config = "0"
+==> "0"
+
+config = "1d4"
+==> "1d4"
+
+
+Each dice formula should be set to null if not defined, and "0" if not
+*/
+
+export function getDiceValueForProperty(prop) {
+  const diceFormulas = getSetting(SETTINGS.DICE_FORMULAS);
+  return getDiceValue(getProperty(diceFormulas, prop), getProperty(FORMULA_DEFAULTS, prop));
+}
+
+function getDiceValue(config, fallback) { return (config ?? "0") || fallback; }
+
 
 export const FORMULA_DEFAULTS = {
   BASIC: {
@@ -33,14 +69,15 @@ export const FORMULA_DEFAULTS = {
     OtherAction: "1d6",
     RangedAttack: "1d4",
     SurprisePenalty: "+10",
-    SwapGear: "1d6"
+    SwapGear: "1d6",
+    BonusAction: ""
   },
 
   // Added dynamically
   WEAPON_TYPES: {},
   WEAPON_PROPERTIES: {},
   SPELL_LEVELS: {}
-}
+};
 
 /**
  * Take an object with key(s) separated by commas in the name, and
@@ -52,33 +89,33 @@ export const FORMULA_DEFAULTS = {
  * expand({ "thanksgiving day, thanksgiving, t-day": 1});
  */
 function expand(obj) {
-    var keys = Object.keys(obj);
-    for (var i = 0; i < keys.length; ++i) {
-        var key = keys[i],
-            subkeys = key.split(/,\s?/),
-            target = obj[key];
-        delete obj[key];
-        subkeys.forEach(function(key) { obj[key] = target; })
-    }
-    return obj;
+  const keys = Object.keys(obj);
+  for (let i = 0; i < keys.length; ++i) {
+    const key = keys[i];
+    const subkeys = key.split(/,\s?/);
+    const target = obj[key];
+    delete obj[key];
+    subkeys.forEach(function(key) { obj[key] = target; });
+  }
+  return obj;
 }
 
 function dnd5eDefaultWeaponProperties() {
-  const keys = Object.keys(CONFIG.DND5E.weaponProperties).join(",");
+  const keys = Object.keys(CONFIG[MODULE_ID].weaponProperties).join(",");
   const props = expand({[`${keys}`]: "0"});
 
   // Set some of the defaults
-  props.fin = "-1";
-  props.hvy = "+2";
-  props.lod = "1d4";
-  props.thr = "-1";
-  props.two = "1d4";
+  props.fin = "-1"; // Finesse
+  props.hvy = "+2"; // Heavy
+  props.lod = "1d4"; // Loading
+  props.two = "1d4"; // Two-handed
+  props.amm = "+1"; // Ammunition
 
   return props;
 }
 
 function dnd5eDefaultWeaponTypes() {
-  const keys = Object.keys(CONFIG.DND5E.weaponTypes).join(",");
+  const keys = Object.keys(CONFIG[MODULE_ID].weaponTypes).join(",");
   const props = expand({[`${keys}`]: "0"});
 
   // Set some of the defaults
@@ -95,8 +132,8 @@ function dnd5eDefaultWeaponTypes() {
 function dnd5eDefaultSpellLevels() {
   // Each spell level is 1d10 + spell_level
   // Take advantage of fact that DND5e keys spell levels by number
-  const props = {}
-  for ( const key of Object.keys(CONFIG.DND5E.spellLevels) ) {
+  const props = {};
+  for ( const key of Object.keys(CONFIG[MODULE_ID].spellLevels) ) {
     props[key] = `1d10 + ${key}`;
   }
   return props;
@@ -120,7 +157,7 @@ export function registerSettings() {
   game.settings.registerMenu(MODULE_ID, SETTINGS.CONFIGURE_MENU, {
     name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.CONFIGURE_MENU}.Name`),
     hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.CONFIGURE_MENU}.Hint`),
-    label:  game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.CONFIGURE_MENU}.Label`),
+    label: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.CONFIGURE_MENU}.Label`),
     icon: "fa-solid fa-gears",
     type: ActionConfigureMenu,
     restricted: true
@@ -135,7 +172,7 @@ export function registerSettings() {
     type: String,
     choices: {
       [VARIANT.BASIC]: game.i18n.localize(`${MODULE_ID}.settings.${VARIANT.BASIC}`),
-      [VARIANT.WEAPON_SPEED]: game.i18n.localize(`${MODULE_ID}.settings.${VARIANT.WEAPON_SPEED}`),
+      [VARIANT.WEAPON_DAMAGE]: game.i18n.localize(`${MODULE_ID}.settings.${VARIANT.WEAPON_DAMAGE}`),
       [VARIANT.WEAPON_TYPE]: game.i18n.localize(`${MODULE_ID}.settings.${VARIANT.WEAPON_TYPE}`)
     },
     default: VARIANT.BASIC
@@ -203,21 +240,16 @@ class ActionConfigureMenu extends FormApplication {
   }
 
   async _updateObject(_, formData) {
-    const toUpdate = Object.entries(formData).filter(([key, formula]) => {
-      if ( formula === "" ) return false;
-      if ( !Roll.validate(formula) ) {
-        ui.notifications.warn("Die formula for ${key} is not valid.");
-        return false;
+    const diceFormulas = getSetting(SETTINGS.DICE_FORMULAS);
+    Object.entries(formData).forEach(([key, formula]) => {
+      if ( formula !== "" && !Roll.validate(formula) ) {
+        ui.notifications.warn(`Die formula for ${key} is not valid.`);
+        return;
       }
-      return true;
+
+      diceFormulas[key] = formula;
     });
 
-    if ( !toUpdate.length ) return;
-
-    const diceFormulas = getSetting(SETTINGS.DICE_FORMULAS)
-    for ( const [key, formula] of toUpdate ) {
-      diceFormulas[key] = formula;
-    }
-    setSetting(SETTINGS.DICE_FORMULAS, diceFormulas);
+    await setSetting(SETTINGS.DICE_FORMULAS, diceFormulas);
   }
 }

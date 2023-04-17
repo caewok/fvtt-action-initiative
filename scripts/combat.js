@@ -82,7 +82,7 @@ export async function rollNPCCombat(options={}) {
  * @returns {number} The sort order.
  */
 export function _sortCombatantsCombat(a, b) {
-
+  const ia = Number.isNumeric(a.initiative) ? a.initiative : -Infinity;
+  const ib = Number.isNumeric(b.initiative) ? b.initiative : -Infinity;
+  return (ia - ib) || a.token.name.localeCompare(b.token.name) || (a.id > b.id ? 1 : -1);
 }
-
-

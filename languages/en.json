@@ -2,7 +2,7 @@
   "actioninitiative.settings.variants.Name": "Weapon Variants",
   "actioninitiative.settings.variants.Hint": "Basic: melee/ranged/cast/other; Weapon Speed: Use weapon damage die; Weapon Type: Use weapon properties (e.g., light, heavy)",
   "actioninitiative.settings.variant-basic": "Basic",
-  "actioninitiative.settings.variant-weapon-speed": "Weapon Speed",
+  "actioninitiative.settings.variant-weapon-damage": "Weapon Damage",
   "actioninitiative.settings.variant-weapon-type": "Weapon Type",
   "actioninitiative.settings.configure-menu.Name": "Advanced Configuration",
   "actioninitiative.settings.configure-menu.Hint": "Configure specific die combinations used for the variants. Options will vary based on choices here.",
