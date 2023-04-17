@@ -148,7 +148,7 @@ function onDialogSubmit(html, advantageMode, actor) {
 
   // Combine the parts
   const f = formula.join("+");
-  const fClean = dnd5e.dice.simplifyRollFormula(f);
+  const fClean = dnd5e.dice.simplifyRollFormula(f) || "0";
 
   // Construct die roll using actor data
   const roll = new Roll(fClean, actor);
