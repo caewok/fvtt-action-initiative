@@ -127,6 +127,22 @@ function preCreateChatMessageHook(document, data, options, userId) {
   document.updateSource({ flavor: data.flavor });
 }
 
+Hooks.on("renderCombatTracker", renderCombatTrackerHook);
+
+function renderCombatTrackerHook(app, html, data) {
+  // Each combatant that has rolled will have a ".initiative" class
+  const elems = html.find(".initiative");
+
+  let i = 0
+  data.turns.forEach(turn => {
+    if ( !turn.hasRolled || i >= elems.length ) return;
+    const c = game.combat.combatants.get(turn.id);
+    const summary = c._actionInitiativeSelectionSummary("combatTrackerTooltip");
+    elems[i].setAttribute("data-tooltip", summary);
+    i += 1;
+  });
+}
+
 /*
 elems = document.getElementsByClassName("token-initiative")
 elem = elems[11]
