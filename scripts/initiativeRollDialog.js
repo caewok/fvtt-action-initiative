@@ -396,9 +396,9 @@ function weaponTypeFormula(weapon) {
 function castSpellFormula(params) {
   if ( !getSetting(SETTINGS.SPELL_LEVELS) ) return getDiceValueForProperty("BASIC.CastSpell");
 
-  const spellLevels = new Set(CONFIG[MODULE_ID].spellLevels);
-  const chosenLevel = Object.entries(params).find(([key, value]) => value && spellLevels.has(key));
-  return getDiceValueForProperty(`SPELL_LEVELS.${chosenLevel}`);
+  const spellLevels = new Set(Object.keys(CONFIG[MODULE_ID].spellLevels));
+  const chosenLevel = Object.entries(params).find(([_key, value]) => value && spellLevels.has(value));
+  return getDiceValueForProperty(`SPELL_LEVELS.${chosenLevel[1]}`);
 }
 
 /**
