@@ -115,12 +115,21 @@ Hooks.once("setup", () => {
 });
 
 /* DND5e combat initiative dialog
+dnd5e.applications.combat.CombatTracker5e
+dnd5e.documents.Actor5e.
+dnd5e.documents.combat.getInitiativeRoll
+
+
+
 CombatTracker5e.prototype._onCombatControl (extends CombatTracker)
 --> combatant.actor.rollInitiativeDialog()
 
 Actor5e.prototype.rollInitiativeDialog (extends Actor)
+(Also called when rolling initiative from the character sheet)
+(Only PCs (linked) can roll initiative from character sheet)
 --> this.getInitiativeRoll(rollOptions)
 --> roll.configureDialog
+--> this.rollInitiative
 
 D20Roll.prototype.configureDialog (extends Roll)
 --> resolves using D20Roll.prototype._onDialogSubmit
@@ -133,6 +142,12 @@ Actor5e.prototype.rollInitiative
 --> Hook dnd5e.preRollInitiative
 --> super.rollInitiative
 --> Hook dnd5e.rollInitiative
+
+Patched version:
+
+rollInitiativeDialog: Create the dialog. Helpful if we had the combatant
+-- basically ignores getInitiativeRoll, configureDialog, and rollInitiative
+-- calls this.rollInitiative.
 
 
 */

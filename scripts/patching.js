@@ -1,15 +1,21 @@
 /* globals
 libWrapper,
-game,
-MeasuredTemplate,
-MeasuredTemplateDocument,
-canvas
+Actor,
+Combatant
 */
 "use strict";
 
 import { MODULE_ID } from "./const.js";
 import { _sortCombatantsCombat, rollAllCombat, rollNPCCombat } from "./combat.js";
-import { rollInitiativeDialogActor5e } from "./initiativeRollDialog.js";
+import {
+  rollInitiativeDialogActor5e,
+  actionInitiativeDialogActor,
+  _actionInitiativeDialogDataActor,
+  calculateActionInitiativeRollActor,
+  calculateActionInitiativeRollCombatant,
+  getActionInitiativeSelectionsActor,
+  setActionInitiativeSelectionsActor } from "./initiativeRollDialog.js";
+
 
 /**
  * Helper to wrap methods.
@@ -34,4 +40,41 @@ export function registerActionInitiative() {
   override("Combat.prototype.rollNPC", rollNPCCombat);
 
   override("dnd5e.documents.Actor5e.prototype.rollInitiativeDialog", rollInitiativeDialogActor5e);
+
+  // New methods
+  Object.defineProperty(Actor.prototype, "actionInitiativeDialog", {
+    value: actionInitiativeDialogActor,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(Actor.prototype, "_actionInitiativeDialogData", {
+    value: _actionInitiativeDialogDataActor,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(Actor.prototype, "calculateActionInitiativeRoll", {
+    value: calculateActionInitiativeRollActor,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(Combatant.prototype, "calculateActionInitiativeRoll", {
+    value: calculateActionInitiativeRollCombatant,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(Actor.prototype, "getActionInitiativeSelections", {
+    value: getActionInitiativeSelectionsActor,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(Actor.prototype, "setActionInitiativeSelections", {
+    value: setActionInitiativeSelectionsActor,
+    writable: true,
+    configurable: true
+  });
 }
