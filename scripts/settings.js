@@ -54,8 +54,8 @@ Each dice formula should be set to null if not defined, and "0" if not
 */
 
 export function getDiceValueForProperty(prop) {
-  const diceFormulas = getSetting(SETTINGS.DICE_FORMULAS);
-  return getDiceValue(getProperty(diceFormulas, prop), getProperty(FORMULA_DEFAULTS, prop));
+  const diceFormulas = getSetting(SETTINGS.DICE_FORMULAS); // DICE_FORMULAS are flat
+  return getDiceValue(diceFormulas[prop], getProperty(FORMULA_DEFAULTS, prop));
 }
 
 function getDiceValue(config, fallback) { return (config ?? "0") || fallback; }

@@ -16,28 +16,67 @@ foundry
 import { MODULE_ID } from "./const.js";
 import { getSetting, SETTINGS, FORMULA_DEFAULTS, getDiceValueForProperty } from "./settings.js";
 
-
 // TO-DO: Store the prior initiative selection on the actor (or token? or combatant?) to re-use.
 
-/**
- * Override Actor5e.prototype.rollInitiativeDialog
- * @param {object} [rollOptions]    Passed to Actor.getInitiativeRoll
- * @returns {Promise<void>}
- */
-export async function rollInitiativeDialogActor5e(rollOptions = {}) {
-  const roll = await configureDialog(this);
-  if ( !roll ) return; // Closed dialog.
 
-  // Temporarily cache the configured roll and use it to roll initiative for the Actor
-  this._cachedInitiativeRoll = roll;
-  await this.rollInitiative({createCombatants: true});
-  delete this._cachedInitiativeRoll;
+/* Combatant
+New methods on combatant to calculate and store action initiative.
+Store user-selected options in Combatant flags to facilitate initiative on new session.
+
+1. async Combatant.prototype.actionInitiativeDialog
+- Pop up a dialog for the user to select initiative options.
+- stores options to the flag
+
+1.1 Combatant.prototype._actionInitiativeDialogData
+
+2. get Combatant.prototype.actionInitiativeSelections
+- Undefined or the last selections provided by the user. Get the flag from (1)
+- Returns object
+
+2.1 set Combatant.prototype.actionInitiativeSelections
+
+3. Combatant.prototype.calculateActionInitiativeRoll
+- undefined if no selections
+- returns Roll
+
+4. Function or Combatant method to construct initiative dialog?
+
+5. Initiative tooltip for a combatant?
+
+*/
+
+export async function actionInitiativeDialogActor() {
+  const actor = this;
+  const data = actor._actionInitiativeDialogData();
+  const content = await renderTemplate(`modules/${MODULE_ID}/templates/combatant.html`, data);
+  const modes = dnd5e.dice.D20Roll.ADV_MODE;
+  const options = {};
+
+  return new Promise(resolve => {
+    new ActionInitiativeDialog({
+      title: "Action Initiative",
+      content,
+      buttons: {
+        advantage: {
+          label: game.i18n.localize("DND5E.Advantage"),
+          callback: html => resolve(onDialogSubmit(html, modes.ADVANTAGE))
+        },
+        normal: {
+          label: game.i18n.localize("DND5E.Normal"),
+          callback: html => resolve(onDialogSubmit(html, modes.NORMAL))
+        },
+        disadvantage: {
+          label: game.i18n.localize("DND5E.Disadvantage"),
+          callback: html => resolve(onDialogSubmit(html, modes.DISADVANTAGE))
+        }
+      },
+      close: () => resolve(null)
+    }, options).render(true);
+  });
 }
 
-async function configureDialog(actor) {
+export function _actionInitiativeDialogDataActor() {
   const { meleeWeapons, rangedWeapons, weaponTypes } = CONFIG[MODULE_ID];
-
-  const options = {};
   const data = {
     actions: Object.keys(FORMULA_DEFAULTS.BASIC),
     weaponTypes: {
@@ -78,12 +117,12 @@ async function configureDialog(actor) {
 
   // Add weapons
   data.weapons = {
-    melee: filterMeleeWeapons(actor.items).map(i => {
+    melee: filterMeleeWeapons(this.items).map(i => {
       const { id, name, img } = i;
       return { id, name, img };
     }),
 
-    ranged: filterRangedWeapons(actor.items).map(i => {
+    ranged: filterRangedWeapons(this.items).map(i => {
       const { id, name, img } = i;
       return { id, name, img };
     })
@@ -97,41 +136,27 @@ async function configureDialog(actor) {
     if ( rangedWeapons.has(wpn) ) data.localized.rangedWeapons[wpn] = weaponTypes[wpn];
   });
 
-  const content = await renderTemplate(`modules/${MODULE_ID}/templates/combatant.html`, data);
-  const modes = dnd5e.dice.D20Roll.ADV_MODE;
-
-  return new Promise(resolve => {
-    new ActionInitDialog({
-      title: "Action Initiative",
-      content,
-      buttons: {
-        advantage: {
-          label: game.i18n.localize("DND5E.Advantage"),
-          callback: html => resolve(onDialogSubmit(html, modes.ADVANTAGE, actor))
-        },
-        normal: {
-          label: game.i18n.localize("DND5E.Normal"),
-          callback: html => resolve(onDialogSubmit(html, modes.NORMAL, actor))
-        },
-        disadvantage: {
-          label: game.i18n.localize("DND5E.Disadvantage"),
-          callback: html => resolve(onDialogSubmit(html, modes.DISADVANTAGE, actor))
-        }
-      },
-      close: () => resolve(null)
-    }, options).render(true);
-  });
+  return data;
 }
 
-function onDialogSubmit(html, advantageMode, actor) {
-  const form = html[0].querySelector("form");
-  const data = new FormDataExtended(form);
-  const formula = [];
-  const selections = expandObject(data.object);
+export function calculateActionInitiativeRollCombatant() {
+  const lastSelections = this.getFlag(MODULE_ID, "initSelections");
+  return this.actor.calculateActionInitiativeRoll(lastSelections);
+}
+
+export function calculateActionInitiativeRollActor(lastSelections) {
+  lastSelections ??= this.getActionInitiativeSelections();
+  if ( !lastSelections ) return undefined;
+  const selections = expandObject(lastSelections);
+  const actor = this;
 
   // Build the formula parts
+  const formula = [];
   for ( const [key, value] of Object.entries(selections) ) {
-    if ( !value || key === "meleeWeapon" || key === "rangeWeapon" ) continue;
+    if ( !value
+      || key === "meleeWeapon"
+      || key === "rangeWeapon"
+      || key === "advantageMode" ) continue;
 
     switch ( key ) {
       case "MeleeAttack":
@@ -139,7 +164,7 @@ function onDialogSubmit(html, advantageMode, actor) {
         formula.push(attackFormula(selections, actor, key) ?? "0");
         break;
       case "CastSpell":
-        formula.push(castSpellFormula(data.object) ?? "0");
+        formula.push(castSpellFormula(selections) ?? "0");
         break;
       default:
         formula.push(getDiceValueForProperty(`BASIC.${key}`) ?? "0");
@@ -147,23 +172,130 @@ function onDialogSubmit(html, advantageMode, actor) {
   }
 
   // Combine the parts
-  const f = formula.join("+");
-  const fClean = dnd5e.dice.simplifyRollFormula(f);
-
-  // Construct die roll using actor data
-  const roll = new Roll(fClean, actor);
+  let f = formula.join("+");
 
   // Drop/increase highest die based on advantage
-  switch ( advantageMode ) {
-    case dnd5e.dice.D20Roll.ADV_MODE.ADVANTAGE:
-      shrinkLargestDie(roll);
-      break;
-    case dnd5e.dice.D20Roll.ADV_MODE.DISADVANTAGE:
-      increaseLargestDie(roll);
-      break;
+  const { ADVANTAGE, DISADVANTAGE } = dnd5e.dice.D20Roll.ADV_MODE;
+  const advantageMode = selections.advantageMode;
+  if ( advantageMode === ADVANTAGE || advantageMode === DISADVANTAGE ) {
+    const roll = new Roll(f, actor);
+    if ( advantageMode === ADVANTAGE ) shrinkLargestDie(roll);
+    else increaseLargestDie(roll);
+    f = roll.formula;
   }
 
-  return roll;
+  // Clean the roll last, and re-do
+  // Cannot clean earlier b/c it would screw up the advantage/disadvantage.
+  const fClean = dnd5e.dice.simplifyRollFormula(f) || "";
+
+  // Construct die roll using actor data
+  return new Roll(fClean, actor);
+}
+
+export function _actionInitiativeSelectionSummaryCombatant(type = "chat") {
+  const lastSelections = this.getFlag(MODULE_ID, "initSelections");
+  if ( !lastSelections ) return undefined;
+  const selections = expandObject(lastSelections);
+  const { KEY, TYPES } = SETTINGS.VARIANTS;
+  const variant = getSetting(KEY);
+  const modes = dnd5e.dice.D20Roll.ADV_MODE;
+
+  const actions = [];
+  const weapons = [];
+  let spellLevel;
+  let advantage;
+  for ( const [key, value] of Object.entries(selections) ) {
+    if ( !value
+      || key === "meleeWeapon"
+      || key === "rangeWeapon"
+      || key === "spellLevels") continue;
+
+    switch ( key ) {
+      case "MeleeAttack":
+      case "RangedAttack":
+        actions.push(`${game.i18n.localize(`${MODULE_ID}.phrases.${key}`)}`);
+        if ( variant === TYPES.WEAPON_DAMAGE
+          || variant === TYPES.WEAPON_TYPE ) weapons.push(...filterWeaponsChoices(selections, this.actor, key));
+        break;
+
+      case "CastSpell":
+        actions.push(`${game.i18n.localize(`${MODULE_ID}.phrases.${key}`)}`);
+
+        if ( getSetting(SETTINGS.SPELL_LEVELS) ) {
+          const spellLevels = new Set(Object.keys(CONFIG[MODULE_ID].spellLevels));
+          const chosenLevel = Object.entries(selections).find(([_key, value]) => value && spellLevels.has(value));
+          spellLevel = `${CONFIG[MODULE_ID].spellLevels[chosenLevel[1]]}`;
+        }
+        break;
+
+      case "advantageMode":
+        advantage = value === modes.ADVANTAGE
+          ? advantage = `${game.i18n.localize("DND5E.Advantage")}` : value === modes.DISADVANTAGE
+            ? advantage = `${game.i18n.localize("DND5E.Disadvantage")}` : undefined;
+        break;
+
+      default:
+        actions.push(`${game.i18n.localize(`${MODULE_ID}.phrases.${key}`)}`);
+    }
+  }
+
+  let text = `<br><b>Actions:</b> ${actions.join(", ")}`;
+  if ( weapons.length ) {
+    const weaponNames = weapons.map(w => w.name);
+    text += `<br><b>Weapons:</b> ${weaponNames.join(", ")}`;
+  }
+  if ( spellLevel ) text += `<br><b>Maximum Spell Level:</b> ${spellLevel}`;
+  if ( advantage ) text += `<br><em>${advantage}</em>`;
+
+  return text;
+}
+
+export function getActionInitiativeSelectionsActor() {
+  const combatants = getCombatantsForActor(this);
+  if ( !combatants.length ) return undefined;
+  return combatants[0].getFlag(MODULE_ID, "initSelections");
+}
+
+export async function setActionInitiativeSelectionsActor(selections) {
+  const combatants = getCombatantsForActor(this);
+  if ( !combatants.length ) return;
+  for ( const c of combatants ) {
+    await c.setFlag(MODULE_ID, "initSelections", selections);
+  }
+}
+
+function getCombatantsForActor(actor) {
+  return actor.isToken ? actor.getActiveTokens(false, true).reduce((arr, t) => {
+    const combatant = game.combat.getCombatantByToken(t.id);
+    if ( combatant ) arr.push(combatant);
+    return arr;
+  }, []) : [game.combat.getCombatantByActor(actor.id)];
+}
+
+
+/**
+ * Override Actor5e.prototype.rollInitiativeDialog
+ * @param {object} [rollOptions]    Passed to Actor.getInitiativeRoll
+ * @returns {Promise<void>}
+ */
+export async function rollInitiativeDialogActor5e(rollOptions = {}) {
+  const selections = await this.actionInitiativeDialog(this);
+  if ( !selections ) return; // Closed dialog.
+
+  await this.setActionInitiativeSelections(selections);
+  const roll = this.calculateActionInitiativeRoll(selections);
+
+  // Temporarily cache the configured roll and use it to roll initiative for the Actor
+  this._cachedInitiativeRoll = roll;
+  await this.rollInitiative({createCombatants: true});
+  delete this._cachedInitiativeRoll;
+}
+
+function onDialogSubmit(html, advantageMode) {
+  const form = html[0].querySelector("form");
+  const data = new FormDataExtended(form);
+  data.object.advantageMode = advantageMode;
+  return data.object;
 }
 
 /**
@@ -212,7 +344,7 @@ function increaseLargestDie(roll) {
   else if ( f >= 8 ) largestTerm.faces = 12;
   else if ( f >= 6 ) largestTerm.faces = 8;
   else if ( f >= 4 ) largestTerm.faces = 6;
-  else if ( f >= 3 ) largestTerm.faces = 4
+  else if ( f >= 3 ) largestTerm.faces = 4;
   else largestTerm.faces = 3;
 
   roll._formula = roll.formula; // Odd, but the getter reconstructs the formula from the terms.
@@ -322,9 +454,9 @@ function weaponTypeFormula(weapon) {
 function castSpellFormula(params) {
   if ( !getSetting(SETTINGS.SPELL_LEVELS) ) return getDiceValueForProperty("BASIC.CastSpell");
 
-  const spellLevels = new Set(CONFIG[MODULE_ID].spellLevels);
-  const chosenLevel = Object.entries(params).find(([key, value]) => value && spellLevels.has(key));
-  return getDiceValueForProperty(`SPELL_LEVELS.${chosenLevel}`);
+  const spellLevels = new Set(Object.keys(CONFIG[MODULE_ID].spellLevels));
+  const chosenLevel = Object.entries(params).find(([_key, value]) => value && spellLevels.has(value));
+  return getDiceValueForProperty(`SPELL_LEVELS.${chosenLevel[1]}`);
 }
 
 /**
@@ -356,7 +488,7 @@ function filterRangedWeapons(items) {
 }
 
 
-class ActionInitDialog extends Dialog {
+class ActionInitiativeDialog extends Dialog {
 
   static get defaultOptions() {
     const opts = super.defaultOptions;
@@ -399,5 +531,3 @@ class ActionInitDialog extends Dialog {
     if ( elem ) elem.style.display = event.target.checked ? "block" : "none";
   }
 }
-
-

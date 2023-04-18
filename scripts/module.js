@@ -114,13 +114,45 @@ Hooks.once("setup", () => {
   registerSettings();
 });
 
+
+Hooks.on("preCreateChatMessage", preCreateChatMessageHook);
+
+function preCreateChatMessageHook(document, data, options, userId) {
+  if ( !document.getFlag("core", "initiativeRoll") ) return;
+
+  const actorId = data.speaker.actor;
+  const c = game.combat.getCombatantByActor(actorId);
+  const summary = c._actionInitiativeSelectionSummary("chat");
+  data.flavor += summary;
+  document.updateSource({ flavor: data.flavor });
+}
+
+/*
+elems = document.getElementsByClassName("token-initiative")
+elem = elems[11]
+parent = elem.parentElement
+
+game.tooltip.activate(elem, ({text: "My tooltip"}))
+game.tooltip.deactivate()
+
+*/
+
 /* DND5e combat initiative dialog
+dnd5e.applications.combat.CombatTracker5e
+dnd5e.documents.Actor5e.
+dnd5e.documents.combat.getInitiativeRoll
+
+
+
 CombatTracker5e.prototype._onCombatControl (extends CombatTracker)
 --> combatant.actor.rollInitiativeDialog()
 
 Actor5e.prototype.rollInitiativeDialog (extends Actor)
+(Also called when rolling initiative from the character sheet)
+(Only PCs (linked) can roll initiative from character sheet)
 --> this.getInitiativeRoll(rollOptions)
 --> roll.configureDialog
+--> this.rollInitiative
 
 D20Roll.prototype.configureDialog (extends Roll)
 --> resolves using D20Roll.prototype._onDialogSubmit
@@ -133,6 +165,12 @@ Actor5e.prototype.rollInitiative
 --> Hook dnd5e.preRollInitiative
 --> super.rollInitiative
 --> Hook dnd5e.rollInitiative
+
+Patched version:
+
+rollInitiativeDialog: Create the dialog. Helpful if we had the combatant
+-- basically ignores getInitiativeRoll, configureDialog, and rollInitiative
+-- calls this.rollInitiative.
 
 
 */
