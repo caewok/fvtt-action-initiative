@@ -192,6 +192,64 @@ export function calculateActionInitiativeRollActor(lastSelections) {
   return new Roll(fClean, actor);
 }
 
+export function _actionInitiativeSelectionSummaryCombatant(type = "chat") {
+  const lastSelections = this.getFlag(MODULE_ID, "initSelections");
+  if ( !lastSelections ) return undefined;
+  const selections = expandObject(lastSelections);
+  const { KEY, TYPES } = SETTINGS.VARIANTS;
+  const variant = getSetting(KEY);
+  const modes = dnd5e.dice.D20Roll.ADV_MODE;
+
+  const actions = [];
+  const weapons = [];
+  let spellLevel;
+  let advantage;
+  for ( const [key, value] of Object.entries(selections) ) {
+    if ( !value
+      || key === "meleeWeapon"
+      || key === "rangeWeapon"
+      || key === "spellLevels") continue;
+
+    switch ( key ) {
+      case "MeleeAttack":
+      case "RangedAttack":
+        actions.push(`${game.i18n.localize(`${MODULE_ID}.phrases.${key}`)}`);
+        if ( variant === TYPES.WEAPON_DAMAGE
+          || variant === TYPES.WEAPON_TYPE ) weapons.push(...filterWeaponsChoices(selections, this.actor, key));
+        break;
+
+      case "CastSpell":
+        actions.push(`${game.i18n.localize(`${MODULE_ID}.phrases.${key}`)}`);
+
+        if ( getSetting(SETTINGS.SPELL_LEVELS) ) {
+          const spellLevels = new Set(Object.keys(CONFIG[MODULE_ID].spellLevels));
+          const chosenLevel = Object.entries(selections).find(([_key, value]) => value && spellLevels.has(value));
+          spellLevel = `${CONFIG[MODULE_ID].spellLevels[chosenLevel[1]]}`;
+        }
+        break;
+
+      case "advantageMode":
+        advantage = value === modes.ADVANTAGE
+          ? advantage = `${game.i18n.localize("DND5E.Advantage")}` : value === modes.DISADVANTAGE
+            ? advantage = `${game.i18n.localize("DND5E.Disadvantage")}` : undefined;
+        break;
+
+      default:
+        actions.push(`${game.i18n.localize(`${MODULE_ID}.phrases.${key}`)}`);
+    }
+  }
+
+  let text = `<br><b>Actions:</b> ${actions.join(", ")}`;
+  if ( weapons.length ) {
+    const weaponNames = weapons.map(w => w.name);
+    text += `<br><b>Weapons:</b> ${weaponNames.join(", ")}`;
+  }
+  if ( spellLevel ) text += `<br><b>Maximum Spell Level:</b> ${spellLevel}`;
+  if ( advantage ) text += `<br><em>${advantage}</em>`;
+
+  return text;
+}
+
 export function getActionInitiativeSelectionsActor() {
   const combatants = getCombatantsForActor(this);
   if ( !combatants.length ) return undefined;

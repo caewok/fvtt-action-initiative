@@ -114,6 +114,19 @@ Hooks.once("setup", () => {
   registerSettings();
 });
 
+
+Hooks.on("preCreateChatMessage", preCreateChatMessageHook);
+
+function preCreateChatMessageHook(document, data, options, userId) {
+  if ( !document.getFlag("core", "initiativeRoll") ) return;
+
+  const actorId = data.speaker.actor;
+  const c = game.combat.getCombatantByActor(actorId);
+  const summary = c._actionInitiativeSelectionSummary("chat");
+  data.flavor += summary;
+  document.updateSource({ flavor: data.flavor });
+}
+
 /* DND5e combat initiative dialog
 dnd5e.applications.combat.CombatTracker5e
 dnd5e.documents.Actor5e.

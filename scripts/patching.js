@@ -14,7 +14,8 @@ import {
   calculateActionInitiativeRollActor,
   calculateActionInitiativeRollCombatant,
   getActionInitiativeSelectionsActor,
-  setActionInitiativeSelectionsActor } from "./initiativeRollDialog.js";
+  setActionInitiativeSelectionsActor,
+  _actionInitiativeSelectionSummaryCombatant } from "./initiativeRollDialog.js";
 
 
 /**
@@ -62,6 +63,12 @@ export function registerActionInitiative() {
 
   Object.defineProperty(Combatant.prototype, "calculateActionInitiativeRoll", {
     value: calculateActionInitiativeRollCombatant,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(Combatant.prototype, "_actionInitiativeSelectionSummary", {
+    value: _actionInitiativeSelectionSummaryCombatant,
     writable: true,
     configurable: true
   });
