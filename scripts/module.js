@@ -127,6 +127,16 @@ function preCreateChatMessageHook(document, data, options, userId) {
   document.updateSource({ flavor: data.flavor });
 }
 
+/*
+elems = document.getElementsByClassName("token-initiative")
+elem = elems[11]
+parent = elem.parentElement
+
+game.tooltip.activate(elem, ({text: "My tooltip"}))
+game.tooltip.deactivate()
+
+*/
+
 /* DND5e combat initiative dialog
 dnd5e.applications.combat.CombatTracker5e
 dnd5e.documents.Actor5e.
