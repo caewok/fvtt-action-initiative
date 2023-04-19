@@ -9,6 +9,7 @@ import { log } from "./util.js";
 
 // Patching
 import { registerActionInitiative } from "./patching.js";
+import { CombatTrackerActionInitiative } from "./CombatTracker.js";
 
 // Settings
 import { registerSettings, FORMULA_DEFAULTS } from "./settings.js";
@@ -28,7 +29,7 @@ Hooks.once("init", () => {
   log("Initializing...");
   registerActionInitiative();
 
-
+  CONFIG.ui.combat = CombatTrackerActionInitiative;
 
   // Set configuration values used internally
   CONFIG[MODULE_ID] = {

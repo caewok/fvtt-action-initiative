@@ -58,40 +58,41 @@ export async function actionInitiativeDialogActor({ advantageMode } = {}) {
   const modes = dnd5e.dice.D20Roll.ADV_MODE;
   const options = {};
 
-  const advantage = {
-    label: game.i18n.localize("DND5E.Advantage"),
-    callback: html => resolve(onDialogSubmit(html, modes.ADVANTAGE))
-  };
-
-  const normal = {
-    label: game.i18n.localize("DND5E.Normal"),
-    callback: html => resolve(onDialogSubmit(html, modes.NORMAL))
-  };
-
-  const disadvantage = {
-    label: game.i18n.localize("DND5E.Disadvantage"),
-    callback: html => resolve(onDialogSubmit(html, modes.DISADVANTAGE))
-  };
-
-  // If a specific advantage mode applies, use only that button. Otherwise, give user the choice.
-  const buttons = {};
-  switch ( advantageMode ) {
-    case modes.ADVANTAGE:
-      buttons.advantage = advantage;
-      break;
-    case modes.DISADVANTAGE:
-      buttons.disadvantage = disadvantage;
-      break;
-    case modes.NORMAL:
-      buttons.normal = normal;
-      break;
-    default:
-      buttons.advantage = advantage;
-      buttons.normal = normal;
-      buttons.disadvantage = disadvantage;
-  }
-
   return new Promise(resolve => {
+
+    const advantage = {
+      label: game.i18n.localize("DND5E.Advantage"),
+      callback: html => resolve(onDialogSubmit(html, modes.ADVANTAGE))
+    };
+
+    const normal = {
+      label: game.i18n.localize("DND5E.Normal"),
+      callback: html => resolve(onDialogSubmit(html, modes.NORMAL))
+    };
+
+    const disadvantage = {
+      label: game.i18n.localize("DND5E.Disadvantage"),
+      callback: html => resolve(onDialogSubmit(html, modes.DISADVANTAGE))
+    };
+
+    // If a specific advantage mode applies, use only that button. Otherwise, give user the choice.
+    const buttons = {};
+    switch ( advantageMode ) {
+      case modes.ADVANTAGE:
+        buttons.advantage = advantage;
+        break;
+      case modes.DISADVANTAGE:
+        buttons.disadvantage = disadvantage;
+        break;
+      case modes.NORMAL:
+        buttons.normal = normal;
+        break;
+      default:
+        buttons.advantage = advantage;
+        buttons.normal = normal;
+        buttons.disadvantage = disadvantage;
+    }
+
     new ActionInitiativeDialog({
       title: "Action Initiative",
       content,
@@ -223,7 +224,6 @@ export function getInitiativeRollCombatant(formula) {
   return new Roll(formula, this.actor);
 }
 
-
 export function _actionInitiativeSelectionSummaryCombatant(type = "chat") {
   const lastSelections = this.getFlag(MODULE_ID, "initSelections");
   if ( !lastSelections ) return undefined;
@@ -316,11 +316,10 @@ function getCombatantsForActor(actor) {
  * Override Actor5e.prototype.rollInitiativeDialog
  * @param {object} [rollOptions]
  * @param {D20Roll.ADV_MODE} [options.advantageMode]    A specific advantage mode to apply
- * @param {string} [options.flavor]                     Special flavor text to apply
  * @param {string} [options.combatantId]                Id of the combatant chosen
  * @returns {Promise<void>}
  */
-export async function rollInitiativeDialogActor5e({advantageMode, flavor, combatantId} = {}) {
+export async function rollInitiativeDialogActor5e({advantageMode, combatantId} = {}) {
   const selections = await this.actionInitiativeDialog(this, { advantageMode });
   if ( !selections ) return; // Closed dialog.
 
@@ -338,11 +337,11 @@ export async function rollInitiativeDialogActor5e({advantageMode, flavor, combat
  * If limiting to actor id, then use only combatant id for the active tokens of the actor.
  * This means synthetic tokens will be rolled separately.
  */
-export async function rollInitiativeCombat(wrapped, ids, {formula=null, updateTurn=true, messageOptions={}, activeTokensForId}={}) {
-  if ( !activeTokensForId ) return wrapped(ids, { formula, updateTurn, messageOptions });
+export async function rollInitiativeCombat(wrapped, ids, {formula=null, updateTurn=true, messageOptions={}, combatantId}={}) {
+  if ( !combatantId ) return wrapped(ids, { formula, updateTurn, messageOptions });
 
   // Pull actors from combatants b/c game.actor will not get synthetic actors.
-  const combatant = game.combat.getCombatantByActor(activeTokensForId)
+  const combatant = game.combat.combatants.get(combatantId);
   if ( !combatant || !combatant.actor ) return wrapped( ids, { formula, updateTurn, messageOptions });
 
   // Only use the actor's active tokens for combatant ids.

@@ -101,6 +101,4 @@ export function registerActionInitiative() {
     writable: true,
     configurable: true
   });
-
-
 }
