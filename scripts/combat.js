@@ -53,6 +53,8 @@ async function updateCombatHook(combat, _change, _opts, _id) {
 Hooks.on("combatRound", combatRoundHook);
 
 async function combatRoundHook(combat, _updateData, opts) {
+  if ( opts.direction < 0 ) return;
+  await combat.resetAll();
 }
 
 /**
