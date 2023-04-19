@@ -32,7 +32,8 @@
 
   <div class="form-fields">
     <input type="checkbox" name="{{this}}" id="actioninitiative-actionCheckbox" />
-    <label> {{ localize (concat "actioninitiative.phrases." this) }} </label>
+    <!-- https://ptb.discord.com/channels/170995199584108546/811676497965613117/1098253076089012374 -->
+    <label> {{ localize (lookup (concat "actioninitiative.phrases." this) "string") }} </label>
   </div>
 
 
