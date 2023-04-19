@@ -9,8 +9,8 @@
   "actioninitiative.settings.configure-menu.Label": "Configure",
   "actioninitiative.settings.spell-levels.Name": "Use Spell Levels",
   "actioninitiative.settings.spell-levels.Hint": "When enabled, combatant must select the spell level they intend to cast.",
-  "actioninitiative.settings.group-actors.Name": "Group by Actor"
-  "actioninitiative.settings.group-actors.Hint": "When enabled, combatants that share an actor will roll initiative together, using the same selected actions."
+  "actioninitiative.settings.group-actors.Name": "Group by Actor",
+  "actioninitiative.settings.group-actors.Hint": "When enabled, combatants that share an actor will roll initiative together, using the same selected actions.",
 
   "actioninitiative.template.settings-config.tabs.basic": "Basic",
   "actioninitiative.template.settings-config.tabs.weapons": "Weapons",
