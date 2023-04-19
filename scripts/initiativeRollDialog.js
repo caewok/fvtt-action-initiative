@@ -167,12 +167,12 @@ export function _actionInitiativeDialogDataActor() {
 }
 
 export function calculateActionInitiativeRollCombatant() {
-  const lastSelections = this.getFlag(MODULE_ID, "initSelections");
+  const lastSelections = this.getActionInitiativeSelections();
   return this.actor.calculateActionInitiativeRoll(lastSelections);
 }
 
 export function _getInitiativeFormulaCombatant() {
-  const lastSelections = this.getFlag(MODULE_ID, "initSelections");
+  const lastSelections = this.getActionInitiativeSelections();
   if ( !lastSelections ) return "0";
   const selections = expandObject(lastSelections);
   const actor = this.actor;
@@ -225,7 +225,7 @@ export function getInitiativeRollCombatant(formula) {
 }
 
 export function _actionInitiativeSelectionSummaryCombatant(type = "chat") {
-  const lastSelections = this.getFlag(MODULE_ID, "initSelections");
+  const lastSelections = this.getActionInitiativeSelections();
   if ( !lastSelections ) return undefined;
   const selections = expandObject(lastSelections);
   const { KEY, TYPES } = SETTINGS.VARIANTS;
@@ -294,22 +294,29 @@ export async function setActionInitiativeSelectionsCombatant(selections) {
 }
 
 export function getActionInitiativeSelectionsActor() {
-  const combatants = getCombatantsForActor(this);
-  if ( !combatants.length ) return undefined;
-  return combatants[0].actionInitiativeSelections;
+  return combatants.map(c => {
+    return { [c.id]: c.getActionInitiativeSelections() };
+  });
 }
 
-export async function setActionInitiativeSelectionsActor(selections) {
+export async function setActionInitiativeSelectionsActor(selections, { combatantId } = {}) {
+  if ( !getSetting(SETTINGS.GROUP_ACTORS) && !combatantId ) {
+    console.error("setActionInitiativeSelectionsActor requires combatant id when GROUP_ACTORS is disabled.");
+  }
+
   const combatants = getCombatantsForActor(this);
   if ( !combatants.length ) return;
+
+  if ( combatantId ) {
+    return await combatants.find(c => c.id === combatantId).setActionInitiativeSelections(selections);
+  }
+
   const promises = combatants.map(c => c.setActionInitiativeSelections(selections));
   await Promise.all(promises);
 }
 
 function getCombatantsForActor(actor) {
-  const groupActors = getSetting(SETTINGS.GROUP_ACTORS);
-  if ( groupActors ) game.combat.combatants.filter(c => c.actor.id === actor.id);
-  return [game.combat.getCombatantByToken(actor.token.id)];
+  return game.combat.combatants.filter(c => c.actor.id === actor.id);
 }
 
 /**
@@ -323,12 +330,12 @@ export async function rollInitiativeDialogActor5e({advantageMode, combatantId} =
   const selections = await this.actionInitiativeDialog(this, { advantageMode });
   if ( !selections ) return; // Closed dialog.
 
+  // Set initiative for either only active tokens or all
+  if ( getSetting(SETTINGS.GROUP_ACTORS) ) combatantId = undefined;
+
   // Retrieve the action choices made by the user for this actor.
   // Ultimate tied to the combatant that represents the actor.
-  await this.setActionInitiativeSelections(selections);
-
-  // Roll initiative for either only active tokens or all
-  const activeTokensForId = getSetting(SETTINGS.GROUP_ACTORS) ? this.id : undefined;
+  await this.setActionInitiativeSelections(selections, { combatantId });
   await this.rollInitiative({createCombatants: true, initiativeOptions: { combatantId }});
 }
 

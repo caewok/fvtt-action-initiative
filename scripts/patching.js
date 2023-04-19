@@ -90,9 +90,9 @@ export function registerActionInitiative() {
     configurable: true
   });
 
-  Object.defineProperty(Combatant.prototype, "actionInitiativeSelections", {
-    get: getActionInitiativeSelectionsCombatant,
-    set: setActionInitiativeSelectionsCombatant,
+  Object.defineProperty(Combatant.prototype, "getActionInitiativeSelections", {
+    value: getActionInitiativeSelectionsCombatant,
+    writable: true,
     configurable: true
   });
 
