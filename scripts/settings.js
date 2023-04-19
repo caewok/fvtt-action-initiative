@@ -27,6 +27,7 @@ export const SETTINGS = {
 
   CONFIGURE_MENU: "configure-menu",
   SPELL_LEVELS: "spell-levels",
+  GROUP_ACTORS: "group-actors",
 
   DICE_FORMULAS: "dice-formulas"
 };
@@ -197,6 +198,15 @@ export function registerSettings() {
     default: defaultDiceFormulaObject(),
     scope: "world",
     config: false
+  });
+
+  game.settings.register(MODULE_ID, SETTINGS.GROUP_ACTORS, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.GROUP_ACTORS}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.GROUP_ACTORS}.Hint`),
+    type: Boolean,
+    default: false,
+    scope: "world",
+    config: true
   });
 }
 
