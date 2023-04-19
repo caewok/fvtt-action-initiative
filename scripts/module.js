@@ -153,6 +153,7 @@ game.tooltip.deactivate()
 
 */
 
+
 /* DND5e combat initiative dialog
 dnd5e.applications.combat.CombatTracker5e
 dnd5e.documents.Actor5e.
@@ -179,7 +180,15 @@ Click Normal
 
 Actor5e.prototype.rollInitiative
 --> Hook dnd5e.preRollInitiative
---> super.rollInitiative
+--> super.rollInitiative (Actor.prototype.rollInitiative)
+    -- optionally add combatants if missing
+    -- collects ids for all applicable combatants
+    -- calls combat.rollInitiative
+
+
+
+
+
 --> Hook dnd5e.rollInitiative
 
 Patched version:
@@ -187,6 +196,35 @@ Patched version:
 rollInitiativeDialog: Create the dialog. Helpful if we had the combatant
 -- basically ignores getInitiativeRoll, configureDialog, and rollInitiative
 -- calls this.rollInitiative.
+
+-------
+Roll Initiative methods
+
+async Combatant.prototype.rollInitiative
+async Actor.prototype.rollInitiative: Roll for all combatants in currently active Combat associated with this actor
+  -- optionally add combatants if missing
+  -- collects ids for all applicable combatants
+  -- calls combat.rollInitiative
+
+async Actor5e.prototype.rollInitiative
+  -- calls super.rollInitiative
+
+async Combat.prototype.rollInitiative
+  -- iterates over each combatant id, rolling for each
+  -- calls combatant.getInitiativeRoll for each, passing the provided formula if any
+  -- publishes the chat message for each (all at once at end)
+  -- updates initiative value for all combatant ids at once
+
+async Combatant.prototype.rollInitiative
+  -- Rolls initiative for particular combatant, calling this.getInitiativeRoll(formula)
+  -- Updates initiative but no message
+
+Combatant.prototype.getInitiativeRoll
+  -- uses formula argument or calls Combatant.prototype._getInitiativeFormula
+  -- Creates roll from formula
+
+
+
 
 
 */

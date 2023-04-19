@@ -144,11 +144,11 @@ export function calculateActionInitiativeRollCombatant() {
   return this.actor.calculateActionInitiativeRoll(lastSelections);
 }
 
-export function calculateActionInitiativeRollActor(lastSelections) {
-  lastSelections ??= this.getActionInitiativeSelections();
-  if ( !lastSelections ) return undefined;
+export function _getInitiativeFormulaCombatant() {
+  const lastSelections = this.getFlag(MODULE_ID, "initSelections");
+  if ( !lastSelections ) return "0";
   const selections = expandObject(lastSelections);
-  const actor = this;
+  const actor = this.actor;
 
   // Build the formula parts
   const formula = [];
@@ -187,9 +187,19 @@ export function calculateActionInitiativeRollActor(lastSelections) {
   // Clean the roll last, and re-do
   // Cannot clean earlier b/c it would screw up the advantage/disadvantage.
   const fClean = dnd5e.dice.simplifyRollFormula(f) || "";
+  return fClean;
+}
 
-  // Construct die roll using actor data
-  return new Roll(fClean, actor);
+
+export function getInitiativeRollCombatant(formula) {
+  // TO-DO: Ignore formula or use it?
+  formula = this._getInitiativeFormula();
+  return new Roll(formula, this.actor);
+}
+
+
+export function calculateActionInitiativeRollActor(lastSelections) {
+
 }
 
 export function _actionInitiativeSelectionSummaryCombatant(type = "chat") {
@@ -250,28 +260,35 @@ export function _actionInitiativeSelectionSummaryCombatant(type = "chat") {
   return text;
 }
 
+// Depending on setting, a combatant may:
+// 1. share its selections with all other combatants that have the same actor
+// 2. have its own selections
+export function getActionInitiativeSelectionsCombatant() {
+  return this.getFlag(MODULE_ID, "initSelections");
+}
+
+export async function setActionInitiativeSelectionsCombatant(selections) {
+  return this.setFlag(MODULE_ID, "initSelections", selections);
+}
+
 export function getActionInitiativeSelectionsActor() {
   const combatants = getCombatantsForActor(this);
   if ( !combatants.length ) return undefined;
-  return combatants[0].getFlag(MODULE_ID, "initSelections");
+  return combatants[0].actionInitiativeSelections;
 }
 
 export async function setActionInitiativeSelectionsActor(selections) {
   const combatants = getCombatantsForActor(this);
   if ( !combatants.length ) return;
-  for ( const c of combatants ) {
-    await c.setFlag(MODULE_ID, "initSelections", selections);
-  }
+  const promises = combatants.map(c => c.setActionInitiativeSelections(selections));
+  await Promise.all(promises);
 }
 
 function getCombatantsForActor(actor) {
-  return actor.isToken ? actor.getActiveTokens(false, true).reduce((arr, t) => {
-    const combatant = game.combat.getCombatantByToken(t.id);
-    if ( combatant ) arr.push(combatant);
-    return arr;
-  }, []) : [game.combat.getCombatantByActor(actor.id)];
+  const groupActors = getSetting(SETTINGS.GROUP_ACTORS);
+  if ( groupActors ) game.combat.combatants.filter(c => c.actor.id === actor.id);
+  return [game.combat.getCombatantByToken(actor.token.id)];
 }
-
 
 /**
  * Override Actor5e.prototype.rollInitiativeDialog
@@ -283,12 +300,7 @@ export async function rollInitiativeDialogActor5e(rollOptions = {}) {
   if ( !selections ) return; // Closed dialog.
 
   await this.setActionInitiativeSelections(selections);
-  const roll = this.calculateActionInitiativeRoll(selections);
-
-  // Temporarily cache the configured roll and use it to roll initiative for the Actor
-  this._cachedInitiativeRoll = roll;
   await this.rollInitiative({createCombatants: true});
-  delete this._cachedInitiativeRoll;
 }
 
 function onDialogSubmit(html, advantageMode) {

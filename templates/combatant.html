@@ -21,17 +21,23 @@
 
   {{#each actions}}
 
+
+
   {{#if (eq @index ../splits.actions) }}
   </div>
   <div class="column">
   {{/if}}
+
+
 
   <div class="form-fields">
     <input type="checkbox" name="{{this}}" id="actioninitiative-actionCheckbox" />
     <label> {{ localize (concat "actioninitiative.phrases." this) }} </label>
   </div>
 
+
   {{/each}}
+
 
   </div>
   </div>
@@ -39,6 +45,7 @@
   <div style="display:none" id="actioninitiative-sectionWeaponTypeMelee">
     <br>
     <h2>Melee Weapons</h2>
+
 
     {{#each weapons.melee}}
 
@@ -51,12 +58,16 @@
 
     {{/each}}
 
+
+
   </div>
 
 
   <div style="display:none" id="actioninitiative-sectionWeaponTypeRanged">
     <br>
     <h2>Ranged Weapons</h2>
+
+
 
     {{#each weapons.ranged}}
 
@@ -68,6 +79,8 @@
 
     {{/each}}
 
+
+
   </div>
 
 
@@ -75,10 +88,17 @@
     <br>
     <h2>Spell Level</h2>
 
+
+
     <div class="form-fields">
       {{ radioBoxes "spellLevels" localized.spellLevels }}
     </div>
+
+
+
   </div>
+
+
 
 
   <br><br>
