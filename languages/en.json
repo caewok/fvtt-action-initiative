@@ -9,8 +9,11 @@
   "actioninitiative.settings.configure-menu.Label": "Configure",
   "actioninitiative.settings.spell-levels.Name": "Use Spell Levels",
   "actioninitiative.settings.spell-levels.Hint": "When enabled, combatant must select the spell level they intend to cast.",
-  "actioninitiative.settings.group-actors.Name": "Group by Actor",
-  "actioninitiative.settings.group-actors.Hint": "When enabled, setting actions for one combatant will use the same actions for all combatants with that same actor id. When disabled, combatants with unlinked actors will request actions separately",
+  "actioninitiative.settings.group-actors.Name": "Default to Group by Actor",
+  "actioninitiative.settings.group-actors.Hint": "When enabled, setting actions for one combatant will use the same actions for all combatants with that same actor id. When disabled, combatants with unlinked actors will request actions separately. You can change also change this using the Combat Tracker configuration.",
+
+  "actioninitiative.CombatTrackerConfig.LegendTitle": "Action Initiative",
+  "actioninitiative.CombatTrackerConfig.groupActors.Name": "Group by Actor",
 
   "actioninitiative.template.settings-config.tabs.basic": "Basic",
   "actioninitiative.template.settings-config.tabs.weapons": "Weapons",

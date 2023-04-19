@@ -24,6 +24,8 @@ import {
 
   rollInitiativeCombat } from "./initiativeRollDialog.js";
 
+import { getDataCombatTrackerConfig, _updateObjectCombatTrackerConfig } from "./render.js";
+
 
 /**
  * Helper to wrap methods.
@@ -52,6 +54,9 @@ export function registerActionInitiative() {
   override("Combatant.prototype.getInitiativeRoll", getInitiativeRollCombatant);
 
   override("dnd5e.documents.Actor5e.prototype.rollInitiativeDialog", rollInitiativeDialogActor5e);
+
+  wrap("CombatTrackerConfig.prototype._updateObject", _updateObjectCombatTrackerConfig);
+  wrap("CombatTrackerConfig.prototype.getData", getDataCombatTrackerConfig);
 
   // New methods
   Object.defineProperty(Actor.prototype, "actionInitiativeDialog", {
