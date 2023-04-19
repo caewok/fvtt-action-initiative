@@ -12,15 +12,17 @@ import {
   getInitiativeRollCombatant,
   getActionInitiativeSelectionsCombatant,
   setActionInitiativeSelectionsCombatant,
+  calculateActionInitiativeRollCombatant,
+   _actionInitiativeSelectionSummaryCombatant,
 
   rollInitiativeDialogActor5e,
+
   actionInitiativeDialogActor,
   _actionInitiativeDialogDataActor,
-  calculateActionInitiativeRollActor,
-  calculateActionInitiativeRollCombatant,
   getActionInitiativeSelectionsActor,
   setActionInitiativeSelectionsActor,
-  _actionInitiativeSelectionSummaryCombatant } from "./initiativeRollDialog.js";
+
+  rollInitiativeCombat } from "./initiativeRollDialog.js";
 
 
 /**
@@ -41,6 +43,7 @@ function override(method, fn) { libWrapper.register(MODULE_ID, method, fn, libWr
  * Register libWrapper patches for this module.
  */
 export function registerActionInitiative() {
+  wrap("Combat.prototype.rollInitiative", rollInitiativeCombat);
   override("Combat.prototype._sortCombatants", _sortCombatantsCombat);
   override("Combat.prototype.rollAll", rollAllCombat);
   override("Combat.prototype.rollNPC", rollNPCCombat);
@@ -59,12 +62,6 @@ export function registerActionInitiative() {
 
   Object.defineProperty(Actor.prototype, "_actionInitiativeDialogData", {
     value: _actionInitiativeDialogDataActor,
-    writable: true,
-    configurable: true
-  });
-
-  Object.defineProperty(Actor.prototype, "calculateActionInitiativeRoll", {
-    value: calculateActionInitiativeRollActor,
     writable: true,
     configurable: true
   });
@@ -93,9 +90,9 @@ export function registerActionInitiative() {
     configurable: true
   });
 
-  Object.defineProperty(Combatant.prototype, "actionInitiativeSelections", {
-    get: getActionInitiativeSelectionsCombatant,
-    set: setActionInitiativeSelectionsCombatant,
+  Object.defineProperty(Combatant.prototype, "getActionInitiativeSelections", {
+    value: getActionInitiativeSelectionsCombatant,
+    writable: true,
     configurable: true
   });
 
@@ -104,6 +101,4 @@ export function registerActionInitiative() {
     writable: true,
     configurable: true
   });
-
-
 }

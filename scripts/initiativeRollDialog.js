@@ -45,7 +45,13 @@ Store user-selected options in Combatant flags to facilitate initiative on new s
 
 */
 
-export async function actionInitiativeDialogActor() {
+/**
+ * Display a dialog so the user can select one or more actions that the combatant will take.
+ * @param {object} [options]                        Options which modify the roll
+ * @param {D20Roll.ADV_MODE} [options.advantageMode]    A specific advantage mode to apply
+ *   If undefined, user will choose.
+ */
+export async function actionInitiativeDialogActor({ advantageMode } = {}) {
   const actor = this;
   const data = actor._actionInitiativeDialogData();
   const content = await renderTemplate(`modules/${MODULE_ID}/templates/combatant.html`, data);
@@ -53,23 +59,44 @@ export async function actionInitiativeDialogActor() {
   const options = {};
 
   return new Promise(resolve => {
+
+    const advantage = {
+      label: game.i18n.localize("DND5E.Advantage"),
+      callback: html => resolve(onDialogSubmit(html, modes.ADVANTAGE))
+    };
+
+    const normal = {
+      label: game.i18n.localize("DND5E.Normal"),
+      callback: html => resolve(onDialogSubmit(html, modes.NORMAL))
+    };
+
+    const disadvantage = {
+      label: game.i18n.localize("DND5E.Disadvantage"),
+      callback: html => resolve(onDialogSubmit(html, modes.DISADVANTAGE))
+    };
+
+    // If a specific advantage mode applies, use only that button. Otherwise, give user the choice.
+    const buttons = {};
+    switch ( advantageMode ) {
+      case modes.ADVANTAGE:
+        buttons.advantage = advantage;
+        break;
+      case modes.DISADVANTAGE:
+        buttons.disadvantage = disadvantage;
+        break;
+      case modes.NORMAL:
+        buttons.normal = normal;
+        break;
+      default:
+        buttons.advantage = advantage;
+        buttons.normal = normal;
+        buttons.disadvantage = disadvantage;
+    }
+
     new ActionInitiativeDialog({
       title: "Action Initiative",
       content,
-      buttons: {
-        advantage: {
-          label: game.i18n.localize("DND5E.Advantage"),
-          callback: html => resolve(onDialogSubmit(html, modes.ADVANTAGE))
-        },
-        normal: {
-          label: game.i18n.localize("DND5E.Normal"),
-          callback: html => resolve(onDialogSubmit(html, modes.NORMAL))
-        },
-        disadvantage: {
-          label: game.i18n.localize("DND5E.Disadvantage"),
-          callback: html => resolve(onDialogSubmit(html, modes.DISADVANTAGE))
-        }
-      },
+      buttons,
       close: () => resolve(null)
     }, options).render(true);
   });
@@ -140,12 +167,12 @@ export function _actionInitiativeDialogDataActor() {
 }
 
 export function calculateActionInitiativeRollCombatant() {
-  const lastSelections = this.getFlag(MODULE_ID, "initSelections");
+  const lastSelections = this.getActionInitiativeSelections();
   return this.actor.calculateActionInitiativeRoll(lastSelections);
 }
 
 export function _getInitiativeFormulaCombatant() {
-  const lastSelections = this.getFlag(MODULE_ID, "initSelections");
+  const lastSelections = this.getActionInitiativeSelections();
   if ( !lastSelections ) return "0";
   const selections = expandObject(lastSelections);
   const actor = this.actor;
@@ -197,13 +224,8 @@ export function getInitiativeRollCombatant(formula) {
   return new Roll(formula, this.actor);
 }
 
-
-export function calculateActionInitiativeRollActor(lastSelections) {
-
-}
-
 export function _actionInitiativeSelectionSummaryCombatant(type = "chat") {
-  const lastSelections = this.getFlag(MODULE_ID, "initSelections");
+  const lastSelections = this.getActionInitiativeSelections();
   if ( !lastSelections ) return undefined;
   const selections = expandObject(lastSelections);
   const { KEY, TYPES } = SETTINGS.VARIANTS;
@@ -268,40 +290,81 @@ export function getActionInitiativeSelectionsCombatant() {
 }
 
 export async function setActionInitiativeSelectionsCombatant(selections) {
-  return this.setFlag(MODULE_ID, "initSelections", selections);
+  return await this.setFlag(MODULE_ID, "initSelections", selections);
 }
 
 export function getActionInitiativeSelectionsActor() {
-  const combatants = getCombatantsForActor(this);
-  if ( !combatants.length ) return undefined;
-  return combatants[0].actionInitiativeSelections;
+  return combatants.map(c => {
+    return { [c.id]: c.getActionInitiativeSelections() };
+  });
 }
 
-export async function setActionInitiativeSelectionsActor(selections) {
+export async function setActionInitiativeSelectionsActor(selections, { combatantId } = {}) {
+  if ( !getSetting(SETTINGS.GROUP_ACTORS) && !combatantId ) {
+    console.error("setActionInitiativeSelectionsActor requires combatant id when GROUP_ACTORS is disabled.");
+  }
+
   const combatants = getCombatantsForActor(this);
   if ( !combatants.length ) return;
+
+  if ( combatantId ) {
+    return await combatants.find(c => c.id === combatantId).setActionInitiativeSelections(selections);
+  }
+
   const promises = combatants.map(c => c.setActionInitiativeSelections(selections));
   await Promise.all(promises);
 }
 
 function getCombatantsForActor(actor) {
-  const groupActors = getSetting(SETTINGS.GROUP_ACTORS);
-  if ( groupActors ) game.combat.combatants.filter(c => c.actor.id === actor.id);
-  return [game.combat.getCombatantByToken(actor.token.id)];
+  return game.combat.combatants.filter(c => c.actor.id === actor.id);
 }
 
 /**
  * Override Actor5e.prototype.rollInitiativeDialog
- * @param {object} [rollOptions]    Passed to Actor.getInitiativeRoll
+ * @param {object} [rollOptions]
+ * @param {D20Roll.ADV_MODE} [options.advantageMode]    A specific advantage mode to apply
+ * @param {string} [options.combatantId]                Id of the combatant chosen
  * @returns {Promise<void>}
  */
-export async function rollInitiativeDialogActor5e(rollOptions = {}) {
-  const selections = await this.actionInitiativeDialog(this);
+export async function rollInitiativeDialogActor5e({advantageMode, combatantId} = {}) {
+  const selections = await this.actionInitiativeDialog(this, { advantageMode });
   if ( !selections ) return; // Closed dialog.
 
-  await this.setActionInitiativeSelections(selections);
-  await this.rollInitiative({createCombatants: true});
+  // Set initiative for either only active tokens or all
+  if ( getSetting(SETTINGS.GROUP_ACTORS) ) combatantId = undefined;
+
+  // Retrieve the action choices made by the user for this actor.
+  // Ultimate tied to the combatant that represents the actor.
+  await this.setActionInitiativeSelections(selections, { combatantId });
+  await this.rollInitiative({createCombatants: true, initiativeOptions: { combatantId }});
 }
+
+/**
+ * Wrap Combat.prototype.rollInitiative
+ * If limiting to actor id, then use only combatant id for the active tokens of the actor.
+ * This means synthetic tokens will be rolled separately.
+ */
+export async function rollInitiativeCombat(wrapped, ids, {formula=null, updateTurn=true, messageOptions={}, combatantId}={}) {
+  if ( !combatantId ) return wrapped(ids, { formula, updateTurn, messageOptions });
+
+  // Pull actors from combatants b/c game.actor will not get synthetic actors.
+  const combatant = game.combat.combatants.get(combatantId);
+  if ( !combatant || !combatant.actor ) return wrapped( ids, { formula, updateTurn, messageOptions });
+
+  // Only use the actor's active tokens for combatant ids.
+  // Only if the combatant is already in ids.
+  const tokens = combatant.actor.getActiveTokens();
+  const oldIds = new Set(ids);
+  ids = [];
+  tokens.forEach(t => {
+    if ( !t.inCombat ) return;
+    const c = game.combat.getCombatantByToken(t.id);
+    if ( oldIds.has(c.id) ) ids.push(c.id);
+  });
+
+  return wrapped(ids, { formula, updateTurn, messageOptions });
+}
+
 
 function onDialogSubmit(html, advantageMode) {
   const form = html[0].querySelector("form");
