@@ -8,6 +8,11 @@ Combatant
 import { MODULE_ID } from "./const.js";
 import { _sortCombatantsCombat, rollAllCombat, rollNPCCombat } from "./combat.js";
 import {
+  _getInitiativeFormulaCombatant,
+  getInitiativeRollCombatant,
+  getActionInitiativeSelectionsCombatant,
+  setActionInitiativeSelectionsCombatant,
+
   rollInitiativeDialogActor5e,
   actionInitiativeDialogActor,
   _actionInitiativeDialogDataActor,
@@ -39,6 +44,9 @@ export function registerActionInitiative() {
   override("Combat.prototype._sortCombatants", _sortCombatantsCombat);
   override("Combat.prototype.rollAll", rollAllCombat);
   override("Combat.prototype.rollNPC", rollNPCCombat);
+
+  override("Combatant.prototype._getInitiativeFormula", _getInitiativeFormulaCombatant);
+  override("Combatant.prototype.getInitiativeRoll", getInitiativeRollCombatant);
 
   override("dnd5e.documents.Actor5e.prototype.rollInitiativeDialog", rollInitiativeDialogActor5e);
 
@@ -84,4 +92,18 @@ export function registerActionInitiative() {
     writable: true,
     configurable: true
   });
+
+  Object.defineProperty(Combatant.prototype, "actionInitiativeSelections", {
+    get: getActionInitiativeSelectionsCombatant,
+    set: setActionInitiativeSelectionsCombatant,
+    configurable: true
+  });
+
+  Object.defineProperty(Combatant.prototype, "setActionInitiativeSelections", {
+    value: setActionInitiativeSelectionsCombatant,
+    writable: true,
+    configurable: true
+  });
+
+
 }
