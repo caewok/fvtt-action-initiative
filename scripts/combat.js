@@ -205,8 +205,12 @@ export class MultipleCombatantConfig extends FormApplication {
 
     this.data.combatants.forEach(c => {
       const elem = document.getElementById(`combatant.${c.id}`);
-      if ( removed.has(c[filterName].toString()) ) elem.checked = false;
-      if ( added.has(c[filterName].toString()) ) elem.checked = true;
+      if ( !c[filterName] ) {
+        if ( removed.has("n/a") ) elem.checked = false;
+        else if ( added.has("n/a") ) elem.checked = true;
+      }
+      else if ( removed.has(c[filterName].toString()) ) elem.checked = false;
+      else if ( added.has(c[filterName].toString()) ) elem.checked = true;
     });
   }
 }
