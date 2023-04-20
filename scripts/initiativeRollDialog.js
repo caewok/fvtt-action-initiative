@@ -102,7 +102,9 @@ export async function actionInitiativeDialogActor({ advantageMode } = {}) {
   });
 }
 
-export function _actionInitiativeDialogDataActor() {
+export function _actionInitiativeDialogDataActor({ items } = {}) {
+  items ??= this.items;
+
   const { meleeWeapons, rangedWeapons, weaponTypes } = CONFIG[MODULE_ID];
   const data = {
     actions: Object.keys(FORMULA_DEFAULTS.BASIC),
@@ -144,12 +146,12 @@ export function _actionInitiativeDialogDataActor() {
 
   // Add weapons
   data.weapons = {
-    melee: filterMeleeWeapons(this.items).map(i => {
+    melee: filterMeleeWeapons(items).map(i => {
       const { id, name, img } = i;
       return { id, name, img };
     }),
 
-    ranged: filterRangedWeapons(this.items).map(i => {
+    ranged: filterRangedWeapons(items).map(i => {
       const { id, name, img } = i;
       return { id, name, img };
     })
@@ -315,7 +317,7 @@ export async function setActionInitiativeSelectionsActor(selections, { combatant
   await Promise.all(promises);
 }
 
-function getCombatantsForActor(actor) {
+export function getCombatantsForActor(actor) {
   return game.combat.combatants.filter(c => c.actor.id === actor.id);
 }
 

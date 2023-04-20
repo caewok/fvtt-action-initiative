@@ -1,0 +1,30 @@
+<form class="flexcol">
+
+  <h2>Filters</h2>
+  <!-- List filters the GM can use to select from combatants below -->
+  {{#each filters as |filterChoices filterKey|}}
+    <h3>{{filterKey}}</h3>
+
+    <select class="filterChoice" name={{concat "filter." filterKey}} multiple>
+      {{selectOptions filterChoices}}
+    </select>
+
+    <br>
+  {{/each}}
+
+  <br>
+  <h2>Combatants</h2>
+  <!-- List the combatants by name, actor name, token image -->
+  {{#each combatants}}
+
+  <div class="flexrow" style="align-items:baseline">
+    <input type="checkbox" id="{{concat 'combatant.' this.id}}" />
+    <img src="{{this.img}}" width="24" height="24" class="flex0"/>
+    <h4 style="align-self:center"> {{this.tokenName}} </h4>
+
+  </div>
+
+  {{/each}}
+
+
+</form>

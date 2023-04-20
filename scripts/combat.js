@@ -88,3 +88,125 @@ export function _sortCombatantsCombat(a, b) {
   const ib = Number.isNumeric(b.initiative) ? b.initiative : -Infinity;
   return (ia - ib) || a.token.name.localeCompare(b.token.name) || (a.id > b.id ? 1 : -1);
 }
+
+/**
+ * Present GM with options to set actions for multiple combatants.
+ */
+async function setMultipleCombatants(ids) {
+  const data = categorizeCombatants(ids);
+
+}
+
+function categorizeCombatants(ids) {
+  // Categorize by preset properties
+  const { filterProperties, filterSets } = CONFIG[MODULE_ID];
+  Object.values(filterSets).forEach(s => s.clear());
+
+  const data = {
+    filters: {},
+    combatants: game.combat.combatants.map(c => {
+      const a = c.actor;
+      const props = {
+        tokenName: c.token.name,
+        actorName: c.actor.name,
+        img: c.token.texture.src,
+        id: c.id,
+        isNPC: c.isNPC,
+      };
+
+      filterProperties.forEach((value, key) => {
+        const attr = getProperty(a, value);
+        props[key] = attr;
+        if ( !attr ) filterSets[key].add("n/a");
+        else filterSets[key].add(attr);
+      });
+
+      return props;
+    })
+  };
+
+
+  for ( const [filterKey, filterSet] of Object.entries(filterSets) ) {
+    console.log(filterKey, filterSet)
+
+    // Drop filters with only a single option.
+    if ( filterSet.size < 2 ) continue;
+
+    // Convert sets to object
+    data.filters[filterKey] = {};
+    filterSet.forEach(elem => data.filters[filterKey][elem] = elem);
+  }
+
+  return data;
+}
+
+export class MultipleCombatantConfig extends FormApplication {
+
+  combatantIds;
+
+  selectedFilters = {};
+
+  data = {};
+
+  constructor(combatantIds, options = {}) {
+    super(options);
+    this.combatantIds = combatantIds;
+  }
+
+  /** @inheritdoc */
+  static get defaultOptions() {
+    return foundry.utils.mergeObject(super.defaultOptions, {
+      id: "action-initiative-multiple-combatant-config",
+      title: game.i18n.localize(`${MODULE_ID}.template.multiple-combatant-config.Title`),
+      classes: ["sheet"],
+      template: `modules/${MODULE_ID}/templates/multiple-combatant-config.html`,
+      width: 420,
+      height: "auto"
+    });
+  }
+
+  /** @override */
+  async getData(options = {}) {
+    this.data = categorizeCombatants(this.combatantIds);
+
+    // Add in whether a combatant should be checked.
+//     for ( const obj of Object.values(data.combatants) ) obj["checked"] = false;
+
+    // Add tracking Sets for when filters are selected.
+    for ( const key of Object.keys(this.data.filters) ) this.selectedFilters[key] = new Set();
+
+    return this.data;
+  }
+
+    /** @override */
+  async _updateObject(event, formData) {
+    console.log(formData);
+  }
+
+  /**
+   * Activate additional listeners to display/hide spell levels and weapon properties
+   */
+  activateListeners(html) {
+    super.activateListeners(html);
+    html.on("change", ".filterChoice", this._actionChanged.bind(this));
+  }
+
+  _actionChanged(event) {
+    console.log("Action changed", event);
+
+    const filterName = event.target.name.split(".")[1]
+    if ( !filterName ) return;
+
+    const selections = new Set(Object.values(event.target.selectedOptions).map(s => s.value));
+    const removed = this.selectedFilters[filterName].difference(selections);
+    const added = selections.difference(this.selectedFilters[filterName]);
+    this.selectedFilters[filterName] = selections;
+    if ( !removed.size && !added.size ) return;
+
+    this.data.combatants.forEach(c => {
+      const elem = document.getElementById(`combatant.${c.id}`);
+      if ( removed.has(c[filterName]) ) elem.checked = false;
+      if ( added.has(c[filterName]) ) elem.checked = true;
+    });
+  }
+}

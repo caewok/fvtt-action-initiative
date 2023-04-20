@@ -34,5 +34,8 @@
   "actioninitiative.phrases.WeaponTypes": "Weapon Types",
   "actioninitiative.phrases.WeaponProperties": "Weapon Properties",
 
+  "actioninitiative.template.multiple-combatant-config.Title": "Action Initiative",
+
   "actioninitiative.template.settings-config.BonusAction.placeholder": "Leave blank if combatant should select die roll."
+
 }
