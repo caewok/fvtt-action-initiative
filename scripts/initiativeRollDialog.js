@@ -51,9 +51,9 @@ Store user-selected options in Combatant flags to facilitate initiative on new s
  * @param {D20Roll.ADV_MODE} [options.advantageMode]    A specific advantage mode to apply
  *   If undefined, user will choose.
  */
-export async function actionInitiativeDialogActor({ advantageMode } = {}) {
+export async function actionInitiativeDialogActor({ advantageMode, data } = {}) {
   const actor = this;
-  const data = actor._actionInitiativeDialogData();
+  data ??= actor._actionInitiativeDialogData();
   const content = await renderTemplate(`modules/${MODULE_ID}/templates/combatant.html`, data);
   const modes = dnd5e.dice.D20Roll.ADV_MODE;
   const options = {};

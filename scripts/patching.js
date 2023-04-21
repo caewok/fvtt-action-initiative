@@ -47,8 +47,8 @@ function override(method, fn) { libWrapper.register(MODULE_ID, method, fn, libWr
 export function registerActionInitiative() {
   wrap("Combat.prototype.rollInitiative", rollInitiativeCombat);
   override("Combat.prototype._sortCombatants", _sortCombatantsCombat);
-//   override("Combat.prototype.rollAll", rollAllCombat);
-//   override("Combat.prototype.rollNPC", rollNPCCombat);
+  override("Combat.prototype.rollAll", rollAllCombat);
+  override("Combat.prototype.rollNPC", rollNPCCombat);
 
   override("Combatant.prototype._getInitiativeFormula", _getInitiativeFormulaCombatant);
   override("Combatant.prototype.getInitiativeRoll", getInitiativeRollCombatant);

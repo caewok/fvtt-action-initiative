@@ -17,9 +17,11 @@ div.multi {
   {{#each filters as |filterChoices filterKey|}}
     <h3>{{filterKey}}</h3>
 
-    <select class="filterChoice" name={{concat "filter." filterKey}} multiple>
-      {{selectOptions filterChoices}}
-    </select>
+    {{#each filterChoices as |filterLocal filterName|}}
+    <input class="filterChoice" type="checkbox" name="{{concat 'filter' filterKey filterName join='.'}}" id="{{concat 'filter' filterKey filterName join='.'}}"/>
+    &nbsp{{filterLocal}}
+    <br>
+    {{/each}}
 
     <br>
   {{/each}}

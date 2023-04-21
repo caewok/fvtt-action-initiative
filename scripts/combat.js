@@ -62,7 +62,12 @@ async function combatRoundHook(combat, _updateData, opts) {
  * @param {object} [options]  Passed to rollInitiative. formula, updateTurn, messageOptions
  */
 export async function rollAllCombat(options={}) {
-
+  // Get all combatants that have not yet rolled initiative.
+  const ids = game.combat.combatants
+    .filter(c => c.initiative === null)
+    .map(c => c.id);
+  await setMultipleCombatants(ids);
+  return this;
 }
 
 /**
@@ -70,7 +75,12 @@ export async function rollAllCombat(options={}) {
  * @param {object} [options]  Passed to rollInitiative. formula, updateTurn, messageOptions
  */
 export async function rollNPCCombat(options={}) {
-
+  // Get all NPC combatants that have not yet rolled initiative.
+  const ids = game.combat.combatants
+    .filter(c => c.isNPC && c.initiative === null)
+    .map(c => c.id);
+  await setMultipleCombatants(ids);
+  return this;
 }
 
 
@@ -93,18 +103,62 @@ export function _sortCombatantsCombat(a, b) {
  * Present GM with options to set actions for multiple combatants.
  */
 async function setMultipleCombatants(ids) {
-  const res = await new Promise(resolve => {
-    new MultipleCombatantDialog({
-      combatantIds: ids,
-      title: "Action Initiative: Combatant Selection",
-      content,
-      buttons: {
-        label: game.i18n.localize("Ok"),
-        callback: html => resolve(onDialogSubmit(html))
-      },
-      close: () => resolve(null)
-    }, options).render(true);
-  });
+
+  // Loop repeatedly while combatants still present.
+  // But stop after 5 times.
+  const MAX_ITER = 5;
+  for ( let i = 0; i < MAX_ITER; i += 1 ) {
+    if ( !ids.length ) return;
+
+    const obj = await MultipleCombatantDialog.prompt({
+      title: game.i18n.localize(`${MODULE_ID}.template.multiple-combatant-config.Title`),
+      label: "Okay",
+      callback: html => onDialogSubmit(html),
+      rejectClose: false,
+      options: { combatantIds: ids }
+    });
+    if ( obj === null ) return;
+
+    // Determine which combatants were selected
+    const expanded = expandObject(obj);
+    const combatantIds = new Set(Object.entries(expanded.combatant)
+      .filter(([key, value]) => value)
+      .map(([key, value]) => key));
+    if ( !combatantIds.size ) continue;
+
+    // Gather all items from all the combatants
+    const items = [];
+    const combatants = game.combat.combatants
+      .filter(c => combatantIds.has(c.id))
+      .map(c => items.push(...c.actor.items.values()));
+
+    // Present DM with action dialog
+    const [firstCombatantId] = combatantIds;
+    const firstCombatant = game.combat.combatants.get(firstCombatantId);
+    const data = firstCombatant.actor._actionInitiativeDialogData({ items });
+    const selections = await firstCombatant.actor.actionInitiativeDialog({ data });
+    if ( !selections ) continue; // Closed dialog.
+
+    for ( let combatantId of combatantIds ) {
+      const thisC = game.combat.combatants.get(combatantId);
+
+      // Set initiative for either only active tokens or all
+      if ( getSetting(SETTINGS.GROUP_ACTORS) ) combatantId = undefined;
+
+      // Retrieve the action choices made by the user for this actor.
+      // Ultimate tied to the combatant that represents the actor.
+      await thisC.actor.setActionInitiativeSelections(selections, { combatantId });
+      await thisC.actor.rollInitiative({createCombatants: true, initiativeOptions: { combatantId }});
+    }
+
+    // Filter ids for only those still not rolled
+    ids = game.combat.combatants
+      .filter(c => combatantIds.has(c.id) && c.initiative === null)
+      .map(c => c.id);
+  }
+}
+
+function retrieveSelectedCombatants(obj) {
 
 }
 
@@ -122,7 +176,7 @@ export class MultipleCombatantDialog extends Dialog {
   constructor(data, options = {}) {
     if ( !options.combatantIds ) console.error("MultipleCombatantDialog requires 'option = {combatantId: }'.");
     super(data, options);
-    foundry.utils.mergeObject(this.data, this.constructor.categorizeCombatants(this.data.combatantIds));
+    foundry.utils.mergeObject(this.data, this.constructor.categorizeCombatants(options.combatantIds));
 
     // Add tracking Sets for when filters are selected.
     for ( const key of Object.keys(this.data.filters) ) this.selectedFilters[key] = new Set();
@@ -153,23 +207,18 @@ export class MultipleCombatantDialog extends Dialog {
   _actionChanged(event) {
     console.log("Action changed", event);
 
-    const filterName = event.target.name.split(".")[1]
-    if ( !filterName ) return;
+    // event.target.name e.g., "filter.Race.Half Elf"
+    const filterName = event.target.name.split(".")[1];
+    const filterSelection = event.target.name.split(".")[2];
+    if ( !filterName || !filterSelection ) return;
 
-    const selections = new Set(Object.values(event.target.selectedOptions).map(s => s.value));
-    const removed = this.selectedFilters[filterName].difference(selections);
-    const added = selections.difference(this.selectedFilters[filterName]);
-    this.selectedFilters[filterName] = selections;
-    if ( !removed.size && !added.size ) return;
-
+    // Mark each combatant that meets the filter or should be removed b/c filter was removed.
+    const filterChecked = event.target.checked;
     this.data.combatants.forEach(c => {
       const elem = document.getElementById(`combatant.${c.id}`);
       if ( !c[filterName] ) {
-        if ( removed.has("n/a") ) elem.checked = false;
-        else if ( added.has("n/a") ) elem.checked = true;
-      }
-      else if ( removed.has(c[filterName].toString()) ) elem.checked = false;
-      else if ( added.has(c[filterName].toString()) ) elem.checked = true;
+        if ( filterSelection === "n/a" ) elem.checked = filterChecked;
+      } else if ( c[filterName].toString() === filterSelection ) elem.checked = filterChecked;
     });
   }
 
@@ -178,9 +227,12 @@ export class MultipleCombatantDialog extends Dialog {
     const { filterProperties, filterSets } = CONFIG[MODULE_ID];
     Object.values(filterSets).forEach(s => s.clear());
 
+    ids = new Set(ids);
     const data = {
       filters: {},
-      combatants: game.combat.combatants.map(c => {
+      combatants: game.combat.combatants
+        .filter(c => ids.has(c.id))
+      .map(c => {
         const a = c.actor;
         const props = {
           tokenName: c.token.name,
