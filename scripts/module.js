@@ -14,7 +14,7 @@ import { CombatTrackerActionInitiative } from "./CombatTracker.js";
 // Settings
 import { registerSettings, FORMULA_DEFAULTS } from "./settings.js";
 
-import { MultipleCombatantConfig } from "./combat.js";
+import { MultipleCombatantDialog } from "./combat.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";
@@ -33,7 +33,7 @@ Hooks.once("init", () => {
   registerActionInitiative();
 
   game.modules.get(MODULE_ID).api = {
-    MultipleCombatantConfig
+    MultipleCombatantDialog
   }
 
   CONFIG.ui.combat = CombatTrackerActionInitiative;

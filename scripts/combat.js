@@ -93,94 +93,53 @@ export function _sortCombatantsCombat(a, b) {
  * Present GM with options to set actions for multiple combatants.
  */
 async function setMultipleCombatants(ids) {
-  const data = categorizeCombatants(ids);
+  const res = await new Promise(resolve => {
+    new MultipleCombatantDialog({
+      combatantIds: ids,
+      title: "Action Initiative: Combatant Selection",
+      content,
+      buttons: {
+        label: game.i18n.localize("Ok"),
+        callback: html => resolve(onDialogSubmit(html))
+      },
+      close: () => resolve(null)
+    }, options).render(true);
+  });
 
 }
 
-function categorizeCombatants(ids) {
-  // Categorize by preset properties
-  const { filterProperties, filterSets } = CONFIG[MODULE_ID];
-  Object.values(filterSets).forEach(s => s.clear());
-
-  const data = {
-    filters: {},
-    combatants: game.combat.combatants.map(c => {
-      const a = c.actor;
-      const props = {
-        tokenName: c.token.name,
-        actorName: c.actor.name,
-        img: c.token.texture.src,
-        id: c.id,
-        isNPC: c.isNPC,
-      };
-
-      filterProperties.forEach((value, key) => {
-        const attr = getProperty(a, value);
-        props[key] = attr;
-        if ( !attr ) filterSets[key].add("n/a");
-        else filterSets[key].add(attr);
-      });
-
-      return props;
-    })
-  };
-
-
-  for ( const [filterKey, filterSet] of Object.entries(filterSets) ) {
-    console.log(filterKey, filterSet)
-
-    // Drop filters with only a single option.
-    if ( filterSet.size < 2 ) continue;
-
-    // Convert sets to object
-    data.filters[filterKey] = {};
-    filterSet.forEach(elem => data.filters[filterKey][elem] = elem);
-  }
-
-  return data;
+function onDialogSubmit(html) {
+  const form = html[0].querySelector("form");
+  const data = new FormDataExtended(form);
+  return data.object;
 }
 
-export class MultipleCombatantConfig extends FormApplication {
+export class MultipleCombatantDialog extends Dialog {
 
-  combatantIds;
 
   selectedFilters = {};
 
-  data = {};
+  constructor(data, options = {}) {
+    if ( !options.combatantIds ) console.error("MultipleCombatantDialog requires 'option = {combatantId: }'.");
+    super(data, options);
+    foundry.utils.mergeObject(this.data, this.constructor.categorizeCombatants(this.data.combatantIds));
 
-  constructor(combatantIds, options = {}) {
-    super(options);
-    this.combatantIds = combatantIds;
+    // Add tracking Sets for when filters are selected.
+    for ( const key of Object.keys(this.data.filters) ) this.selectedFilters[key] = new Set();
   }
 
   /** @inheritdoc */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      id: "action-initiative-multiple-combatant-config",
-      title: game.i18n.localize(`${MODULE_ID}.template.multiple-combatant-config.Title`),
-      classes: ["sheet"],
-      template: `modules/${MODULE_ID}/templates/multiple-combatant-config.html`,
       width: 420,
       height: "auto"
     });
   }
 
-  /** @override */
-  async getData(options = {}) {
-    this.data = categorizeCombatants(this.combatantIds);
-
-    // Add in whether a combatant should be checked.
-//     for ( const obj of Object.values(data.combatants) ) obj["checked"] = false;
-
-    // Add tracking Sets for when filters are selected.
-    for ( const key of Object.keys(this.data.filters) ) this.selectedFilters[key] = new Set();
-
-    return this.data;
-  }
-
-    /** @override */
-  async _updateObject(event, formData) {
-    console.log(formData);
+  async getData(options={}) {
+    const data = await super.getData(options);
+    data.content = await renderTemplate(`modules/${MODULE_ID}/templates/multiple-combatant-config.html`, this.data);
+    return data;
   }
 
   /**
@@ -212,5 +171,48 @@ export class MultipleCombatantConfig extends FormApplication {
       else if ( removed.has(c[filterName].toString()) ) elem.checked = false;
       else if ( added.has(c[filterName].toString()) ) elem.checked = true;
     });
+  }
+
+  static categorizeCombatants(ids) {
+    // Categorize by preset properties
+    const { filterProperties, filterSets } = CONFIG[MODULE_ID];
+    Object.values(filterSets).forEach(s => s.clear());
+
+    const data = {
+      filters: {},
+      combatants: game.combat.combatants.map(c => {
+        const a = c.actor;
+        const props = {
+          tokenName: c.token.name,
+          actorName: c.actor.name,
+          img: c.token.texture.src,
+          id: c.id,
+          isNPC: c.isNPC,
+        };
+
+        filterProperties.forEach((value, key) => {
+          const attr = getProperty(a, value);
+          props[key] = attr;
+          if ( !attr ) filterSets[key].add("n/a");
+          else filterSets[key].add(attr);
+        });
+
+        return props;
+      })
+    };
+
+
+    for ( const [filterKey, filterSet] of Object.entries(filterSets) ) {
+      console.log(filterKey, filterSet)
+
+      // Drop filters with only a single option.
+      if ( filterSet.size < 2 ) continue;
+
+      // Convert sets to object
+      data.filters[filterKey] = {};
+      filterSet.forEach(elem => data.filters[filterKey][elem] = elem);
+    }
+
+    return data;
   }
 }
