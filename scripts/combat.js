@@ -62,7 +62,12 @@ async function combatRoundHook(combat, _updateData, opts) {
  * @param {object} [options]  Passed to rollInitiative. formula, updateTurn, messageOptions
  */
 export async function rollAllCombat(options={}) {
-
+  // Get all combatants that have not yet rolled initiative.
+  const ids = game.combat.combatants
+    .filter(c => c.initiative === null)
+    .map(c => c.id);
+  await setMultipleCombatants(ids);
+  return this;
 }
 
 /**
@@ -70,7 +75,12 @@ export async function rollAllCombat(options={}) {
  * @param {object} [options]  Passed to rollInitiative. formula, updateTurn, messageOptions
  */
 export async function rollNPCCombat(options={}) {
-
+  // Get all NPC combatants that have not yet rolled initiative.
+  const ids = game.combat.combatants
+    .filter(c => c.isNPC && c.initiative === null)
+    .map(c => c.id);
+  await setMultipleCombatants(ids);
+  return this;
 }
 
 
@@ -87,4 +97,152 @@ export function _sortCombatantsCombat(a, b) {
   const ia = Number.isNumeric(a.initiative) ? a.initiative : -Infinity;
   const ib = Number.isNumeric(b.initiative) ? b.initiative : -Infinity;
   return (ia - ib) || a.token.name.localeCompare(b.token.name) || (a.id > b.id ? 1 : -1);
+}
+
+/**
+ * Present GM with options to set actions for multiple combatants.
+ */
+async function setMultipleCombatants(ids) {
+  if ( !ids.length ) return;
+  const obj = await MultipleCombatantDialog.prompt({
+    title: game.i18n.localize(`${MODULE_ID}.template.multiple-combatant-config.Title`),
+    label: "Okay",
+    callback: html => onDialogSubmit(html),
+    rejectClose: false,
+    options: { combatantIds: ids }
+  });
+  if ( obj === null ) return;
+
+  // Determine which combatants were selected
+  const expanded = expandObject(obj);
+  const combatantIds = new Set(Object.entries(expanded.combatant)
+    .filter(([key, value]) => value)
+    .map(([key, value]) => key));
+  if ( !combatantIds.size ) return;
+
+  // Gather all items from all the combatants
+  const items = [];
+  const combatants = game.combat.combatants
+    .filter(c => combatantIds.has(c.id))
+    .map(c => items.push(...c.actor.items.values()));
+
+  // Present DM with action dialog
+  const [firstCombatantId] = combatantIds;
+  const firstCombatant = game.combat.combatants.get(firstCombatantId);
+  const dialogData = firstCombatant.actor._actionInitiativeDialogData({ items });
+  const selections = await firstCombatant.actor.actionInitiativeDialog({ dialogData });
+  if ( !selections ) return; // Closed dialog.
+
+  for ( const combatantId of combatantIds ) {
+    const thisC = game.combat.combatants.get(combatantId);
+    await thisC.actor.setActionInitiativeSelections(selections, { combatantId });
+    await thisC.actor.rollInitiative({createCombatants: true, initiativeOptions: { combatantId }});
+  }
+}
+
+function onDialogSubmit(html) {
+  const form = html[0].querySelector("form");
+  const data = new FormDataExtended(form);
+  return data.object;
+}
+
+export class MultipleCombatantDialog extends Dialog {
+
+
+  selectedFilters = {};
+
+  constructor(data, options = {}) {
+    if ( !options.combatantIds ) console.error("MultipleCombatantDialog requires 'option = {combatantId: }'.");
+    super(data, options);
+    foundry.utils.mergeObject(this.data, this.constructor.categorizeCombatants(options.combatantIds));
+
+    // Add tracking Sets for when filters are selected.
+    for ( const key of Object.keys(this.data.filters) ) this.selectedFilters[key] = new Set();
+  }
+
+  /** @inheritdoc */
+  static get defaultOptions() {
+    return foundry.utils.mergeObject(super.defaultOptions, {
+      width: 420,
+      height: "auto"
+    });
+  }
+
+  async getData(options={}) {
+    const data = await super.getData(options);
+    data.content = await renderTemplate(`modules/${MODULE_ID}/templates/multiple-combatant-config.html`, this.data);
+    return data;
+  }
+
+  /**
+   * Activate additional listeners to display/hide spell levels and weapon properties
+   */
+  activateListeners(html) {
+    super.activateListeners(html);
+    html.on("change", ".filterChoice", this._actionChanged.bind(this));
+  }
+
+  _actionChanged(event) {
+    console.log("Action changed", event);
+
+    // event.target.name e.g., "filter.Race.Half Elf"
+    const filterName = event.target.name.split(".")[1];
+    const filterSelection = event.target.name.split(".")[2];
+    if ( !filterName || !filterSelection ) return;
+
+    // Mark each combatant that meets the filter or should be removed b/c filter was removed.
+    const filterChecked = event.target.checked;
+    this.data.combatants.forEach(c => {
+      const elem = document.getElementById(`combatant.${c.id}`);
+      if ( !c[filterName] ) {
+        if ( filterSelection === "n/a" ) elem.checked = filterChecked;
+      } else if ( c[filterName].toString() === filterSelection ) elem.checked = filterChecked;
+    });
+  }
+
+  static categorizeCombatants(ids) {
+    // Categorize by preset properties
+    const { filterProperties, filterSets } = CONFIG[MODULE_ID];
+    Object.values(filterSets).forEach(s => s.clear());
+
+    ids = new Set(ids);
+    const data = {
+      filters: {},
+      combatants: game.combat.combatants
+        .filter(c => ids.has(c.id))
+        .map(c => {
+          const a = c.actor;
+          const props = {
+            tokenName: c.token.name,
+            actorName: c.actor.name,
+            img: c.token.texture.src,
+            id: c.id,
+            isNPC: c.isNPC,
+          };
+
+          filterProperties.forEach((value, key) => {
+            const attr = getProperty(a, value);
+            props[key] = attr;
+            if ( !attr ) filterSets[key].add("n/a");
+            else filterSets[key].add(attr);
+          });
+
+          return props;
+        })
+    };
+
+
+    for ( const [filterKey, filterSet] of Object.entries(filterSets) ) {
+      console.log(filterKey, filterSet)
+
+      // Drop filters with only a single option.
+      if ( filterSet.size < 2 ) continue;
+
+      // Convert sets to object
+      data.filters[filterKey] = {};
+      filterSet.forEach(elem => data.filters[filterKey][elem] = elem);
+    }
+
+    return data;
+  }
 }

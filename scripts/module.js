@@ -14,8 +14,11 @@ import { CombatTrackerActionInitiative } from "./CombatTracker.js";
 // Settings
 import { registerSettings, FORMULA_DEFAULTS } from "./settings.js";
 
+import { MultipleCombatantDialog } from "./combat.js";
+
 // Self-executing scripts for hooks
 import "./changelog.js";
+import "./render.js";
 
 /**
  * Tell DevMode that we want a flag for debugging this module.
@@ -28,6 +31,10 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 Hooks.once("init", () => {
   log("Initializing...");
   registerActionInitiative();
+
+  game.modules.get(MODULE_ID).api = {
+    MultipleCombatantDialog
+  }
 
   CONFIG.ui.combat = CombatTrackerActionInitiative;
 
@@ -105,14 +112,30 @@ Hooks.once("init", () => {
      * Thrown weapons are listed as both melee and ranged.
      * @type {function}
      */
-    canThrowWeapon: i => i.system.properties.thr
+    canThrowWeapon: i => i.system.properties.thr,
 
+    /**
+     * Properties used for grouping combatants when using rollAll and rollNPCs in initiative
+     * Based on the actor class.
+     * @type {Map<string, string>}
+     */
+    filterProperties: new Map(Object.entries({
+      Race: "system.details.race",
+      Type: "system.details.type.value",
+      Walk: "system.attributes.movement.walk",
+      Darkvision: "system.attributes.senses.darkvision"
+    }))
   }
 
 });
 
 Hooks.once("setup", () => {
   registerSettings();
+
+  CONFIG[MODULE_ID].filterSets = {};
+  for ( const key of CONFIG[MODULE_ID].filterProperties.keys()) {
+    CONFIG[MODULE_ID].filterSets[key] = new Set();
+  }
 });
 
 

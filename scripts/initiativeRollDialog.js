@@ -51,10 +51,10 @@ Store user-selected options in Combatant flags to facilitate initiative on new s
  * @param {D20Roll.ADV_MODE} [options.advantageMode]    A specific advantage mode to apply
  *   If undefined, user will choose.
  */
-export async function actionInitiativeDialogActor({ advantageMode } = {}) {
+export async function actionInitiativeDialogActor({ advantageMode, dialogData } = {}) {
   const actor = this;
-  const data = actor._actionInitiativeDialogData();
-  const content = await renderTemplate(`modules/${MODULE_ID}/templates/combatant.html`, data);
+  dialogData ??= actor._actionInitiativeDialogData();
+  const content = await renderTemplate(`modules/${MODULE_ID}/templates/combatant.html`, dialogData);
   const modes = dnd5e.dice.D20Roll.ADV_MODE;
   const options = {};
 
@@ -102,7 +102,9 @@ export async function actionInitiativeDialogActor({ advantageMode } = {}) {
   });
 }
 
-export function _actionInitiativeDialogDataActor() {
+export function _actionInitiativeDialogDataActor({ items } = {}) {
+  items ??= this.items;
+
   const { meleeWeapons, rangedWeapons, weaponTypes } = CONFIG[MODULE_ID];
   const data = {
     actions: Object.keys(FORMULA_DEFAULTS.BASIC),
@@ -144,12 +146,12 @@ export function _actionInitiativeDialogDataActor() {
 
   // Add weapons
   data.weapons = {
-    melee: filterMeleeWeapons(this.items).map(i => {
+    melee: filterMeleeWeapons(items).map(i => {
       const { id, name, img } = i;
       return { id, name, img };
     }),
 
-    ranged: filterRangedWeapons(this.items).map(i => {
+    ranged: filterRangedWeapons(items).map(i => {
       const { id, name, img } = i;
       return { id, name, img };
     })
@@ -315,7 +317,7 @@ export async function setActionInitiativeSelectionsActor(selections, { combatant
   await Promise.all(promises);
 }
 
-function getCombatantsForActor(actor) {
+export function getCombatantsForActor(actor) {
   return game.combat.combatants.filter(c => c.actor.id === actor.id);
 }
 
