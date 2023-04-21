@@ -1,6 +1,18 @@
+<style>
+div.multi {
+  column-count: 2;
+  column-gap: 10px;
+}
+
+
+</style>
+
 <form class="flexcol">
 
   <h2>Filters</h2>
+
+  <div class="multi">
+
   <!-- List filters the GM can use to select from combatants below -->
   {{#each filters as |filterChoices filterKey|}}
     <h3>{{filterKey}}</h3>
@@ -12,8 +24,12 @@
     <br>
   {{/each}}
 
+  </div>
+
   <br>
   <h2>Combatants</h2>
+
+  <div class="multi">
   <!-- List the combatants by name, actor name, token image -->
   {{#each combatants}}
 
@@ -26,5 +42,6 @@
 
   {{/each}}
 
+  </div>
 
 </form>
