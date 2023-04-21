@@ -103,58 +103,41 @@ export function _sortCombatantsCombat(a, b) {
  * Present GM with options to set actions for multiple combatants.
  */
 async function setMultipleCombatants(ids) {
+  if ( !ids.length ) return;
+  const obj = await MultipleCombatantDialog.prompt({
+    title: game.i18n.localize(`${MODULE_ID}.template.multiple-combatant-config.Title`),
+    label: "Okay",
+    callback: html => onDialogSubmit(html),
+    rejectClose: false,
+    options: { combatantIds: ids }
+  });
+  if ( obj === null ) return;
 
-  // Loop repeatedly while combatants still present.
-  // But stop after 5 times.
-  const MAX_ITER = 5;
-  for ( let i = 0; i < MAX_ITER; i += 1 ) {
-    if ( !ids.length ) return;
+  // Determine which combatants were selected
+  const expanded = expandObject(obj);
+  const combatantIds = new Set(Object.entries(expanded.combatant)
+    .filter(([key, value]) => value)
+    .map(([key, value]) => key));
+  if ( !combatantIds.size ) return;
 
-    const obj = await MultipleCombatantDialog.prompt({
-      title: game.i18n.localize(`${MODULE_ID}.template.multiple-combatant-config.Title`),
-      label: "Okay",
-      callback: html => onDialogSubmit(html),
-      rejectClose: false,
-      options: { combatantIds: ids }
-    });
-    if ( obj === null ) return;
+  // Gather all items from all the combatants
+  const items = [];
+  const combatants = game.combat.combatants
+    .filter(c => combatantIds.has(c.id))
+    .map(c => items.push(...c.actor.items.values()));
 
-    // Determine which combatants were selected
-    const expanded = expandObject(obj);
-    const combatantIds = new Set(Object.entries(expanded.combatant)
-      .filter(([key, value]) => value)
-      .map(([key, value]) => key));
-    if ( !combatantIds.size ) continue;
+  // Present DM with action dialog
+  const [firstCombatantId] = combatantIds;
+  const firstCombatant = game.combat.combatants.get(firstCombatantId);
+  const dialogData = firstCombatant.actor._actionInitiativeDialogData({ items });
+  const selections = await firstCombatant.actor.actionInitiativeDialog({ dialogData });
+  if ( !selections ) return; // Closed dialog.
 
-    // Gather all items from all the combatants
-    const items = [];
-    const combatants = game.combat.combatants
-      .filter(c => combatantIds.has(c.id))
-      .map(c => items.push(...c.actor.items.values()));
-
-    // Present DM with action dialog
-    const [firstCombatantId] = combatantIds;
-    const firstCombatant = game.combat.combatants.get(firstCombatantId);
-    const dialogData = firstCombatant.actor._actionInitiativeDialogData({ items });
-    const selections = await firstCombatant.actor.actionInitiativeDialog({ dialogData });
-    if ( !selections ) continue; // Closed dialog.
-
-    for ( const combatantId of combatantIds ) {
-      const thisC = game.combat.combatants.get(combatantId);
-      await thisC.actor.setActionInitiativeSelections(selections, { combatantId });
-      await thisC.actor.rollInitiative({createCombatants: true, initiativeOptions: { combatantId }});
-    }
-
-    // Filter ids for only those still not rolled
-    ids = ids.filter(id => {
-      const c = game.combat.combatants.get(id);
-      return c.initiative === null;
-    });
+  for ( const combatantId of combatantIds ) {
+    const thisC = game.combat.combatants.get(combatantId);
+    await thisC.actor.setActionInitiativeSelections(selections, { combatantId });
+    await thisC.actor.rollInitiative({createCombatants: true, initiativeOptions: { combatantId }});
   }
-}
-
-function retrieveSelectedCombatants(obj) {
-
 }
 
 function onDialogSubmit(html) {
