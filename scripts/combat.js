@@ -135,26 +135,21 @@ async function setMultipleCombatants(ids) {
     // Present DM with action dialog
     const [firstCombatantId] = combatantIds;
     const firstCombatant = game.combat.combatants.get(firstCombatantId);
-    const data = firstCombatant.actor._actionInitiativeDialogData({ items });
-    const selections = await firstCombatant.actor.actionInitiativeDialog({ data });
+    const dialogData = firstCombatant.actor._actionInitiativeDialogData({ items });
+    const selections = await firstCombatant.actor.actionInitiativeDialog({ dialogData });
     if ( !selections ) continue; // Closed dialog.
 
-    for ( let combatantId of combatantIds ) {
+    for ( const combatantId of combatantIds ) {
       const thisC = game.combat.combatants.get(combatantId);
-
-      // Set initiative for either only active tokens or all
-      if ( getSetting(SETTINGS.GROUP_ACTORS) ) combatantId = undefined;
-
-      // Retrieve the action choices made by the user for this actor.
-      // Ultimate tied to the combatant that represents the actor.
       await thisC.actor.setActionInitiativeSelections(selections, { combatantId });
       await thisC.actor.rollInitiative({createCombatants: true, initiativeOptions: { combatantId }});
     }
 
     // Filter ids for only those still not rolled
-    ids = game.combat.combatants
-      .filter(c => combatantIds.has(c.id) && c.initiative === null)
-      .map(c => c.id);
+    ids = ids.filter(id => {
+      const c = game.combat.combatants.get(id);
+      return c.initiative === null;
+    });
   }
 }
 
@@ -232,25 +227,25 @@ export class MultipleCombatantDialog extends Dialog {
       filters: {},
       combatants: game.combat.combatants
         .filter(c => ids.has(c.id))
-      .map(c => {
-        const a = c.actor;
-        const props = {
-          tokenName: c.token.name,
-          actorName: c.actor.name,
-          img: c.token.texture.src,
-          id: c.id,
-          isNPC: c.isNPC,
-        };
+        .map(c => {
+          const a = c.actor;
+          const props = {
+            tokenName: c.token.name,
+            actorName: c.actor.name,
+            img: c.token.texture.src,
+            id: c.id,
+            isNPC: c.isNPC,
+          };
 
-        filterProperties.forEach((value, key) => {
-          const attr = getProperty(a, value);
-          props[key] = attr;
-          if ( !attr ) filterSets[key].add("n/a");
-          else filterSets[key].add(attr);
-        });
+          filterProperties.forEach((value, key) => {
+            const attr = getProperty(a, value);
+            props[key] = attr;
+            if ( !attr ) filterSets[key].add("n/a");
+            else filterSets[key].add(attr);
+          });
 
-        return props;
-      })
+          return props;
+        })
     };
 
 
