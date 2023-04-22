@@ -1,70 +1,63 @@
-[![Version (latest)](https://img.shields.io/github/v/release/caewok/fvtt-zipper-initiative)](https://github.com/caewok/fvtt-zipper-initiative/releases/latest)
-[![Foundry Version](https://img.shields.io/badge/dynamic/json.svg?url=https://github.com/caewok/fvtt-zipper-initiative/releases/latest/download/module.json&label=Foundry%20Version&query=$.compatibility.minimum&colorB=blueviolet)](https://github.com/caewok/fvtt-zipper-initiative/releases/latest)
-[![License](https://img.shields.io/github/license/caewok/fvtt-zipper-initiative)](LICENSE)
-![Latest Release Download Count](https://img.shields.io/github/downloads/caewok/fvtt-zipper-initiative/latest/module.zip)
+[![Version (latest)](https://img.shields.io/github/v/release/caewok/fvtt-action-initiative)](https://github.com/caewok/fvtt-action-initiative/releases/latest)
+[![Foundry Version](https://img.shields.io/badge/dynamic/json.svg?url=https://github.com/caewok/fvtt-action-initiative/releases/latest/download/module.json&label=Foundry%20Version&query=$.compatibility.minimum&colorB=blueviolet)](https://github.com/caewok/fvtt-action-initiative/releases/latest)
+[![License](https://img.shields.io/github/license/caewok/fvtt-action-initiative)](LICENSE)
+![Latest Release Download Count](https://img.shields.io/github/downloads/caewok/fvtt-action-initiative/latest/module.zip)
 ![Forge Installs](https://img.shields.io/badge/dynamic/json?label=Forge%20Installs&query=package.installs&suffix=%25&url=https%3A%2F%2Fforge-vtt.com%2Fapi%2Fbazaar%2Fpackage%2Fzipinitiative&colorB=4aa94a)
 
-# Zipper Initiative
+# Action Initiative
 
-This module uses the zipper initiative as described by [@Taking20](https://www.youtube.com/@Taking20) in [YouTube](https://www.youtube.com/watch?v=SXleyDvtqls).
+Action Initiative implements initiative similar to that of the [Unearthed Arcana Greyhawk Initiative](https://media.wizards.com/2017/dnd/downloads/UAGreyhawkInitiative.pdf).          Combatants declare actions in advance each turn; different actions use different        combinations of die rolls to determine initiative position. Initiative goes from lowest to highest.
 
-Under zipper initiative, PCs and NPCs are sorted alternating in the initiative order. One (mostly aesthetic) change from @Taking20 is that an NPC will be given initiative equal to the PC that it goes after, instead of one less initiative value. This is primarily to better resolve ties without losing the alternating order, as well as to more easily resolve initiative that uses Dexterity to break ties.
+To facilitate this, users are presented with a dialog to select among various actions when rolling initiative. A filter dialog is presented to the GM when rolling for multiple combatants.
 
 # Installation
 
-Add this [Manifest URL](https://github.com/caewok/fvtt-zipper-initiative/releases/latest/download/module.json) in Foundry to install.
+Add this [Manifest URL](https://github.com/caewok/fvtt-action-initiative/releases/latest/download/module.json) in Foundry to install.
 
 ## Dependencies
 - [libWrapper](https://github.com/ruipin/fvtt-lib-wrapper)
 
+## Conflicts
+- Modules that change the combat tracker or otherwise modify the initiative sequence are likely to conflict with this module.
+
 # Systems
 
-For dnd5e, combatants will be sorted by initiative bonus and the highest NPC will be automatically rolled as necessary.
+For the moment, this is only tested in dnd5e and likely will not work with other systems. But if there is interest, I can work on making it more generic to work with other systems. The various settings and the `CONFIG.actioninitiative` provides the foundation for use with other systems.
 
-For other systems, GMs have two options:
-- Roll the highest NPC.
-- Let the module select an NPC at random to roll.
-
-If you would like the system you use to have automatic detection of initiative bonuses, please submit an issue in the git and identify where I can find the initiative bonus rules for your system.
-
-# Rules
-- Players roll initiative as normal.
-- DM rolls initiative for one NPC—--the one with the highest initiative bonus. This is the "NPC leader."
-- Determine if the PCs or NPC won by comparing the NPC roll to that of the highest PC roll.
-- Assign initiative to rest of NPCs by alternating between PCs and NPCs in the initiative order.
+If you would like your system supported, please submit an issue in the git.
 
 # Usage
 
-## NPC leader
-The module will use the following rules to select the NPC leader:
-1. If a single NPC rolled manually, it is assumed to be the leader.
-2. If multiple NPCs rolled manually, the one with the highest bonus will be the leader. (Note that in this scenario, the leader might not have the highest initiative roll.)
-3. If no NPCs rolled, the NPC with the highest bonus will be chosen.
-4. If bonus cannot be determined, the NPC will be selected at random from the relevant group.
+## PCs
 
-## Sort order
-When adding tokens to the combat tracker, combatants will initially be sorted by their initiative bonus, with ties sorted alphabetically by name of the token.
+When a user hits the initiative button in the Combat Tracker, a dialog requests the user to select one or more actions. The "Other Action" and "Bonus Action" allow the user to enter an arbitrary dice formula, or leave the existing default.
 
-Combatants that have rolled initiative will be sorted by initiative, above those that have not yet rolled.
+After selections are made, the chat message lists actions selected. Hovering over the initiative number in the Combat Tracker will also list actions selected.
 
-If the highest PC initiative beats the NPC leader initiative, that PC goes first. Otherwise, the NPC goes first. After initiative is rolled, most NPCs will have their initiative set to a paired PC, or be pushed to the end of the queue. A ranking system is used internally to sort NPCs and PCs that have the same initiative score.
+The user can also choose to add to or reset initiative, by using the buttons in the Combat Tracker.
 
-## Manual rolls of individual combatants
-Any PC or NPC combatant can roll manually as normal, using the die next to their name. NPC combatants rolled manually will not have their initiative modified, except when the NPC is the leader and loses initiative to the PCs.
+## GM
 
-1. Initiative bonus can be determined and the NPC is the highest combatant; or
-2. Initiative bonus cannot be determined and the NPC is selected as the highest combatant.
+The GM can roll initiative for any combatant as normal. In addition, the "RollAll" and "RollNPCs" buttons will present the GM with a filter dialog, listing combatants and some checkboxes to filter combatants by specific characteristics. After selecting one or more combatants, the GM will be presented with the action selection dialog. Actions will be applied to all selected combatants.
 
-Rolling a single NPC manually acts as an override, causing that NPC to be considered the highest regardless of initiative bonus. If multiple NPCs are rolled manually, it is assumed the GM wants one of those NPCs to be considered the highest---chosen by highest initiative bonus if available or randomly otherwise.
+The GM can change a setting in the Combat Tracker configuration to group by actor or not. When grouping by actor, combatants that share the same actor roll as one.
 
-## Roll NPCs button
-If the GM hits the roll NPC button, the highest NPC rolls for initiative if no NPCs have yet rolled, and the system waits for PCs to finish rolling before proceeding. PCs and NPCs are then zipper sorted.
+# Settings and Variants
 
-## Roll All button
-If the GM hits the Roll All button, all PCs are rolled automatically, followed by determination of the highest NPC and zipper sorting.
+The settings provide a variety of configurations.
 
-## Settings
-A setting is available to force initiative to reset every round.
+## Basic, Weapon Damage, Weapon Type
+
+The Basic variant allows the user to select between basic actions. Weapon damage uses the base damage die of the weapon for melee or ranged attacks. The action selection dialog will include weapon selection, based on available weapons to the combatant. Weapon type uses weapon characteristics (e.g., light, finesse, heavy).
+
+## Spell Level
+
+If enabled, the user must select a spell level when selecting Cast a Spell action. Initiative die formula then will vary by level.
+
+## Advanced Configuration
+
+The advanced configuration allows the GM to define specific dice formula to use for each action, each spell level, and each weapon characteristic. If not defined, the default (in gray) will be used. Actions with 0 will be ignored.
 
 ## Configs
-A config is available to adjust the timeout delay when the Roll NPCs button is used.
+
+More specialized configurations are available at `CONFIG.actioninitiative`. These define where to find weapon properties, spell levels, etc. for the system.
