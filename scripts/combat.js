@@ -1,51 +1,18 @@
 /* globals
 CONFIG,
+Dialog,
+expandObject,
+FormDataExtended,
+foundry,
 game,
-ui,
-Hooks
+getProperty,
+Hooks,
+renderTemplate
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
-import { MODULE_ID, FLAGS } from "./const.js";
-import { getSetting, SETTINGS } from "./settings.js";
-
-/* Roll NPCs:
-- Roll the highest NPC if not already
-- Intersperse the other NPCs between players by assigning initiative accordingly
-- Can we await the results of player rolls at this point?
-- NPCs that have manually rolled keep their initiative position
-*/
-
-/* Roll all:
-- Roll PCs
-- See Roll NPCs for rest
-*/
-
-/* Flags
-To facilitate sorting without resorting to decimals to break initiative ties, use a flag
-to rank combatants.
-*/
-
-async function resetInitRank(combatant) {
-}
-
-/**
- * Hook createCombatant.
- */
-Hooks.on("createCombatant", createCombatantHook);
-
-async function createCombatantHook(combatant, _options, _id) {
-}
-
-/**
- * Hook updateCombat.
- */
-Hooks.on("updateCombat", updateCombatHook);
-
-async function updateCombatHook(combat, _change, _opts, _id) {
-
-}
+import { MODULE_ID } from "./const.js";
 
 /**
  * Hook combatRound.
@@ -66,7 +33,7 @@ export async function rollAllCombat(options={}) {
   const ids = game.combat.combatants
     .filter(c => c.initiative === null)
     .map(c => c.id);
-  await setMultipleCombatants(ids);
+  await setMultipleCombatants(ids, options);
   return this;
 }
 
@@ -79,10 +46,9 @@ export async function rollNPCCombat(options={}) {
   const ids = game.combat.combatants
     .filter(c => c.isNPC && c.initiative === null)
     .map(c => c.id);
-  await setMultipleCombatants(ids);
+  await setMultipleCombatants(ids, options);
   return this;
 }
-
 
 /**
  * Wrap Combat.prototype._sortCombatants.
@@ -102,7 +68,7 @@ export function _sortCombatantsCombat(a, b) {
 /**
  * Present GM with options to set actions for multiple combatants.
  */
-async function setMultipleCombatants(ids) {
+async function setMultipleCombatants(ids, _options) {
   if ( !ids.length ) return;
   const obj = await MultipleCombatantDialog.prompt({
     title: game.i18n.localize(`${MODULE_ID}.template.multiple-combatant-config.Title`),
@@ -116,15 +82,15 @@ async function setMultipleCombatants(ids) {
   // Determine which combatants were selected
   const expanded = expandObject(obj);
   const combatantIds = new Set(Object.entries(expanded.combatant)
-    .filter(([key, value]) => value)
-    .map(([key, value]) => key));
+    .filter(([_key, value]) => value)
+    .map(([key, _value]) => key));
   if ( !combatantIds.size ) return;
 
   // Gather all items from all the combatants
   const items = [];
-  const combatants = game.combat.combatants
+  game.combat.combatants
     .filter(c => combatantIds.has(c.id))
-    .map(c => items.push(...c.actor.items.values()));
+    .forEach(c => items.push(...c.actor.items.values()));
 
   // Present DM with action dialog
   const [firstCombatantId] = combatantIds;
@@ -145,6 +111,35 @@ function onDialogSubmit(html) {
   const data = new FormDataExtended(form);
   return data.object;
 }
+
+/**
+ * Wrap Combat.prototype.rollInitiative
+ * If limiting to actor id, then use only combatant id for the active tokens of the actor.
+ * This means synthetic tokens will be rolled separately.
+ */
+export async function rollInitiativeCombat(wrapped, ids,
+  {formula=null, updateTurn=true, messageOptions={}, combatantId}={}) {
+
+  if ( !combatantId ) return wrapped(ids, { formula, updateTurn, messageOptions });
+
+  // Pull actors from combatants b/c game.actor will not get synthetic actors.
+  const combatant = game.combat.combatants.get(combatantId);
+  if ( !combatant || !combatant.actor ) return wrapped( ids, { formula, updateTurn, messageOptions });
+
+  // Only use the actor's active tokens for combatant ids.
+  // Only if the combatant is already in ids.
+  const tokens = combatant.actor.getActiveTokens();
+  const oldIds = new Set(ids);
+  ids = [];
+  tokens.forEach(t => {
+    if ( !t.inCombat ) return;
+    const c = game.combat.getCombatantByToken(t.id);
+    if ( oldIds.has(c.id) ) ids.push(c.id);
+  });
+
+  return wrapped(ids, { formula, updateTurn, messageOptions });
+}
+
 
 export class MultipleCombatantDialog extends Dialog {
 
@@ -185,7 +180,7 @@ export class MultipleCombatantDialog extends Dialog {
   _actionChanged(event) {
     console.log("Action changed", event);
 
-    // event.target.name e.g., "filter.Race.Half Elf"
+    // E.g.: event.target.name ==> "filter.Race.Half Elf"
     const filterName = event.target.name.split(".")[1];
     const filterSelection = event.target.name.split(".")[2];
     if ( !filterName || !filterSelection ) return;
@@ -217,7 +212,7 @@ export class MultipleCombatantDialog extends Dialog {
             actorName: c.actor.name,
             img: c.token.texture.src,
             id: c.id,
-            isNPC: c.isNPC,
+            isNPC: c.isNPC
           };
 
           filterProperties.forEach((value, key) => {
@@ -233,8 +228,6 @@ export class MultipleCombatantDialog extends Dialog {
 
 
     for ( const [filterKey, filterSet] of Object.entries(filterSets) ) {
-      console.log(filterKey, filterSet)
-
       // Drop filters with only a single option.
       if ( filterSet.size < 2 ) continue;
 

@@ -5,7 +5,7 @@ renderTemplate
 */
 "use strict";
 
-import { SETTINGS, getSetting, setSetting } from "./settings.js";
+import { getSetting, setSetting } from "./settings.js";
 import { MODULE_ID } from "./const.js";
 
 Hooks.on("renderCombatTrackerConfig", renderCombatTrackerConfigHook);

@@ -1,6 +1,9 @@
 /* globals
-Hooks,
+CONFIG,
+game,
+Hooks
 */
+/* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
 // Basics
@@ -40,7 +43,7 @@ Hooks.once("init", () => {
 
   game.modules.get(MODULE_ID).api = {
     MultipleCombatantDialog
-  }
+  };
 
   CONFIG.ui.combat = CombatTrackerActionInitiative;
 
@@ -131,7 +134,7 @@ Hooks.once("init", () => {
       Walk: "system.attributes.movement.walk",
       Darkvision: "system.attributes.senses.darkvision"
     }))
-  }
+  };
 
 });
 
@@ -158,7 +161,7 @@ Hooks.once("ready", () => {
     const missingFromFormulae = defaultKeys.difference(formulaeKeys);
     const extrasInFormulae = formulaeKeys.difference(defaultKeys);
 
-    for ( const key of missingFromFormulae ) formulae[key] = defaults[key]
+    for ( const key of missingFromFormulae ) formulae[key] = defaults[key];
     for ( const key of extrasInFormulae ) delete formulae[key];
 
     setSetting(SETTINGS.DICE_FORMULAS, formulae);
@@ -167,7 +170,7 @@ Hooks.once("ready", () => {
 
 Hooks.on("preCreateChatMessage", preCreateChatMessageHook);
 
-function preCreateChatMessageHook(document, data, options, userId) {
+function preCreateChatMessageHook(document, data, _options, _userId) {
   if ( !document.getFlag("core", "initiativeRoll") ) return;
 
   const actorId = data.speaker.actor;
@@ -183,7 +186,7 @@ function renderCombatTrackerHook(app, html, data) {
   // Each combatant that has rolled will have a ".initiative" class
   const elems = html.find(".initiative");
 
-  let i = 0
+  let i = 0;
   data.turns.forEach(turn => {
     if ( !turn.hasRolled || i >= elems.length ) return;
     const c = game.combat.combatants.get(turn.id);
@@ -193,23 +196,10 @@ function renderCombatTrackerHook(app, html, data) {
   });
 }
 
-/*
-elems = document.getElementsByClassName("token-initiative")
-elem = elems[11]
-parent = elem.parentElement
-
-game.tooltip.activate(elem, ({text: "My tooltip"}))
-game.tooltip.deactivate()
-
-*/
-
-
 /* DND5e combat initiative dialog
 dnd5e.applications.combat.CombatTracker5e
 dnd5e.documents.Actor5e.
 dnd5e.documents.combat.getInitiativeRoll
-
-
 
 CombatTracker5e.prototype._onCombatControl (extends CombatTracker)
 --> combatant.actor.rollInitiativeDialog()
@@ -234,10 +224,6 @@ Actor5e.prototype.rollInitiative
     -- optionally add combatants if missing
     -- collects ids for all applicable combatants
     -- calls combat.rollInitiative
-
-
-
-
 
 --> Hook dnd5e.rollInitiative
 
@@ -272,11 +258,6 @@ async Combatant.prototype.rollInitiative
 Combatant.prototype.getInitiativeRoll
   -- uses formula argument or calls Combatant.prototype._getInitiativeFormula
   -- Creates roll from formula
-
-
-
-
-
 */
 
 /* Combat Tracker Hooks
