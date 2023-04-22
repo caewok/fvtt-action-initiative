@@ -29,9 +29,9 @@
       {{#each basic as |basicFormula basicKey|}}
 
       <div class="form-group">
-        <label> {{localize (concat "actioninitiative.phrases." basicKey)}} </label>
+        <label> {{localize (lookup (concat "actioninitiative.phrases." basicKey) "string") }} </label>
         <div class="form-fields">
-          <input type="text" name="{{concat 'basic.' basicKey}}" value="{{basicFormula}}" placeholder="{{lookup ../placeholder.BASIC basicKey}}">
+          <input type="text" name="{{concat 'BASIC.' basicKey}}" value="{{basicFormula}}" placeholder="{{lookup ../placeholder.BASIC basicKey}}">
         </div>
       </div>
 
@@ -53,7 +53,7 @@
       <div class="form-group">
         <label> {{lookup ../localized.weaponTypes weaponType}} </label>
         <div class="form-fields">
-          <input type="text" name="{{concat 'weaponType.' weaponType}}" value="{{weaponTypeFormula}}" placeholder="{{lookup ../placeholder.WEAPON_TYPES weaponType}}">
+          <input type="text" name="{{concat 'WEAPON_TYPES.' weaponType}}" value="{{weaponTypeFormula}}" placeholder="{{lookup ../placeholder.WEAPON_TYPES weaponType}}">
         </div>
       </div>
 
@@ -66,7 +66,7 @@
       <div class="form-group">
         <label> {{lookup ../localized.weaponProperties weaponProp}} </label>
         <div class="form-fields">
-          <input type="text" name="{{concat 'weaponProperty.' weaponProp}}" value="{{weaponPropsFormula}}" placeholder="{{lookup ../placeholder.WEAPON_PROPERTIES weaponProp}}">
+          <input type="text" name="{{concat 'WEAPON_PROPERTIES.' weaponProp}}" value="{{weaponPropsFormula}}" placeholder="{{lookup ../placeholder.WEAPON_PROPERTIES weaponProp}}">
         </div>
       </div>
 
@@ -83,7 +83,7 @@
       <div class="form-group">
         <label> {{lookup ../localized.spellLevels spellLevel}} </label>
         <div class="form-fields">
-          <input type="text" name="{{concat 'spellLevel.' spellLevel}}" value="{{spellLevelFormula}}" placeholder="{{lookup ../placeholder.SPELL_LEVELS spellLevel}}">
+          <input type="text" name="{{concat 'SPELL_LEVELS.' spellLevel}}" value="{{spellLevelFormula}}" placeholder="{{lookup ../placeholder.SPELL_LEVELS spellLevel}}">
         </div>
       </div>
 

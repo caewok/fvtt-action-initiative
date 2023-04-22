@@ -31,7 +31,7 @@
 
 
   <div class="form-fields">
-    <input type="checkbox" name="{{this}}" id="actioninitiative-actionCheckbox" />
+    <input class="actioninitiative-actionCheckbox" type="checkbox" name="{{this}}" />
     <!-- https://ptb.discord.com/channels/170995199584108546/811676497965613117/1098253076089012374 -->
     <label> {{ localize (lookup (concat "actioninitiative.phrases." this) "string") }} </label>
   </div>
@@ -39,8 +39,23 @@
 
   {{/each}}
 
-
   </div>
+  </div>
+
+  <br>
+
+  <div class="form-fields">
+    <input type="checkbox" name="OtherAction.Checkbox" />
+    <label> {{ localize "actioninitiative.phrases.OtherAction" }} </label>
+    <input type="text" name="OtherAction.Text" placeholder="{{otherActionDefault}}"/>
+  </div>
+
+  <br>
+
+  <div class="form-fields">
+    <input type="checkbox" name="BonusAction.Checkbox" />
+    <label> {{ localize "actioninitiative.phrases.BonusAction" }} </label>
+    <input type="text" name="BonusAction.Text" placeholder="{{bonusActionDefault}}"/>
   </div>
 
   <div style="display:none" id="actioninitiative-sectionWeaponTypeMelee">
