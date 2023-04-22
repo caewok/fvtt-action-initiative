@@ -53,10 +53,11 @@ Hooks.once("ready", () => {
           re-roll a single combatant rather than everyone.)
 
 
-          **Settings**: A variety of settings are provided, focused on the primary variants proposed
-          in the Unearthed Arcana, as well as a few significant variants proposed online. If you
-          have need of a specific variation not possible here, please feel free to make your case
-          by filing an issue in the git repository.
+          **Settings**: A variety of settings are provided. You can choose to vary initiative by
+          spell level as well as weapon damage or weapon properties. A configuration button allows
+          you to change default dice rolls for each. Feel free to add an issue to the
+          [git repository](https://github.com/caewok/fvtt-action-initiative/issues)
+          if you encounter problems or really want a different setting.
           `
     })
     .build()
