@@ -1,0 +1,52 @@
+<style>
+div.multi {
+  column-count: 2;
+  column-gap: 10px;
+}
+
+
+</style>
+
+<form class="flexcol">
+
+  <h2>Filters</h2>
+
+  <div class="multi">
+
+  <!-- List filters the GM can use to select from combatants below -->
+  {{#each filters as |filterChoices filterKey|}}
+    <h3>{{filterKey}}</h3>
+
+    {{#each filterChoices as |filterLocal filterName|}}
+    <input class="filterChoice" type="checkbox" name="{{concat 'filter' filterKey filterName join='.'}}" id="{{concat 'filter' filterKey filterName join='.'}}"/>
+    &nbsp{{filterLocal}}
+    <br>
+    {{/each}}
+
+    <br>
+  {{/each}}
+
+  </div>
+
+  <br>
+  <h2>Combatants</h2>
+
+  <div class="multi">
+  <!-- List the combatants by name, actor name, token image -->
+  {{#each combatants}}
+
+  <div class="flexrow" style="align-items:baseline">
+    <input type="checkbox" name="{{concat 'combatant.' this.id}}" id="{{concat 'combatant.' this.id}}" />
+    <img src="{{this.img}}" width="24" height="24" class="flex0"/>
+    <h4 style="align-self:center"> {{this.tokenName}} </h4>
+
+  </div>
+
+  {{/each}}
+
+  </div>
+
+  <br>
+  <br>
+
+</form>

@@ -1,0 +1,127 @@
+<style>
+
+.row {
+  display: flex;
+}
+
+.column {
+  flex: 50%;
+}
+
+input[type=text].actionInitiativeError {
+  border: 3px solid #8B0000;
+}
+
+</style>
+
+<form class="flexcol">
+
+  <h2>Actions</h2>
+
+  <p>{{localize "actioninitiative.template.combatant.intro"}}</p>
+
+  <div class="row">
+  <div class="column">
+
+  {{#each actions}}
+
+
+
+  {{#if (eq @index ../splits.actions) }}
+  </div>
+  <div class="column">
+  {{/if}}
+
+
+
+  <div class="form-fields">
+    <input class="actioninitiative-actionCheckbox" type="checkbox" name="{{this}}" />
+    <!-- https://ptb.discord.com/channels/170995199584108546/811676497965613117/1098253076089012374 -->
+    <label> {{ localize (lookup (concat "actioninitiative.phrases." this) "string") }} </label>
+  </div>
+
+
+  {{/each}}
+
+  </div>
+  </div>
+
+  <br>
+
+  <div class="form-fields">
+    <input type="checkbox" name="OtherAction.Checkbox" />
+    <label> {{ localize "actioninitiative.phrases.OtherAction" }} </label>
+    <input class="actioninitiative-actionTextbox" type="text" name="OtherAction.Text" id="OtherAction.Text" placeholder="{{otherActionDefault}}"/>
+  </div>
+
+  <br>
+
+  <div class="form-fields">
+    <input type="checkbox" name="BonusAction.Checkbox" />
+    <label> {{ localize "actioninitiative.phrases.BonusAction" }} </label>
+    <input class="actioninitiative-actionTextbox" type="text" name="BonusAction.Text" id="BonusAction.Text" placeholder="{{bonusActionDefault}}"/>
+  </div>
+
+  <div style="display:none" id="actioninitiative-sectionWeaponTypeMelee">
+    <br>
+    <h2>Melee Weapons</h2>
+
+
+    {{#each weapons.melee}}
+
+    <div class="flexrow" style="align-items:baseline">
+      <input type="checkbox" name="{{concat 'meleeWeapon.' this.id}}"/>
+      <img src="{{this.img}}" width="24" height="24" class="flex0"/>
+      <h4 style="align-self:center"> {{this.name}} </hr>
+
+    </div>
+
+    {{/each}}
+
+
+
+  </div>
+
+
+  <div style="display:none" id="actioninitiative-sectionWeaponTypeRanged">
+    <br>
+    <h2>Ranged Weapons</h2>
+
+
+
+    {{#each weapons.ranged}}
+
+    <div class="flexrow" style="align-items:center">
+      <input type="checkbox" name="{{concat 'rangeWeapon.' this.id}}"/>
+      <h4> {{this.name}} </hr>
+      <img src="{{this.img}}" width="24" height="24" class="flex0" style="align-self:end"/>
+    </div>
+
+    {{/each}}
+
+
+
+  </div>
+
+
+  <div style="display:none" id="actioninitiative-sectionSpellLevel">
+    <br>
+    <h2>Spell Level</h2>
+
+
+
+    <div class="form-fields">
+      {{ radioBoxes "spellLevels" localized.spellLevels }}
+    </div>
+
+
+
+  </div>
+
+
+
+
+  <br><br>
+
+</form>
+

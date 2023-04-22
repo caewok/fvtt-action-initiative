@@ -1,0 +1,99 @@
+<form class="flexcol" autocomplete="off">
+  <nav class="sheet-tabs tabs" data-group="sections">
+    <a class="item" data-tab="basic">
+      {{localize "actioninitiative.template.settings-config.tabs.basic"}}
+    </a>
+
+    <a class="item" data-tab="weapons">
+      {{localize "actioninitiative.template.settings-config.tabs.weapons"}}
+    </a>
+
+    <a class="item" data-tab="spell-levels">
+      {{localize "actioninitiative.template.settings-config.tabs.spell-levels"}}
+    </a>
+  </nav>
+
+  <h1>
+    Header 1 Title
+  </h1>
+
+  <p>
+    Some paragraph
+  </p>
+
+  <section class="content">
+    <div class="tab" data-tab="basic" data-group="sections">
+
+      <h2> {{localize "actioninitiative.phrases.BasicVariant"}} </h2>
+
+      {{#each basic as |basicFormula basicKey|}}
+
+      <div class="form-group">
+        <label> {{localize (lookup (concat "actioninitiative.phrases." basicKey) "string") }} </label>
+        <div class="form-fields">
+          <input class="actioninitiative-actionTextbox" type="text" name="{{concat 'BASIC.' basicKey}}" id="{{concat 'BASIC.' basicKey}}" value="{{basicFormula}}" placeholder="{{lookup ../placeholder.BASIC basicKey}}">
+        </div>
+      </div>
+
+      {{/each}}
+
+      <p class="hint">Input a valid dice formula (or numeric value) for each type. Combatants will select their
+      appropriate action(s) from these categories when rolling initiative. Delete to return to default.
+      Entering "0" will cause the action to not affect initiative.</p>
+
+    </div>
+
+    <div class="tab" data-tab="weapons" data-group="sections">
+      <p> This is the Weapons Tab </p>
+
+      <h2> {{localize "actioninitiative.phrases.WeaponTypes"}} </h2>
+
+      {{#each weaponTypes as |weaponTypeFormula weaponType|}}
+
+      <div class="form-group">
+        <label> {{lookup ../localized.weaponTypes weaponType}} </label>
+        <div class="form-fields">
+          <input class="actioninitiative-actionTextbox" type="text" name="{{concat 'WEAPON_TYPES.' weaponType}}" id="{{concat 'WEAPON_TYPES.' weaponType}}" value="{{weaponTypeFormula}}" placeholder="{{lookup ../placeholder.WEAPON_TYPES weaponType}}">
+        </div>
+      </div>
+
+      {{/each}}
+
+      <h2> {{localize "actioninitiative.phrases.WeaponProperties"}} </h2>
+
+      {{#each weaponProperties as |weaponPropsFormula weaponProp|}}
+
+      <div class="form-group">
+        <label> {{lookup ../localized.weaponProperties weaponProp}} </label>
+        <div class="form-fields">
+          <input class="actioninitiative-actionTextbox" type="text" name="{{concat 'WEAPON_PROPERTIES.' weaponProp}}" id="{{concat 'WEAPON_PROPERTIES.' weaponProp}}" value="{{weaponPropsFormula}}" placeholder="{{lookup ../placeholder.WEAPON_PROPERTIES weaponProp}}">
+        </div>
+      </div>
+
+      {{/each}}
+
+    </div>
+
+
+    <div class="tab" data-tab="spell-levels" data-group="sections">
+      <p> This is the Spell Levels Tab </p>
+
+      {{#each spellLevels as |spellLevelFormula spellLevel|}}
+
+      <div class="form-group">
+        <label> {{lookup ../localized.spellLevels spellLevel}} </label>
+        <div class="form-fields">
+          <input class="actioninitiative-actionTextbox" type="text" name="{{concat 'SPELL_LEVELS.' spellLevel}}" id="{{concat 'SPELL_LEVELS.' spellLevel}}" value="{{spellLevelFormula}}" placeholder="{{lookup ../placeholder.SPELL_LEVELS spellLevel}}">
+        </div>
+      </div>
+
+      {{/each}}
+
+    </div>
+
+  </section>
+
+  <footer class="sheet-footer flexrow">
+    <button type='submit' name='submit' value='1'><i class='far fa-floppy-disk'></i>{{submitText}}</button>
+  </footer>
+</form>

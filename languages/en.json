@@ -1,0 +1,44 @@
+{
+  "actioninitiative.settings.variants.Name": "Weapon Variants",
+  "actioninitiative.settings.variants.Hint": "Basic: melee/ranged/cast/other; Weapon Speed: Use weapon damage die; Weapon Type: Use weapon properties (e.g., light, heavy)",
+  "actioninitiative.settings.variant-basic": "Basic",
+  "actioninitiative.settings.variant-weapon-damage": "Weapon Damage",
+  "actioninitiative.settings.variant-weapon-type": "Weapon Type",
+  "actioninitiative.settings.configure-menu.Name": "Advanced Configuration",
+  "actioninitiative.settings.configure-menu.Hint": "Configure specific die combinations used for the variants. Options will vary based on choices here.",
+  "actioninitiative.settings.configure-menu.Label": "Configure",
+  "actioninitiative.settings.spell-levels.Name": "Use Spell Levels",
+  "actioninitiative.settings.spell-levels.Hint": "When enabled, combatant must select the spell level they intend to cast.",
+  "actioninitiative.settings.group-actors.Name": "Default to Group by Actor",
+  "actioninitiative.settings.group-actors.Hint": "When enabled, setting actions for one combatant will use the same actions for all combatants with that same actor id. When disabled, combatants with unlinked actors will request actions separately. You can change also change this using the Combat Tracker configuration.",
+
+  "actioninitiative.CombatTrackerConfig.LegendTitle": "Action Initiative",
+  "actioninitiative.CombatTrackerConfig.groupActors.Name": "Group by Actor",
+
+  "actioninitiative.template.settings-config.tabs.basic": "Basic",
+  "actioninitiative.template.settings-config.tabs.weapons": "Weapons",
+  "actioninitiative.template.settings-config.tabs.spell-levels": "Spell Levels",
+
+  "actioninitiative.template.combatant.intro": "Select one or more actions.",
+
+  "actioninitiative.phrases.BasicVariant": "Basic Variant",
+  "actioninitiative.phrases.RangedAttack": "Ranged Attack",
+  "actioninitiative.phrases.MeleeAttack": "Melee Attack",
+  "actioninitiative.phrases.SwapGear": "Swap Gear",
+  "actioninitiative.phrases.CastSpell": "Cast a Spell",
+  "actioninitiative.phrases.OtherAction": "Other Action",
+  "actioninitiative.phrases.BonusAction": "Bonus Action",
+  "actioninitiative.phrases.Movement": "Movement",
+  "actioninitiative.phrases.SurprisePenalty": "Surprise Penalty",
+
+  "actioninitiative.phrases.WeaponTypes": "Weapon Types",
+  "actioninitiative.phrases.WeaponProperties": "Weapon Properties",
+
+  "actioninitiative.template.multiple-combatant-config.Title": "Action Initiative",
+
+  "actioninitiative.template.settings-config.BonusAction.placeholder": "Leave blank if combatant should select die roll.",
+
+  "actioninitiative.CombatTracker.addToInitiative": "Add to initiative",
+  "actioninitiative.CombatTracker.resetInitiative": "Reset initiative"
+
+}
