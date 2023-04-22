@@ -140,7 +140,7 @@ function dnd5eDefaultSpellLevels() {
   return props;
 }
 
-function defaultDiceFormulaObject() {
+export function defaultDiceFormulaObject() {
   const flat = flattenObject(FORMULA_DEFAULTS);
   Object.keys(flat).forEach(key => flat[key] = "");
   return flat;

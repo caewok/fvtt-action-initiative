@@ -194,6 +194,12 @@ export function _getInitiativeFormulaCombatant(lastSelections) {
       case "CastSpell":
         formula.push(castSpellFormula(selections) ?? "0");
         break;
+      case "BonusAction":
+        if ( selections.BonusAction.Checkbox ) formula.push(selections.BonusAction.Text);
+        break;
+      case "OtherAction":
+        if ( selections.OtherAction.Checkbox ) formula.push(selections.OtherAction.Text);
+        break;
       default:
         formula.push(getDiceValueForProperty(`BASIC.${key}`) ?? "0");
     }
@@ -264,6 +270,14 @@ export function _actionInitiativeSelectionSummaryCombatant() {
         advantage = value === modes.ADVANTAGE
           ? advantage = `${game.i18n.localize("DND5E.Advantage")}` : value === modes.DISADVANTAGE
             ? advantage = `${game.i18n.localize("DND5E.Disadvantage")}` : undefined;
+        break;
+
+      case "BonusAction":
+        if ( selections.BonusAction.Checkbox ) actions.push(`${game.i18n.localize(`${MODULE_ID}.phrases.${key}`)} (${selections.BonusAction.Text})`);
+        break;
+
+      case "OtherAction":
+        if ( selections.OtherAction.Checkbox ) actions.push(`${game.i18n.localize(`${MODULE_ID}.phrases.${key}`)} (${selections.OtherAction.Text})`);
         break;
 
       default:
@@ -413,6 +427,15 @@ function onDialogSubmit(html, advantageMode) {
   const form = html[0].querySelector("form");
   const data = new FormDataExtended(form);
   data.object.advantageMode = advantageMode;
+
+  // Check the formulae in BonusAction
+  // To be safe, do regardless of the checkbox value
+  const bonusFormula = data.object["BonusAction.Text"];
+  if ( !Roll.validate(bonusFormula) ) data.object["BonusAction.Text"] = FORMULA_DEFAULTS.BASIC.BonusAction;
+
+  const otherFormula = data.object["OtherAction.Text"];
+  if ( !Roll.validate(otherFormula) ) data.object["OtherAction.Text"] = FORMULA_DEFAULTS.BASIC.OtherAction;
+
   return data.object;
 }
 
