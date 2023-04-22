@@ -8,7 +8,9 @@ FormDataExtended,
 expandObject,
 Roll,
 getProperty,
-foundry
+foundry,
+ChatMessage,
+CONST
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
@@ -168,13 +170,8 @@ export function _actionInitiativeDialogDataActor({ items } = {}) {
   return data;
 }
 
-export function calculateActionInitiativeRollCombatant() {
-  const lastSelections = this.getActionInitiativeSelections();
-  return this.actor.calculateActionInitiativeRoll(lastSelections);
-}
-
-export function _getInitiativeFormulaCombatant() {
-  const lastSelections = this.getActionInitiativeSelections();
+export function _getInitiativeFormulaCombatant(lastSelections) {
+  lastSelections ??= this.getActionInitiativeSelections();
   if ( !lastSelections ) return "0";
   const selections = expandObject(lastSelections);
   const actor = this.actor;
@@ -221,12 +218,11 @@ export function _getInitiativeFormulaCombatant() {
 
 
 export function getInitiativeRollCombatant(formula) {
-  // TO-DO: Ignore formula or use it?
-  formula = this._getInitiativeFormula();
+  formula ??= this._getInitiativeFormula();
   return new Roll(formula, this.actor);
 }
 
-export function _actionInitiativeSelectionSummaryCombatant(type = "chat") {
+export function _actionInitiativeSelectionSummaryCombatant() {
   const lastSelections = this.getActionInitiativeSelections();
   if ( !lastSelections ) return undefined;
   const selections = expandObject(lastSelections);
@@ -296,7 +292,7 @@ export async function setActionInitiativeSelectionsCombatant(selections) {
 }
 
 export function getActionInitiativeSelectionsActor() {
-  return combatants.map(c => {
+  return game.combat.combatants.map(c => {
     return { [c.id]: c.getActionInitiativeSelections() };
   });
 }
@@ -339,6 +335,49 @@ export async function rollInitiativeDialogActor5e({advantageMode, combatantId} =
   // Ultimate tied to the combatant that represents the actor.
   await this.setActionInitiativeSelections(selections, { combatantId });
   await this.rollInitiative({createCombatants: true, initiativeOptions: { combatantId }});
+}
+
+/**
+ * Add method to add to combatant's initiative by presenting the action dialog.
+ */
+export async function addToInitiativeCombatant() {
+  const selections = await this.actor.actionInitiativeDialog(this.actor);
+  if ( !selections ) return; // Closed dialog.
+
+  // Store the new selections along with prior selections.
+  const combatantId = this.id;
+  const combinedSelections = this.getActionInitiativeSelections()
+  for ( const [key, value] of Object.entries(selections) ) combinedSelections[key] ||= value;
+  await this.setActionInitiativeSelections(combinedSelections);
+
+  // Determine additional dice to roll.
+  const formula = this._getInitiativeFormula(selections);
+  const roll = this.getInitiativeRoll(formula);
+  await roll.evaluate({async: true});
+  await this.update({initiative: roll.total + (this.initiative ?? 0)});
+
+  // Construct chat message data
+  let messageData = foundry.utils.mergeObject({
+    speaker: ChatMessage.getSpeaker({
+      actor: this.actor,
+      token: this.token,
+      alias: this.name
+    }),
+    flavor: `Added to initiative for ${this.name}.`,
+    flags: {"core.initiativeRoll": true}
+  });
+  const chatData = await roll.toMessage(messageData, {create: false});
+
+  // If the combatant is hidden, use a private roll unless an alternative rollMode was explicitly requested
+  chatData.rollMode = this.hidden ? CONST.DICE_ROLL_MODES.PRIVATE : game.settings.get("core", "rollMode");
+
+  // Ensure the turn order remains with the same combatant
+  await game.combat.update({turn: game.combat.turns.findIndex(t => t.id === this.id)});
+
+  // Create multiple chat messages
+  await ChatMessage.create(chatData);
+
+  return this;
 }
 
 /**
