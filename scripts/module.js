@@ -12,7 +12,13 @@ import { registerActionInitiative } from "./patching.js";
 import { CombatTrackerActionInitiative } from "./CombatTracker.js";
 
 // Settings
-import { registerSettings, FORMULA_DEFAULTS } from "./settings.js";
+import {
+  registerSettings,
+  FORMULA_DEFAULTS,
+  SETTINGS,
+  defaultDiceFormulaObject,
+  getSetting,
+  setSetting } from "./settings.js";
 
 import { MultipleCombatantDialog } from "./combat.js";
 
@@ -138,6 +144,26 @@ Hooks.once("setup", () => {
   }
 });
 
+Hooks.once("ready", () => {
+  CONFIG[MODULE_ID].cleanupDefaults = true;
+
+  if ( CONFIG[MODULE_ID].cleanupDefaults ) {
+    // Clean up dice formula settings (rarely needed)
+    const formulae = getSetting(SETTINGS.DICE_FORMULAS);
+    const defaults = defaultDiceFormulaObject();
+
+    // Add missing
+    const formulaeKeys = new Set(Object.keys(formulae));
+    const defaultKeys = new Set(Object.keys(defaults));
+    const missingFromFormulae = defaultKeys.difference(formulaeKeys);
+    const extrasInFormulae = formulaeKeys.difference(defaultKeys);
+
+    for ( const key of missingFromFormulae ) formulae[key] = defaults[key]
+    for ( const key of extrasInFormulae ) delete formulae[key];
+
+    setSetting(SETTINGS.DICE_FORMULAS, formulae);
+  }
+});
 
 Hooks.on("preCreateChatMessage", preCreateChatMessageHook);
 

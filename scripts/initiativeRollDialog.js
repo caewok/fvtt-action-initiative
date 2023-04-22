@@ -123,13 +123,15 @@ export function _actionInitiativeDialogDataActor({ items } = {}) {
     "CastSpell",
     "MeleeAttack",
     "RangedAttack",
-    "OtherAction",
 
     "Movement",
     "SwapGear",
-    "BonusAction",
     "SurprisePenalty"
   ];
+
+  // Display other action and bonus action separately with a text box to change the die roll
+  data.otherActionDefault = getDiceValueForProperty("BASIC.OtherAction");
+  data.bonusActionDefault = getDiceValueForProperty("BASIC.BonusAction");
 
   data.localized = {
     spellLevels: CONFIG[MODULE_ID].spellLevels,
@@ -191,6 +193,12 @@ export function _getInitiativeFormulaCombatant(lastSelections) {
         break;
       case "CastSpell":
         formula.push(castSpellFormula(selections) ?? "0");
+        break;
+      case "BonusAction":
+        if ( selections.BonusAction.Checkbox ) formula.push(selections.BonusAction.Text);
+        break;
+      case "OtherAction":
+        if ( selections.OtherAction.Checkbox ) formula.push(selections.OtherAction.Text);
         break;
       default:
         formula.push(getDiceValueForProperty(`BASIC.${key}`) ?? "0");
@@ -262,6 +270,14 @@ export function _actionInitiativeSelectionSummaryCombatant() {
         advantage = value === modes.ADVANTAGE
           ? advantage = `${game.i18n.localize("DND5E.Advantage")}` : value === modes.DISADVANTAGE
             ? advantage = `${game.i18n.localize("DND5E.Disadvantage")}` : undefined;
+        break;
+
+      case "BonusAction":
+        if ( selections.BonusAction.Checkbox ) actions.push(`${game.i18n.localize(`${MODULE_ID}.phrases.${key}`)} (${selections.BonusAction.Text})`);
+        break;
+
+      case "OtherAction":
+        if ( selections.OtherAction.Checkbox ) actions.push(`${game.i18n.localize(`${MODULE_ID}.phrases.${key}`)} (${selections.OtherAction.Text})`);
         break;
 
       default:
@@ -411,6 +427,15 @@ function onDialogSubmit(html, advantageMode) {
   const form = html[0].querySelector("form");
   const data = new FormDataExtended(form);
   data.object.advantageMode = advantageMode;
+
+  // Check the formulae in BonusAction
+  // To be safe, do regardless of the checkbox value
+  const bonusFormula = data.object["BonusAction.Text"];
+  if ( !Roll.validate(bonusFormula) ) data.object["BonusAction.Text"] = FORMULA_DEFAULTS.BASIC.BonusAction;
+
+  const otherFormula = data.object["OtherAction.Text"];
+  if ( !Roll.validate(otherFormula) ) data.object["OtherAction.Text"] = FORMULA_DEFAULTS.BASIC.OtherAction;
+
   return data.object;
 }
 
@@ -614,15 +639,15 @@ class ActionInitiativeDialog extends Dialog {
 
   /**
    * Activate additional listeners to display/hide spell levels and weapon properties
+   * Also monitor for incorrect dice formulae.
    */
   activateListeners(html) {
     super.activateListeners(html);
-    html.on("change", "#actioninitiative-actionCheckbox", this._actionChanged.bind(this));
+    html.on("change", ".actioninitiative-actionCheckbox", this._actionChanged.bind(this));
+    html.on("change", ".actioninitiative-actionTextbox", this._textBoxChanged.bind(this));
   }
 
   _actionChanged(event) {
-    console.log("Action changed", event);
-
     let elem;
     switch ( event.target.name ) {
       case "MeleeAttack": {
@@ -645,5 +670,19 @@ class ActionInitiativeDialog extends Dialog {
     }
 
     if ( elem ) elem.style.display = event.target.checked ? "block" : "none";
+  }
+
+  _textBoxChanged(event) {
+    const elem = document.getElementById(event.target.name);
+    const formula = elem.value;
+    if ( formula === "" || Roll.validate(formula) ) elem.className.replace(" actionInitiativeError", "");
+    else elem.className = elem.className + " actionInitiativeError";
+//     if ( formula === "" || Roll.validate(formula) ) {
+//       elem.style.borderColor = "";
+//       elem.style.borderWidth = "";
+//     } else {
+//       elem.style.borderColor = "#8B0000";
+//       elem.style.borderWidth = "2px";
+//     }
   }
 }
