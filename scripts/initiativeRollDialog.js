@@ -123,13 +123,15 @@ export function _actionInitiativeDialogDataActor({ items } = {}) {
     "CastSpell",
     "MeleeAttack",
     "RangedAttack",
-    "OtherAction",
 
     "Movement",
     "SwapGear",
-    "BonusAction",
     "SurprisePenalty"
   ];
+
+  // Display other action and bonus action separately with a text box to change the die roll
+  data.otherActionDefault = getDiceValueForProperty("BASIC.OtherAction");
+  data.bonusActionDefault = getDiceValueForProperty("BASIC.BonusAction");
 
   data.localized = {
     spellLevels: CONFIG[MODULE_ID].spellLevels,
@@ -617,7 +619,7 @@ class ActionInitiativeDialog extends Dialog {
    */
   activateListeners(html) {
     super.activateListeners(html);
-    html.on("change", "#actioninitiative-actionCheckbox", this._actionChanged.bind(this));
+    html.on("change", ".actioninitiative-actionCheckbox", this._actionChanged.bind(this));
   }
 
   _actionChanged(event) {
