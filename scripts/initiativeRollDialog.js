@@ -639,15 +639,15 @@ class ActionInitiativeDialog extends Dialog {
 
   /**
    * Activate additional listeners to display/hide spell levels and weapon properties
+   * Also monitor for incorrect dice formulae.
    */
   activateListeners(html) {
     super.activateListeners(html);
     html.on("change", ".actioninitiative-actionCheckbox", this._actionChanged.bind(this));
+    html.on("change", ".actioninitiative-actionTextbox", this._textBoxChanged.bind(this));
   }
 
   _actionChanged(event) {
-    console.log("Action changed", event);
-
     let elem;
     switch ( event.target.name ) {
       case "MeleeAttack": {
@@ -670,5 +670,19 @@ class ActionInitiativeDialog extends Dialog {
     }
 
     if ( elem ) elem.style.display = event.target.checked ? "block" : "none";
+  }
+
+  _textBoxChanged(event) {
+    const elem = document.getElementById(event.target.name);
+    const formula = elem.value;
+    if ( formula === "" || Roll.validate(formula) ) elem.className.replace(" actionInitiativeError", "");
+    else elem.className = elem.className + " actionInitiativeError";
+//     if ( formula === "" || Roll.validate(formula) ) {
+//       elem.style.borderColor = "";
+//       elem.style.borderWidth = "";
+//     } else {
+//       elem.style.borderColor = "#8B0000";
+//       elem.style.borderWidth = "2px";
+//     }
   }
 }

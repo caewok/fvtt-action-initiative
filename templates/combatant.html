@@ -8,6 +8,10 @@
   flex: 50%;
 }
 
+input[type=text].actionInitiativeError {
+  border: 3px solid #8B0000;
+}
+
 </style>
 
 <form class="flexcol">
@@ -47,7 +51,7 @@
   <div class="form-fields">
     <input type="checkbox" name="OtherAction.Checkbox" />
     <label> {{ localize "actioninitiative.phrases.OtherAction" }} </label>
-    <input type="text" name="OtherAction.Text" placeholder="{{otherActionDefault}}"/>
+    <input class="actioninitiative-actionTextbox" type="text" name="OtherAction.Text" id="OtherAction.Text" placeholder="{{otherActionDefault}}"/>
   </div>
 
   <br>
@@ -55,7 +59,7 @@
   <div class="form-fields">
     <input type="checkbox" name="BonusAction.Checkbox" />
     <label> {{ localize "actioninitiative.phrases.BonusAction" }} </label>
-    <input type="text" name="BonusAction.Text" placeholder="{{bonusActionDefault}}"/>
+    <input class="actioninitiative-actionTextbox" type="text" name="BonusAction.Text" id="BonusAction.Text" placeholder="{{bonusActionDefault}}"/>
   </div>
 
   <div style="display:none" id="actioninitiative-sectionWeaponTypeMelee">
