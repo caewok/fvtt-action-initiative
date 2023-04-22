@@ -261,4 +261,30 @@ class ActionConfigureMenu extends FormApplication {
 
     await setSetting(SETTINGS.DICE_FORMULAS, diceFormulas);
   }
+
+  /**
+   * Activate additional listeners to display/hide spell levels and weapon properties
+   * Also monitor for incorrect dice formulae.
+   */
+  activateListeners(html) {
+    super.activateListeners(html);
+    html.on("change", ".actioninitiative-actionTextbox", this._textBoxChanged.bind(this));
+  }
+
+  _textBoxChanged(event) {
+    const elem = document.getElementById(event.target.name);
+    const formula = elem.value;
+
+    // Cannot get the style sheet to work here.
+    // if ( formula === "" || Roll.validate(formula) ) elem.className.replace(" actionInitiativeError", "");
+    // else elem.className = elem.className + " actionInitiativeError";
+
+    if ( formula === "" || Roll.validate(formula) ) {
+      elem.style.borderColor = "";
+      elem.style.borderWidth = "";
+    } else {
+      elem.style.borderColor = "#8B0000";
+      elem.style.borderWidth = "2px";
+    }
+  }
 }
