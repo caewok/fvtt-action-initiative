@@ -6,24 +6,27 @@ Combatant
 "use strict";
 
 import { MODULE_ID } from "./const.js";
-import { _sortCombatantsCombat, rollAllCombat, rollNPCCombat } from "./combat.js";
 import {
-  _getInitiativeFormulaCombatant,
-  getInitiativeRollCombatant,
+  _sortCombatantsCombat,
+  rollAllCombat,
+  rollNPCCombat,
+  rollInitiativeCombat } from "./combat.js";
+
+import {
   getActionInitiativeSelectionsCombatant,
   setActionInitiativeSelectionsCombatant,
-   _actionInitiativeSelectionSummaryCombatant,
-   addToInitiativeCombatant,
+  _getInitiativeFormulaCombatant,
+  _actionInitiativeSelectionSummaryCombatant,
+  addToInitiativeCombatant,
+  resetInitiativeCombatant } from "./combatant.js";
 
-  rollInitiativeDialogActor5e,
-
+import {
   actionInitiativeDialogActor,
   _actionInitiativeDialogDataActor,
   getActionInitiativeSelectionsActor,
   setActionInitiativeSelectionsActor,
-
-  rollInitiativeCombat,
-  resetInitiativeCombatant } from "./initiativeRollDialog.js";
+  rollInitiativeDialogActor5e
+} from "./actor.js";
 
 import { getDataCombatTrackerConfig, _updateObjectCombatTrackerConfig } from "./render.js";
 
@@ -52,7 +55,6 @@ export function registerActionInitiative() {
   override("Combat.prototype.rollNPC", rollNPCCombat);
 
   override("Combatant.prototype._getInitiativeFormula", _getInitiativeFormulaCombatant);
-  override("Combatant.prototype.getInitiativeRoll", getInitiativeRollCombatant);
 
   override("dnd5e.documents.Actor5e.prototype.rollInitiativeDialog", rollInitiativeDialogActor5e);
 
