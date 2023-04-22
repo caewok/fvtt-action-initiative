@@ -18,7 +18,7 @@ Add this [Manifest URL](https://github.com/caewok/fvtt-action-initiative/release
 - [libWrapper](https://github.com/ruipin/fvtt-lib-wrapper)
 
 ## Conflicts
-- You can be sure that most modules that
+- Modules that change the combat tracker or otherwise modify the initiative sequence are likely to conflict with this module.
 
 # Systems
 
