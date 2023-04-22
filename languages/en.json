@@ -36,6 +36,8 @@
 
   "actioninitiative.template.multiple-combatant-config.Title": "Action Initiative",
 
-  "actioninitiative.template.settings-config.BonusAction.placeholder": "Leave blank if combatant should select die roll."
+  "actioninitiative.template.settings-config.BonusAction.placeholder": "Leave blank if combatant should select die roll.",
+
+  "actioninitiative.CombatTracker.addToInitiative": "Add to initiative"
 
 }

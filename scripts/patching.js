@@ -12,8 +12,8 @@ import {
   getInitiativeRollCombatant,
   getActionInitiativeSelectionsCombatant,
   setActionInitiativeSelectionsCombatant,
-  calculateActionInitiativeRollCombatant,
    _actionInitiativeSelectionSummaryCombatant,
+   addToInitiativeCombatant,
 
   rollInitiativeDialogActor5e,
 
@@ -71,12 +71,6 @@ export function registerActionInitiative() {
     configurable: true
   });
 
-  Object.defineProperty(Combatant.prototype, "calculateActionInitiativeRoll", {
-    value: calculateActionInitiativeRollCombatant,
-    writable: true,
-    configurable: true
-  });
-
   Object.defineProperty(Combatant.prototype, "_actionInitiativeSelectionSummary", {
     value: _actionInitiativeSelectionSummaryCombatant,
     writable: true,
@@ -103,6 +97,12 @@ export function registerActionInitiative() {
 
   Object.defineProperty(Combatant.prototype, "setActionInitiativeSelections", {
     value: setActionInitiativeSelectionsCombatant,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(Combatant.prototype, "addToInitiative", {
+    value: addToInitiativeCombatant,
     writable: true,
     configurable: true
   });
