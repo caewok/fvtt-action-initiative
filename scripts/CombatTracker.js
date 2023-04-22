@@ -28,6 +28,7 @@ export class CombatTrackerActionInitiative extends CombatTracker {
       && combatant?.actor ) return combatant.actor.rollInitiativeDialog({combatantId});
 
     if ( btn.dataset.control === "addToInitiative" ) return combatant.addToInitiative();
+    if ( btn.dataset.control === "resetInitiative" ) return combatant.resetInitiative();
     return super._onCombatantControl(event);
   }
 
