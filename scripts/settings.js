@@ -65,13 +65,13 @@ function getDiceValue(config, fallback) { return (config ?? "0") || fallback; }
 export const FORMULA_DEFAULTS = {
   BASIC: {
     CastSpell: "1d10",
-    MeleeAttack: "1d6",
+    MeleeAttack: "1d8",
     Movement: "1d6",
     OtherAction: "1d6",
     RangedAttack: "1d4",
     SurprisePenalty: "+10",
     SwapGear: "1d6",
-    BonusAction: ""
+    BonusAction: "1d8"
   },
 
   // Added dynamically
@@ -238,7 +238,6 @@ class ActionConfigureMenu extends FormApplication {
     data.weaponProperties = formulaeObj.WEAPON_PROPERTIES;
     data.spellLevels = formulaeObj.SPELL_LEVELS;
     data.placeholder = FORMULA_DEFAULTS;
-    data.placeholder.BonusAction = game.i18n.localize(`${MODULE_ID}.template.settings-config.BonusAction.placeholder`);
 
     data.localized = {
       spellLevels: CONFIG.DND5E.spellLevels,
