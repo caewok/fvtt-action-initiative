@@ -129,6 +129,31 @@ export function _actionInitiativeDialogDataActor({ items } = {}) {
     "SurprisePenalty"
   ];
 
+  // Trim actions that are unused
+  const removeElement = function(arr, elem) {
+    const idx = arr.findIndex(obj => obj === elem);
+    if ( ~idx ) arr.splice(idx, 1);
+  }
+
+  const variant = getSetting(SETTINGS.VARIANTS.KEY);
+  const defaults = expandObject(getSetting(SETTINGS.DICE_FORMULAS));
+  for ( const [key, value] of Object.entries(defaults.BASIC) ) {
+    if ( value !== "0" ) continue;
+    let remove = false;
+    switch ( key ) {
+      case "MeleeAttack":
+      case "RangedAttack":
+        if ( variant === SETTINGS.VARIANTS.TYPES.BASIC ) remove = true;
+        break;
+      case "CastSpell":
+        if ( getSetting(SETTINGS.SPELL_LEVELS) ) remove = true;
+        break;
+      default:
+        remove = true;
+    }
+    if ( remove ) removeElement(data.actions, key);
+  }
+
   // Display other action and bonus action separately with a text box to change the die roll
   data.otherActionDefault = getDiceValueForProperty("BASIC.OtherAction");
   data.bonusActionDefault = getDiceValueForProperty("BASIC.BonusAction");
