@@ -397,6 +397,13 @@ export async function addToInitiativeCombatant() {
 }
 
 /**
+ * Add method to reset a single combatant's initiative.
+ */
+export async function resetInitiativeCombatant() {
+  await this.update({initiative: null});
+}
+
+/**
  * Wrap Combat.prototype.rollInitiative
  * If limiting to actor id, then use only combatant id for the active tokens of the actor.
  * This means synthetic tokens will be rolled separately.

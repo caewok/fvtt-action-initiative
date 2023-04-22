@@ -22,7 +22,8 @@ import {
   getActionInitiativeSelectionsActor,
   setActionInitiativeSelectionsActor,
 
-  rollInitiativeCombat } from "./initiativeRollDialog.js";
+  rollInitiativeCombat,
+  resetInitiativeCombatant } from "./initiativeRollDialog.js";
 
 import { getDataCombatTrackerConfig, _updateObjectCombatTrackerConfig } from "./render.js";
 
@@ -103,6 +104,12 @@ export function registerActionInitiative() {
 
   Object.defineProperty(Combatant.prototype, "addToInitiative", {
     value: addToInitiativeCombatant,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(Combatant.prototype, "resetInitiative", {
+    value: resetInitiativeCombatant,
     writable: true,
     configurable: true
   });
