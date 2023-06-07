@@ -129,7 +129,7 @@ export function _actionInitiativeSelectionSummaryCombatant() {
         if ( getSetting(SETTINGS.SPELL_LEVELS) ) {
           const spellLevels = new Set(Object.keys(CONFIG[MODULE_ID].spellLevels));
           const chosenLevel = Object.entries(selections).find(([_key, value]) => value && spellLevels.has(value));
-          spellLevel = `${CONFIG[MODULE_ID].spellLevels[chosenLevel[1]]}`;
+          spellLevel = `${CONFIG[MODULE_ID].spellLevels[chosenLevel ? chosenLevel[1] : 9]}`;
         }
         break;
 
