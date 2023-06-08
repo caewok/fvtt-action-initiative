@@ -18,7 +18,8 @@ import {
   _getInitiativeFormulaCombatant,
   _actionInitiativeSelectionSummaryCombatant,
   addToInitiativeCombatant,
-  resetInitiativeCombatant } from "./combatant.js";
+  resetInitiativeCombatant,
+  getInitiativeRollCombatant } from "./combatant.js";
 
 import {
   actionInitiativeDialogActor,
@@ -46,6 +47,20 @@ function wrap(method, fn) { libWrapper.register(MODULE_ID, method, fn, libWrappe
 function override(method, fn) { libWrapper.register(MODULE_ID, method, fn, libWrapper.OVERRIDE); }
 
 /**
+ * Helper to add a method to a class.
+ * @param {class} cl      Either Class.prototype or Class
+ * @param {string} name   Name of the method
+ * @param {function} fn   Function to use for the method
+ */
+function addClassMethod(cl, name, fn) {
+  Object.defineProperty(cl, name, {
+    value: fn,
+    writable: true,
+    configurable: true
+  });
+}
+
+/**
  * Register libWrapper patches for this module.
  */
 export function registerActionInitiative() {
@@ -55,6 +70,7 @@ export function registerActionInitiative() {
   override("Combat.prototype.rollNPC", rollNPCCombat);
 
   override("Combatant.prototype._getInitiativeFormula", _getInitiativeFormulaCombatant);
+  override("Combatant.prototype.getInitiativeRoll", getInitiativeRollCombatant);
 
   override("dnd5e.documents.Actor5e.prototype.rollInitiativeDialog", rollInitiativeDialogActor5e);
 
@@ -62,57 +78,14 @@ export function registerActionInitiative() {
   wrap("CombatTrackerConfig.prototype.getData", getDataCombatTrackerConfig);
 
   // New methods
-  Object.defineProperty(Actor.prototype, "actionInitiativeDialog", {
-    value: actionInitiativeDialogActor,
-    writable: true,
-    configurable: true
-  });
+  addClassMethod(Actor.prototype, "actionInitiativeDialog", actionInitiativeDialogActor);
+  addClassMethod(Actor.prototype, "_actionInitiativeDialogData", _actionInitiativeDialogDataActor);
+  addClassMethod(Actor.prototype, "getActionInitiativeSelections", getActionInitiativeSelectionsActor);
+  addClassMethod(Actor.prototype, "setActionInitiativeSelections", setActionInitiativeSelectionsActor);
 
-  Object.defineProperty(Actor.prototype, "_actionInitiativeDialogData", {
-    value: _actionInitiativeDialogDataActor,
-    writable: true,
-    configurable: true
-  });
-
-  Object.defineProperty(Combatant.prototype, "_actionInitiativeSelectionSummary", {
-    value: _actionInitiativeSelectionSummaryCombatant,
-    writable: true,
-    configurable: true
-  });
-
-  Object.defineProperty(Actor.prototype, "getActionInitiativeSelections", {
-    value: getActionInitiativeSelectionsActor,
-    writable: true,
-    configurable: true
-  });
-
-  Object.defineProperty(Actor.prototype, "setActionInitiativeSelections", {
-    value: setActionInitiativeSelectionsActor,
-    writable: true,
-    configurable: true
-  });
-
-  Object.defineProperty(Combatant.prototype, "getActionInitiativeSelections", {
-    value: getActionInitiativeSelectionsCombatant,
-    writable: true,
-    configurable: true
-  });
-
-  Object.defineProperty(Combatant.prototype, "setActionInitiativeSelections", {
-    value: setActionInitiativeSelectionsCombatant,
-    writable: true,
-    configurable: true
-  });
-
-  Object.defineProperty(Combatant.prototype, "addToInitiative", {
-    value: addToInitiativeCombatant,
-    writable: true,
-    configurable: true
-  });
-
-  Object.defineProperty(Combatant.prototype, "resetInitiative", {
-    value: resetInitiativeCombatant,
-    writable: true,
-    configurable: true
-  });
+  addClassMethod(Combatant.prototype, "_actionInitiativeSelectionSummary", _actionInitiativeSelectionSummaryCombatant);
+  addClassMethod(Combatant.prototype, "getActionInitiativeSelections", getActionInitiativeSelectionsCombatant);
+  addClassMethod(Combatant.prototype, "setActionInitiativeSelections", setActionInitiativeSelectionsCombatant);
+  addClassMethod(Combatant.prototype, "addToInitiative", addToInitiativeCombatant);
+  addClassMethod(Combatant.prototype, "resetInitiative", resetInitiativeCombatant);
 }
