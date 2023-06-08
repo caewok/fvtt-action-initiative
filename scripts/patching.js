@@ -18,7 +18,8 @@ import {
   _getInitiativeFormulaCombatant,
   _actionInitiativeSelectionSummaryCombatant,
   addToInitiativeCombatant,
-  resetInitiativeCombatant } from "./combatant.js";
+  resetInitiativeCombatant,
+  getInitiativeRollCombatant } from "./combatant.js";
 
 import {
   actionInitiativeDialogActor,
@@ -69,6 +70,7 @@ export function registerActionInitiative() {
   override("Combat.prototype.rollNPC", rollNPCCombat);
 
   override("Combatant.prototype._getInitiativeFormula", _getInitiativeFormulaCombatant);
+  override("Combatant.prototype.getInitiativeRoll", getInitiativeRollCombatant);
 
   override("dnd5e.documents.Actor5e.prototype.rollInitiativeDialog", rollInitiativeDialogActor5e);
 
@@ -80,6 +82,7 @@ export function registerActionInitiative() {
   addClassMethod(Actor.prototype, "_actionInitiativeDialogData", _actionInitiativeDialogDataActor);
   addClassMethod(Actor.prototype, "getActionInitiativeSelections", getActionInitiativeSelectionsActor);
   addClassMethod(Actor.prototype, "setActionInitiativeSelections", setActionInitiativeSelectionsActor);
+
   addClassMethod(Combatant.prototype, "_actionInitiativeSelectionSummary", _actionInitiativeSelectionSummaryCombatant);
   addClassMethod(Combatant.prototype, "getActionInitiativeSelections", getActionInitiativeSelectionsCombatant);
   addClassMethod(Combatant.prototype, "setActionInitiativeSelections", setActionInitiativeSelectionsCombatant);
