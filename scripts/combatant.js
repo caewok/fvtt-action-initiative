@@ -34,6 +34,19 @@ export async function setActionInitiativeSelectionsCombatant(selections) {
 }
 
 /**
+ * Wrap Combatant.prototype.getInitiativeRoll.
+ * DND5e patches this to point to documents.combat.getInitiativeRoll,
+ * which calls actor.getInitiativeRoll.
+ */
+export function getInitiativeRollCombatant(formula) {
+  // This just copied from v11 Combatant.prototype.getInitiativeRoll.
+  formula = formula || this._getInitiativeFormula();
+  const rollData = this.actor?.getRollData() || {};
+  return Roll.create(formula, rollData);
+}
+
+
+/**
  * New Combatant method.
  * Construct the initiative formula for a combatant based on user-selected actions.
  * @param {object} [lastSelections]   Optional returned object from ActionInitiativeDialog.
@@ -129,7 +142,7 @@ export function _actionInitiativeSelectionSummaryCombatant() {
         if ( getSetting(SETTINGS.SPELL_LEVELS) ) {
           const spellLevels = new Set(Object.keys(CONFIG[MODULE_ID].spellLevels));
           const chosenLevel = Object.entries(selections).find(([_key, value]) => value && spellLevels.has(value));
-          spellLevel = `${CONFIG[MODULE_ID].spellLevels[chosenLevel[1]]}`;
+          spellLevel = `${CONFIG[MODULE_ID].spellLevels[chosenLevel ? chosenLevel[1] : 9]}`;
         }
         break;
 
