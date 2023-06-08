@@ -60,6 +60,22 @@ Hooks.once("ready", () => {
           if you encounter problems or really want a different setting.
           `
     })
+
+    .addEntry({
+      version: "0.1.0",
+      title: "Foundry v11 update",
+      body: `\
+          Updated for v11 and dnd5e 2.2.1. While this module currently focuses on dnd5e,
+          it should be possible to extend it to other systems. Please feel free to describe your use
+          case in the [git repository](https://github.com/caewok/fvtt-action-initiative/issues).
+
+          The dnd5e made a change at some point that required some changes to the underlying code
+          of this module. Thus, this version may or may not work in v10, depending on the dnd5e
+          version used. If you have a specific need for me to support v10 further, please
+          make a request on Git.
+          `
+    })
+
     .build()
     ?.render(true);
 });
