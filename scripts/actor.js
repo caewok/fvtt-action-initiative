@@ -339,18 +339,20 @@ class ActionInitiativeDialog extends Dialog {
   _textBoxChanged(event) {
     const elem = document.getElementById(event.target.name);
     const formula = elem.value;
+
+    // If a formula is added, toggle the checkbox to be on.
+    if ( formula !== "" && Roll.validate(formula) ) {
+      let checkboxName;
+      switch ( elem.name ) {
+        case "OtherAction.Text": checkboxName = "OtherAction.Checkbox"; break;
+        case "BonusAction.Text": checkboxName = "BonusAction.Checkbox"; break;
+      }
+      const checkbox = document.getElementById(checkboxName);
+      checkbox.checked = true;
+    }
+
     if ( formula === "" || Roll.validate(formula) ) elem.className.replace(" actionInitiativeError", "");
     else elem.className = `${elem.className} actionInitiativeError`;
-    // Alternative if CSS doesn't work:
-    /*
-    if ( formula === "" || Roll.validate(formula) ) {
-      elem.style.borderColor = "";
-      elem.style.borderWidth = "";
-    } else {
-      elem.style.borderColor = "#8B0000";
-      elem.style.borderWidth = "2px";
-    }
-    */
   }
 }
 
