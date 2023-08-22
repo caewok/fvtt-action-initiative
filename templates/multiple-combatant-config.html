@@ -29,14 +29,15 @@ div.multi {
   </div>
 
   <br>
-  <h2>Combatants</h2>
+  <h2>Combatants&nbsp<input type="checkbox" name="selectAll" id="combatantSelectAll"/>&nbspSelect All</h2>
+
 
   <div class="multi">
   <!-- List the combatants by name, actor name, token image -->
   {{#each combatants}}
 
   <div class="flexrow" style="align-items:baseline">
-    <input type="checkbox" name="{{concat 'combatant.' this.id}}" id="{{concat 'combatant.' this.id}}" />
+    <input type="checkbox" class="combatantChoice" name="{{concat 'combatant.' this.id}}" id="{{concat 'combatant.' this.id}}" />
     <img src="{{this.img}}" width="24" height="24" class="flex0"/>
     <h4 style="align-self:center"> {{this.tokenName}} </h4>
 
