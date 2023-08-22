@@ -4,6 +4,11 @@ div.multi {
   column-gap: 10px;
 }
 
+div.item {
+  display: inline-block;
+  margin-bottom: 10px;
+}
+
 
 </style>
 
@@ -15,13 +20,17 @@ div.multi {
 
   <!-- List filters the GM can use to select from combatants below -->
   {{#each filters as |filterChoices filterKey|}}
-    <h3>{{filterKey}}</h3>
+    <div class="item">
+      <h3>{{filterKey}}</h3>
 
-    {{#each filterChoices as |filterLocal filterName|}}
-    <input class="filterChoice" type="checkbox" name="{{concat 'filter' filterKey filterName join='.'}}" id="{{concat 'filter' filterKey filterName join='.'}}"/>
-    &nbsp{{filterLocal}}
-    <br>
-    {{/each}}
+      {{#each filterChoices as |filterLocal filterName|}}
+
+      <input class="filterChoice" type="checkbox" name="{{concat 'filter' filterKey filterName join='.'}}" id="{{concat 'filter' filterKey filterName join='.'}}"/>
+      &nbsp{{filterLocal}}
+      <br>
+
+      {{/each}}
+    </div>
 
     <br>
   {{/each}}
