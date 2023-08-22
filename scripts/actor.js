@@ -87,11 +87,12 @@ function onDialogSubmit(html, advantageMode) {
 
   // Check the formulae in BonusAction
   // To be safe, do regardless of the checkbox value
+  const FORMULAS = getSetting(SETTINGS.DICE_FORMULAS);
   const bonusFormula = data.object["BonusAction.Text"];
-  if ( !Roll.validate(bonusFormula) ) data.object["BonusAction.Text"] = FORMULA_DEFAULTS.BASIC.BonusAction;
+  if ( !Roll.validate(bonusFormula) ) data.object["BonusAction.Text"] = FORMULAS["BASIC.BonusAction"]
 
   const otherFormula = data.object["OtherAction.Text"];
-  if ( !Roll.validate(otherFormula) ) data.object["OtherAction.Text"] = FORMULA_DEFAULTS.BASIC.OtherAction;
+  if ( !Roll.validate(otherFormula) ) data.object["OtherAction.Text"] = FORMULAS["BASIC.OtherAction"]
 
   return data.object;
 }
@@ -339,18 +340,20 @@ class ActionInitiativeDialog extends Dialog {
   _textBoxChanged(event) {
     const elem = document.getElementById(event.target.name);
     const formula = elem.value;
+
+    // If a formula is added, toggle the checkbox to be on.
+    if ( formula !== "" && Roll.validate(formula) ) {
+      let checkboxName;
+      switch ( elem.name ) {
+        case "OtherAction.Text": checkboxName = "OtherAction.Checkbox"; break;
+        case "BonusAction.Text": checkboxName = "BonusAction.Checkbox"; break;
+      }
+      const checkbox = document.getElementById(checkboxName);
+      checkbox.checked = true;
+    }
+
     if ( formula === "" || Roll.validate(formula) ) elem.className.replace(" actionInitiativeError", "");
     else elem.className = `${elem.className} actionInitiativeError`;
-    // Alternative if CSS doesn't work:
-    /*
-    if ( formula === "" || Roll.validate(formula) ) {
-      elem.style.borderColor = "";
-      elem.style.borderWidth = "";
-    } else {
-      elem.style.borderColor = "#8B0000";
-      elem.style.borderWidth = "2px";
-    }
-    */
   }
 }
 

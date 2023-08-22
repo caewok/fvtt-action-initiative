@@ -4,6 +4,11 @@ div.multi {
   column-gap: 10px;
 }
 
+div.item {
+  display: inline-block;
+  margin-bottom: 10px;
+}
+
 
 </style>
 
@@ -15,13 +20,17 @@ div.multi {
 
   <!-- List filters the GM can use to select from combatants below -->
   {{#each filters as |filterChoices filterKey|}}
-    <h3>{{filterKey}}</h3>
+    <div class="item">
+      <h3>{{filterKey}}</h3>
 
-    {{#each filterChoices as |filterLocal filterName|}}
-    <input class="filterChoice" type="checkbox" name="{{concat 'filter' filterKey filterName join='.'}}" id="{{concat 'filter' filterKey filterName join='.'}}"/>
-    &nbsp{{filterLocal}}
-    <br>
-    {{/each}}
+      {{#each filterChoices as |filterLocal filterName|}}
+
+      <input class="filterChoice" type="checkbox" name="{{concat 'filter' filterKey filterName join='.'}}" id="{{concat 'filter' filterKey filterName join='.'}}"/>
+      &nbsp{{filterLocal}}
+      <br>
+
+      {{/each}}
+    </div>
 
     <br>
   {{/each}}
@@ -29,14 +38,16 @@ div.multi {
   </div>
 
   <br>
-  <h2>Combatants</h2>
+  <h2 style="text-align:left;">
+    <input type="checkbox" name="selectAll" id="combatantSelectAll"/>&nbsp{{ localize "actioninitiative.phrases.Combatants" }}
+  </h2>
 
   <div class="multi">
   <!-- List the combatants by name, actor name, token image -->
   {{#each combatants}}
 
   <div class="flexrow" style="align-items:baseline">
-    <input type="checkbox" name="{{concat 'combatant.' this.id}}" id="{{concat 'combatant.' this.id}}" />
+    <input type="checkbox" class="combatantChoice" name="{{concat 'combatant.' this.id}}" id="{{concat 'combatant.' this.id}}" />
     <img src="{{this.img}}" width="24" height="24" class="flex0"/>
     <h4 style="align-self:center"> {{this.tokenName}} </h4>
 
