@@ -5,7 +5,7 @@ renderTemplate
 */
 "use strict";
 
-import { getSetting, setSetting, SETTINGS } from "./settings.js";
+import { Settings } from "./settings.js";
 import { MODULE_ID } from "./const.js";
 
 Hooks.on("renderCombatTrackerConfig", renderCombatTrackerConfigHook);
@@ -18,12 +18,12 @@ async function renderCombatTrackerConfigHook(app, html, data) {
 }
 
 export async function _updateObjectCombatTrackerConfig(wrapped, event, formData) {
-  await setSetting(SETTINGS.GROUP_ACTORS, formData.groupActors);
+  await Settings.set(Settings.KEYS.GROUP_ACTORS, formData.groupActors);
   return wrapped(event, formData);
 }
 
 export async function getDataCombatTrackerConfig(wrapped, options={}) {
   const data = await wrapped(options);
-  data.groupActors = getSetting(SETTINGS.GROUP_ACTORS);
+  data.groupActors = Settings.get(Settings.KEYS.GROUP_ACTORS);
   return data;
 }

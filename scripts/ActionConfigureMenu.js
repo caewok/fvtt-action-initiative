@@ -28,7 +28,7 @@ export class ActionConfigureMenu extends FormApplication {
 
   getData() {
     const data = super.getData();
-    const formulae = getSetting(SETTINGS.DICE_FORMULAS);
+    const formulae = Settings.get(Settings.DICE_FORMULAS);
     const formulaeObj = expandObject(formulae);
     data.basic = formulaeObj.BASIC;
     data.weaponTypes = formulaeObj.WEAPON_TYPES;
@@ -46,7 +46,7 @@ export class ActionConfigureMenu extends FormApplication {
   }
 
   async _updateObject(_, formData) {
-    const diceFormulas = getSetting(SETTINGS.DICE_FORMULAS);
+    const diceFormulas = Settings.get(Settings.KEYS.DICE_FORMULAS);
     Object.entries(formData).forEach(([key, formula]) => {
       if ( formula !== "" && !Roll.validate(formula) ) {
         ui.notifications.warn(`Die formula for ${key} is not valid.`);
@@ -56,7 +56,7 @@ export class ActionConfigureMenu extends FormApplication {
       diceFormulas[key] = formula;
     });
 
-    await setSetting(SETTINGS.DICE_FORMULAS, diceFormulas);
+    await Settings.set(Settings.KEYS.DICE_FORMULAS, diceFormulas);
   }
 
   /**

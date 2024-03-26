@@ -2,16 +2,14 @@
 game,
 getProperty,
 CONFIG,
-FormApplication,
-expandObject,
-flattenObject,
-Roll,
-ui
+flattenObject
 */
 
 "use strict";
 
 import { MODULE_ID } from "./const.js";
+import { ModuleSettingsAbstract } from "./ModuleSettingsAbstract.js";
+import { ActionConfigureMenu } from "./ActionConfigureMenu.js";
 
 export const SETTINGS = {
   CHANGELOG: "changelog",
@@ -55,7 +53,7 @@ Each dice formula should be set to null if not defined, and "0" if not
 */
 
 export function getDiceValueForProperty(prop) {
-  const diceFormulas = getSetting(SETTINGS.DICE_FORMULAS); // DICE_FORMULAS are flat
+  const diceFormulas = Settings.get(Settings.KEYS.DICE_FORMULAS); // DICE_FORMULAS are flat
   return getDiceValue(diceFormulas[prop], getProperty(FORMULA_DEFAULTS, prop));
 }
 
@@ -146,145 +144,65 @@ export function defaultDiceFormulaObject() {
   return flat;
 }
 
-export function getSetting(settingName) {
-  return game.settings.get(MODULE_ID, settingName);
-}
+export class Settings extends ModuleSettingsAbstract {
+  /** @type {object} */
+  static KEYS = SETTINGS;
 
-export async function setSetting(settingName, value) {
-  return await game.settings.set(MODULE_ID, settingName, value);
-}
+  static registerAll() {
+    const { KEYS, register, registerMenu, localize } = this;
 
-export function registerSettings() {
-  game.settings.registerMenu(MODULE_ID, SETTINGS.CONFIGURE_MENU, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.CONFIGURE_MENU}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.CONFIGURE_MENU}.Hint`),
-    label: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.CONFIGURE_MENU}.Label`),
-    icon: "fa-solid fa-gears",
-    type: ActionConfigureMenu,
-    restricted: true
-  });
-
-  const VARIANT = SETTINGS.VARIANTS.TYPES;
-  game.settings.register(MODULE_ID, SETTINGS.VARIANTS.KEY, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.VARIANTS.KEY}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.VARIANTS.KEY}.Hint`),
-    scope: "world",
-    config: true,
-    type: String,
-    choices: {
-      [VARIANT.BASIC]: game.i18n.localize(`${MODULE_ID}.settings.${VARIANT.BASIC}`),
-      [VARIANT.WEAPON_DAMAGE]: game.i18n.localize(`${MODULE_ID}.settings.${VARIANT.WEAPON_DAMAGE}`),
-      [VARIANT.WEAPON_TYPE]: game.i18n.localize(`${MODULE_ID}.settings.${VARIANT.WEAPON_TYPE}`)
-    },
-    default: VARIANT.BASIC
-  });
-
-  game.settings.register(MODULE_ID, SETTINGS.SPELL_LEVELS, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.SPELL_LEVELS}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.SPELL_LEVELS}.Hint`),
-    type: Boolean,
-    default: false,
-    scope: "world",
-    config: true
-  });
-
-  // Register defaults for weapon types and properties
-  FORMULA_DEFAULTS.WEAPON_TYPES = dnd5eDefaultWeaponTypes();
-  FORMULA_DEFAULTS.WEAPON_PROPERTIES = dnd5eDefaultWeaponProperties();
-  FORMULA_DEFAULTS.SPELL_LEVELS = dnd5eDefaultSpellLevels();
-  game.settings.register(MODULE_ID, SETTINGS.DICE_FORMULAS, {
-    name: `${MODULE_ID}.settings.${SETTINGS.DICE_FORMULAS}.Name`,
-    type: Object,
-    default: defaultDiceFormulaObject(),
-    scope: "world",
-    config: false
-  });
-
-  game.settings.register(MODULE_ID, SETTINGS.GROUP_ACTORS, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.GROUP_ACTORS}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.GROUP_ACTORS}.Hint`),
-    type: Boolean,
-    default: false,
-    scope: "world",
-    config: true
-  });
-}
-
-class ActionConfigureMenu extends FormApplication {
-  /** @override */
-  static get defaultOptions() {
-    const opts = super.defaultOptions;
-    opts.template = "modules/actioninitiative/templates/settings-config.html";
-    opts.height = "auto";
-    opts.width = 600;
-    opts.classes = [MODULE_ID, "settings"];
-    opts.tabs = [
-      {
-        navSelector: ".tabs",
-        contentSelector: "form",
-        initial: "basic"
-      }
-    ];
-    opts.submitOnClose = false;
-    return opts;
-  }
-
-  getData() {
-    const data = super.getData();
-    const formulae = getSetting(SETTINGS.DICE_FORMULAS);
-    const formulaeObj = expandObject(formulae);
-    data.basic = formulaeObj.BASIC;
-    data.weaponTypes = formulaeObj.WEAPON_TYPES;
-    data.weaponProperties = formulaeObj.WEAPON_PROPERTIES;
-    data.spellLevels = formulaeObj.SPELL_LEVELS;
-    data.placeholder = FORMULA_DEFAULTS;
-
-    data.localized = {
-      spellLevels: CONFIG.DND5E.spellLevels,
-      weaponTypes: CONFIG.DND5E.weaponTypes,
-      weaponProperties: CONFIG.DND5E.weaponProperties
-    };
-
-    return data;
-  }
-
-  async _updateObject(_, formData) {
-    const diceFormulas = getSetting(SETTINGS.DICE_FORMULAS);
-    Object.entries(formData).forEach(([key, formula]) => {
-      if ( formula !== "" && !Roll.validate(formula) ) {
-        ui.notifications.warn(`Die formula for ${key} is not valid.`);
-        return;
-      }
-
-      diceFormulas[key] = formula;
+    registerMenu(KEYS.CONFIGURE_MENU, {
+      name: localize(`${KEYS.CONFIGURE_MENU}.Name`),
+      hint: localize(`${KEYS.CONFIGURE_MENU}.Hint`),
+      label: localize(`${KEYS.CONFIGURE_MENU}.Label`),
+      icon: "fa-solid fa-gears",
+      type: ActionConfigureMenu,
+      restricted: true
     });
 
-    await setSetting(SETTINGS.DICE_FORMULAS, diceFormulas);
-  }
+    const VARIANT = SETTINGS.VARIANTS.TYPES;
+    register(KEYS.VARIANTS.KEY, {
+      name: localize(`${KEYS.VARIANTS.KEY}.Name`),
+      hint: localize(`${KEYS.VARIANTS.KEY}.Hint`),
+      scope: "world",
+      config: true,
+      type: String,
+      choices: {
+        [VARIANT.BASIC]: game.i18n.localize(VARIANT.BASIC),
+        [VARIANT.WEAPON_DAMAGE]: game.i18n.localize(VARIANT.WEAPON_DAMAGE),
+        [VARIANT.WEAPON_TYPE]: game.i18n.localize(VARIANT.WEAPON_TYPE)
+      },
+      default: VARIANT.BASIC
+    });
 
-  /**
-   * Activate additional listeners to display/hide spell levels and weapon properties
-   * Also monitor for incorrect dice formulae.
-   */
-  activateListeners(html) {
-    super.activateListeners(html);
-    html.on("change", ".actioninitiative-actionTextbox", this._textBoxChanged.bind(this));
-  }
+    register(KEYS.SPELL_LEVELS, {
+      name: localize(`${KEYS.SPELL_LEVELS}.Name`),
+      hint: localize(`${KEYS.SPELL_LEVELS}.Hint`),
+      type: Boolean,
+      default: false,
+      scope: "world",
+      config: true
+    });
 
-  _textBoxChanged(event) {
-    const elem = document.getElementById(event.target.name);
-    const formula = elem.value;
+    // Register defaults for weapon types and properties
+    FORMULA_DEFAULTS.WEAPON_TYPES = dnd5eDefaultWeaponTypes();
+    FORMULA_DEFAULTS.WEAPON_PROPERTIES = dnd5eDefaultWeaponProperties();
+    FORMULA_DEFAULTS.SPELL_LEVELS = dnd5eDefaultSpellLevels();
+    register(KEYS.DICE_FORMULAS, {
+      name: `${KEYS.DICE_FORMULAS}.Name`,
+      type: Object,
+      default: defaultDiceFormulaObject(),
+      scope: "world",
+      config: false
+    });
 
-    // Cannot get the style sheet to work here.
-    // if ( formula === "" || Roll.validate(formula) ) elem.className.replace(" actionInitiativeError", "");
-    // else elem.className = elem.className + " actionInitiativeError";
-
-    if ( formula === "" || Roll.validate(formula) ) {
-      elem.style.borderColor = "";
-      elem.style.borderWidth = "";
-    } else {
-      elem.style.borderColor = "#8B0000";
-      elem.style.borderWidth = "2px";
-    }
+    register(KEYS.GROUP_ACTORS, {
+      name: localize(`${KEYS.GROUP_ACTORS}.Name`),
+      hint: localize(`${KEYS.GROUP_ACTORS}.Hint`),
+      type: Boolean,
+      default: false,
+      scope: "world",
+      config: true
+    });
   }
 }

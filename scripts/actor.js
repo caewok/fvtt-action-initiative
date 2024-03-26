@@ -13,7 +13,7 @@ Roll
 "use strict";
 
 import { MODULE_ID } from "./const.js";
-import { FORMULA_DEFAULTS, getSetting, getDiceValueForProperty, SETTINGS } from "./settings.js";
+import { FORMULA_DEFAULTS, getDiceValueForProperty, Settings } from "./settings.js";
 
 /**
  * New Actor method.
@@ -87,7 +87,7 @@ function onDialogSubmit(html, advantageMode) {
 
   // Check the formulae in BonusAction
   // To be safe, do regardless of the checkbox value
-  const FORMULAS = getSetting(SETTINGS.DICE_FORMULAS);
+  const FORMULAS = Settings.get(Settings.KEYS.DICE_FORMULAS);
   const bonusFormula = data.object["BonusAction.Text"];
   if ( !Roll.validate(bonusFormula) ) data.object["BonusAction.Text"] = FORMULAS["BASIC.BonusAction"]
 
@@ -135,18 +135,19 @@ export function _actionInitiativeDialogDataActor({ items } = {}) {
     if ( ~idx ) arr.splice(idx, 1);
   };
 
-  const variant = getSetting(SETTINGS.VARIANTS.KEY);
-  const defaults = expandObject(getSetting(SETTINGS.DICE_FORMULAS));
+  const KEYS = Settings.KEYS;
+  const variant = Settings.get(KEYS.VARIANTS.KEY);
+  const defaults = expandObject(Settings.get(KEYS.DICE_FORMULAS));
   for ( const [key, value] of Object.entries(defaults.BASIC) ) {
     if ( value !== "0" ) continue;
     let remove = false;
     switch ( key ) {
       case "MeleeAttack":
       case "RangedAttack":
-        if ( variant === SETTINGS.VARIANTS.TYPES.BASIC ) remove = true;
+        if ( variant === KEYS.VARIANTS.TYPES.BASIC ) remove = true;
         break;
       case "CastSpell":
-        if ( getSetting(SETTINGS.SPELL_LEVELS) ) remove = true;
+        if ( Settings.get(KEYS.SPELL_LEVELS) ) remove = true;
         break;
       default:
         remove = true;
@@ -216,7 +217,7 @@ export function getActionInitiativeSelectionsActor() {
  * @param {string} [options.combatantId] Limit to a single combatant associated with the actor.
  */
 export async function setActionInitiativeSelectionsActor(selections, { combatantId } = {}) {
-  if ( !getSetting(SETTINGS.GROUP_ACTORS) && !combatantId ) {
+  if ( !Settings.get(Settings.KEYS.GROUP_ACTORS) && !combatantId ) {
     console.error("setActionInitiativeSelectionsActor requires combatant id when GROUP_ACTORS is disabled.");
   }
 
@@ -255,7 +256,7 @@ export async function rollInitiativeDialogActor5e({advantageMode, combatantId} =
   if ( !selections ) return; // Closed dialog.
 
   // Set initiative for either only active tokens or all
-  if ( getSetting(SETTINGS.GROUP_ACTORS) ) combatantId = undefined;
+  if ( Settings.get(Settings.KEYS.GROUP_ACTORS) ) combatantId = undefined;
 
   // Retrieve the action choices made by the user for this actor.
   // Ultimate tied to the combatant that represents the actor.
@@ -314,21 +315,22 @@ class ActionInitiativeDialog extends Dialog {
 
   _actionChanged(event) {
     let elem;
+    const KEYS = Settings.KEYS;
     switch ( event.target.name ) {
       case "MeleeAttack": {
-        if ( getSetting(SETTINGS.VARIANTS.KEY) === SETTINGS.VARIANTS.TYPES.BASIC ) break;
+        if ( Settings.get(KEYS.VARIANTS.KEY) === KEYS.VARIANTS.TYPES.BASIC ) break;
         elem = document.getElementById("actioninitiative-sectionWeaponTypeMelee");
         break;
       }
 
       case "RangedAttack": {
-        if ( getSetting(SETTINGS.VARIANTS.KEY) === SETTINGS.VARIANTS.TYPES.BASIC ) break;
+        if ( Settings.get(KEYS.VARIANTS.KEY) === KEYS.VARIANTS.TYPES.BASIC ) break;
         elem = document.getElementById("actioninitiative-sectionWeaponTypeRanged");
         break;
       }
 
       case "CastSpell": {
-        if ( !getSetting(SETTINGS.SPELL_LEVELS) ) break;
+        if ( !Settings.get(KEYS.SPELL_LEVELS) ) break;
         elem = document.getElementById("actioninitiative-sectionSpellLevel");
         break;
       }
