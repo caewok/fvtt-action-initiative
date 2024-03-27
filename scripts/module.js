@@ -16,12 +16,9 @@ import { CombatTrackerActionInitiative } from "./CombatTracker.js";
 
 // Settings
 import {
-  registerSettings,
   FORMULA_DEFAULTS,
-  SETTINGS,
-  defaultDiceFormulaObject,
-  getSetting,
-  setSetting } from "./settings.js";
+  Settings,
+  defaultDiceFormulaObject } from "./settings.js";
 
 import { MultipleCombatantDialog } from "./combat.js";
 
@@ -139,7 +136,7 @@ Hooks.once("init", () => {
 });
 
 Hooks.once("setup", () => {
-  registerSettings();
+  Settings.registerAll();
 
   CONFIG[MODULE_ID].filterSets = {};
   for ( const key of CONFIG[MODULE_ID].filterProperties.keys()) {
@@ -152,7 +149,7 @@ Hooks.once("ready", () => {
 
   if ( CONFIG[MODULE_ID].cleanupDefaults ) {
     // Clean up dice formula settings (rarely needed)
-    const formulae = getSetting(SETTINGS.DICE_FORMULAS);
+    const formulae = Settings.get(Settings.KEYS.DICE_FORMULAS);
     const defaults = defaultDiceFormulaObject();
 
     // Add missing
@@ -164,7 +161,7 @@ Hooks.once("ready", () => {
     for ( const key of missingFromFormulae ) formulae[key] = defaults[key];
     for ( const key of extrasInFormulae ) delete formulae[key];
 
-    setSetting(SETTINGS.DICE_FORMULAS, formulae);
+    Settings.set(Settings.KEYS.DICE_FORMULAS, formulae);
   }
 });
 

@@ -13,7 +13,7 @@ Roll
 "use strict";
 
 import { MODULE_ID } from "./const.js";
-import { SETTINGS, getSetting, getDiceValueForProperty } from "./settings.js";
+import { Settings, getDiceValueForProperty } from "./settings.js";
 
 /**
  * New Combatant method.
@@ -114,8 +114,8 @@ export function _actionInitiativeSelectionSummaryCombatant() {
   const lastSelections = this.getActionInitiativeSelections();
   if ( !lastSelections ) return undefined;
   const selections = expandObject(lastSelections);
-  const { KEY, TYPES } = SETTINGS.VARIANTS;
-  const variant = getSetting(KEY);
+  const { KEY, TYPES } = Settings.KEYS.VARIANTS;
+  const variant = Settings.get(KEY);
   const modes = dnd5e.dice.D20Roll.ADV_MODE;
 
   const actions = [];
@@ -139,7 +139,7 @@ export function _actionInitiativeSelectionSummaryCombatant() {
       case "CastSpell":
         actions.push(`${game.i18n.localize(`${MODULE_ID}.phrases.${key}`)}`);
 
-        if ( getSetting(SETTINGS.SPELL_LEVELS) ) {
+        if ( Settings.get(Settings.KEYS.SPELL_LEVELS) ) {
           const spellLevels = new Set(Object.keys(CONFIG[MODULE_ID].spellLevels));
           const chosenLevel = Object.entries(selections).find(([_key, value]) => value && spellLevels.has(value));
           spellLevel = `${CONFIG[MODULE_ID].spellLevels[chosenLevel ? chosenLevel[1] : 9]}`;
@@ -289,8 +289,8 @@ function increaseLargestDie(roll) {
  * @returns {string|"0"}
  */
 function attackFormula(selections, actor, attackType = "MeleeAttack") {
-  const { KEY, TYPES } = SETTINGS.VARIANTS;
-  const variant = getSetting(KEY);
+  const { KEY, TYPES } = Settings.KEYS.VARIANTS;
+  const variant = Settings.get(KEY);
   const weaponFormulas = [];
 
   // For the basic variant, just return the formula. Otherwise, get all weapon formulas
@@ -374,7 +374,7 @@ function weaponTypeFormula(weapon) {
  * @returns {string}
  */
 function castSpellFormula(params) {
-  if ( !getSetting(SETTINGS.SPELL_LEVELS) ) return getDiceValueForProperty("BASIC.CastSpell");
+  if ( !Settings.get(Settings.KEYS.SPELL_LEVELS) ) return getDiceValueForProperty("BASIC.CastSpell");
 
   const spellLevels = new Set(Object.keys(CONFIG[MODULE_ID].spellLevels));
   const chosenLevel = Object.entries(params).find(([_key, value]) => value && spellLevels.has(value));

@@ -200,7 +200,7 @@ export class MultipleCombatantDialog extends Dialog {
     html.on("change", ".combatantChoice", this._combatantChanged.bind(this));
   }
 
-  _combatantChanged(event) { this._syncFilters(); }
+  _combatantChanged(_event) { this._syncFilters(); }
 
   /**
    * Sync the checked filters with combatants.
