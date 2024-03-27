@@ -7,27 +7,22 @@ Hooks
 "use strict";
 
 // Basics
-import { MODULE_ID } from "./const.js";
+import { MODULE_ID, constructConfigObject } from "./const.js";
 import { log } from "./util.js";
 
 // Patching
-import { registerActionInitiative } from "./patching.js";
-import { CombatTrackerActionInitiative } from "./CombatTracker.js";
+import { PATCHER, initializePatching } from "./patching.js";
+import { CombatTrackerActionInitiative } from "./CombatTrackerActionInitiative.js";
 
 // Settings
 import {
-  registerSettings,
-  FORMULA_DEFAULTS,
-  SETTINGS,
-  defaultDiceFormulaObject,
-  getSetting,
-  setSetting } from "./settings.js";
+  Settings,
+  defaultDiceFormulaObject } from "./settings.js";
 
-import { MultipleCombatantDialog } from "./combat.js";
+import { MultipleCombatantDialog } from "./MultipleCombatantDialog.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";
-import "./render.js";
 
 /**
  * Tell DevMode that we want a flag for debugging this module.
@@ -39,107 +34,21 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 
 Hooks.once("init", () => {
   log("Initializing...");
-  registerActionInitiative();
+  initializePatching();
 
   game.modules.get(MODULE_ID).api = {
-    MultipleCombatantDialog
+    MultipleCombatantDialog,
+    PATCHER
   };
 
   CONFIG.ui.combat = CombatTrackerActionInitiative;
 
-  // Set configuration values used internally
-  CONFIG[MODULE_ID] = {
-    FORMULA_DEFAULTS: FORMULA_DEFAULTS,
-
-    /**
-     * Melee weapon categories
-     * @type {string[]}
-     */
-    meleeWeapons: new Set([
-      "simpleM",
-      "martialM",
-      "natural",
-      "improv"
-    ]),
-
-    /**
-     * Melee weapon categories
-     * @type {string[]}
-     */
-    rangedWeapons: new Set([
-      "simpleR",
-      "martialR",
-      "natural",
-      "improv",
-      "siege"
-    ]),
-
-    /**
-     * Properties of weapons.
-     * An object with key:name for each. Names are assumed to be localized.
-     * @type {object}
-     */
-    weaponProperties: CONFIG.DND5E.weaponProperties,
-
-    /**
-     * Types of weapons.
-     * An object with key:name for each. Names are assumed to be localized.
-     * @type {object}
-     */
-    weaponTypes: CONFIG.DND5E.weaponTypes,
-
-    /**
-     * Spell levels
-     * An object with key:name for each. Names are assumed to be localized.
-
-     * @type {object}
-     */
-    spellLevels: CONFIG.DND5E.spellLevels,
-
-    /**
-     * In items, where to find the weapon type. (See meleeWeapons and rangedWeapons for types.)
-     * @type {string}
-     */
-    weaponTypeKey: "system.weaponType",
-
-    /**
-     * In items, where to find the weapon properties.
-     * @type {string}
-     */
-    weaponPropertiesKey: "system.properties",
-
-    /**
-     * In items, where to find the weapon damage formula.
-     * The first term of this string may be used as the formula for purposes of initiative,
-     * if the Weapon Damage variant is selected.
-     * @type {string}
-     */
-    weaponDamageKey: "labels.damage",
-
-    /**
-     * Callback to determine if a weapon can be thrown.
-     * Thrown weapons are listed as both melee and ranged.
-     * @type {function}
-     */
-    canThrowWeapon: i => i.system.properties.thr,
-
-    /**
-     * Properties used for grouping combatants when using rollAll and rollNPCs in initiative
-     * Based on the actor class.
-     * @type {Map<string, string>}
-     */
-    filterProperties: new Map(Object.entries({
-      Race: "system.details.race",
-      Type: "system.details.type.value",
-      Walk: "system.attributes.movement.walk",
-      Darkvision: "system.attributes.senses.darkvision"
-    }))
-  };
-
+  // Set configuration values used internally. May be modified by users.
+  CONFIG[MODULE_ID] = constructConfigObject();
 });
 
 Hooks.once("setup", () => {
-  registerSettings();
+  Settings.registerAll();
 
   CONFIG[MODULE_ID].filterSets = {};
   for ( const key of CONFIG[MODULE_ID].filterProperties.keys()) {
@@ -152,7 +61,7 @@ Hooks.once("ready", () => {
 
   if ( CONFIG[MODULE_ID].cleanupDefaults ) {
     // Clean up dice formula settings (rarely needed)
-    const formulae = getSetting(SETTINGS.DICE_FORMULAS);
+    const formulae = Settings.get(Settings.KEYS.DICE_FORMULAS);
     const defaults = defaultDiceFormulaObject();
 
     // Add missing
@@ -164,7 +73,7 @@ Hooks.once("ready", () => {
     for ( const key of missingFromFormulae ) formulae[key] = defaults[key];
     for ( const key of extrasInFormulae ) delete formulae[key];
 
-    setSetting(SETTINGS.DICE_FORMULAS, formulae);
+    Settings.set(Settings.KEYS.DICE_FORMULAS, formulae);
   }
 });
 

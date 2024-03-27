@@ -1,3 +1,9 @@
+## 0.1.2
+Fix for combatant dialog not displaying properly. Closes issue #4. Thanks @DreamyNiri for the PR!
+Fix for token weapons not getting picked up in dnd5e version 3.
+Fix for weapon property localization in dnd5e version 3.
+Reorganize the files to take advantage of Patcher and ModuleSettingsAbstract. Add a separate config file to handle the various config settings.
+
 ## 0.1.1
 Add a checkbox next to Combatants in the multi-combatant GM selection to select all combatants. Closes issue #2. Sync filter checkboxes so that selecting or deselecting combatants changes the checked filter boxes accordingly.
 
