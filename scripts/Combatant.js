@@ -15,44 +15,31 @@ Roll
 import { MODULE_ID } from "./const.js";
 import { Settings, getDiceValueForProperty } from "./settings.js";
 
-/**
- * New Combatant method.
- * Get the stored user action choices.
- * @returns {object}
- */
-export function getActionInitiativeSelectionsCombatant() {
-  return this.getFlag(MODULE_ID, "initSelections");
-}
+export const PATCHES = {};
+PATCHES.BASIC = {};
+
+
+// ----- NOTE: Overrides ----- //
 
 /**
- * New Combatant method.
- * Store user action choices.
- * @param {object} selections
- */
-export async function setActionInitiativeSelectionsCombatant(selections) {
-  return await this.setFlag(MODULE_ID, "initSelections", selections);
-}
-
-/**
- * Wrap Combatant.prototype.getInitiativeRoll.
+ * Override Combatant.prototype.getInitiativeRoll.
  * DND5e patches this to point to documents.combat.getInitiativeRoll,
  * which calls actor.getInitiativeRoll.
  */
-export function getInitiativeRollCombatant(formula) {
+function getInitiativeRoll(formula) {
   // This just copied from v11 Combatant.prototype.getInitiativeRoll.
   formula = formula || this._getInitiativeFormula();
   const rollData = this.actor?.getRollData() || {};
   return Roll.create(formula, rollData);
 }
 
-
 /**
- * New Combatant method.
+ * Override Combatant.prototype._getInitiativeFormula method.
  * Construct the initiative formula for a combatant based on user-selected actions.
  * @param {object} [lastSelections]   Optional returned object from ActionInitiativeDialog.
  * @returns {string} Dice formula
  */
-export function _getInitiativeFormulaCombatant(lastSelections) {
+function _getInitiativeFormula(lastSelections) {
   lastSelections ??= this.getActionInitiativeSelections();
   if ( !lastSelections ) return "0";
   const selections = expandObject(lastSelections);
@@ -104,13 +91,36 @@ export function _getInitiativeFormulaCombatant(lastSelections) {
   return fClean;
 }
 
+
+PATCHES.BASIC.OVERRIDES = { getInitiativeRoll, _getInitiativeFormula };
+
+// ----- NOTES: New methods ----- //
+
+/**
+ * New Combatant method.
+ * Get the stored user action choices.
+ * @returns {object}
+ */
+function getActionInitiativeSelections() {
+  return this.getFlag(MODULE_ID, "initSelections");
+}
+
+/**
+ * New Combatant method.
+ * Store user action choices.
+ * @param {object} selections
+ */
+async function setActionInitiativeSelections(selections) {
+  return await this.setFlag(MODULE_ID, "initSelections", selections);
+}
+
 /**
  * New Combatant method.
  * Construct text describing what the user chose for the combatant actions.
  * Used in chat message and in the tooltip in the Combat Tracker.
  * @returns {string}
  */
-export function _actionInitiativeSelectionSummaryCombatant() {
+function _actionInitiativeSelectionSummary() {
   const lastSelections = this.getActionInitiativeSelections();
   if ( !lastSelections ) return undefined;
   const selections = expandObject(lastSelections);
@@ -181,7 +191,7 @@ export function _actionInitiativeSelectionSummaryCombatant() {
  * Add to combatant's initiative by presenting the action dialog to the user.
  * After user selects actions, roll for those actions and add those to existing initiative.
  */
-export async function addToInitiativeCombatant() {
+async function addToInitiative() {
   const selections = await this.actor.actionInitiativeDialog(this.actor);
   if ( !selections ) return; // Closed dialog.
 
@@ -224,11 +234,19 @@ export async function addToInitiativeCombatant() {
  * New Combatant Method.
  * Reset a single combatant's initiative.
  */
-export async function resetInitiativeCombatant() {
+async function resetInitiative() {
   await this.update({initiative: null});
 }
 
-/* NOTE: Helper functions */
+PATCHES.BASIC.METHODS = {
+  _actionInitiativeSelectionSummary,
+  getActionInitiativeSelections,
+  setActionInitiativeSelections,
+  addToInitiative,
+  resetInitiative
+};
+
+/* ----- NOTE: Helper functions ----- */
 
 /**
  * Shrink largest die by 1 face.

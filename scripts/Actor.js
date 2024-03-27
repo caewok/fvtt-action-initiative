@@ -1,6 +1,5 @@
 /* globals
 CONFIG,
-Dialog,
 dnd5e,
 expandObject,
 FormDataExtended,
@@ -12,8 +11,16 @@ Roll
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
+// Patches for the Actor class
+
 import { MODULE_ID } from "./const.js";
 import { FORMULA_DEFAULTS, getDiceValueForProperty, Settings } from "./settings.js";
+import { ActionInitiativeDialog } from "./ActionInitiativeDialog.js";
+
+export const PATCHES = {};
+PATCHES.BASIC = {};
+
+// ----- NOTE: Methods ----- //
 
 /**
  * New Actor method.
@@ -23,7 +30,7 @@ import { FORMULA_DEFAULTS, getDiceValueForProperty, Settings } from "./settings.
  *   If undefined, user will choose.
  * @returns {Promise<object>} Ultimately, an object representing user selections.
  */
-export async function actionInitiativeDialogActor({ advantageMode, dialogData } = {}) {
+async function actionInitiativeDialog({ advantageMode, dialogData } = {}) {
   const actor = this;
   dialogData ??= actor._actionInitiativeDialogData();
   const content = await renderTemplate(`modules/${MODULE_ID}/templates/combatant.html`, dialogData);
@@ -75,36 +82,13 @@ export async function actionInitiativeDialogActor({ advantageMode, dialogData } 
 }
 
 /**
- * Helper to handle the return from ActionInitiativeDialog
- * @param {object} html   Dialog html
- * @param {D20Roll.ADV_MODE} advantageMode
- * @returns {object} Object representing user selections for actions.
- */
-function onDialogSubmit(html, advantageMode) {
-  const form = html[0].querySelector("form");
-  const data = new FormDataExtended(form);
-  data.object.advantageMode = advantageMode;
-
-  // Check the formulae in BonusAction
-  // To be safe, do regardless of the checkbox value
-  const FORMULAS = Settings.get(Settings.KEYS.DICE_FORMULAS);
-  const bonusFormula = data.object["BonusAction.Text"];
-  if ( !Roll.validate(bonusFormula) ) data.object["BonusAction.Text"] = FORMULAS["BASIC.BonusAction"];
-
-  const otherFormula = data.object["OtherAction.Text"];
-  if ( !Roll.validate(otherFormula) ) data.object["OtherAction.Text"] = FORMULAS["BASIC.OtherAction"];
-
-  return data.object;
-}
-
-/**
  * New Actor method.
  * Construct the data object used by Actor.prototype.actionInitiativeDialog.
  * @param {object} [options]
  * @param {object} [options.items]  Items collection used to display actor weapons if applicable.
  * @returns {object} The data object used in the dialog.
  */
-export function _actionInitiativeDialogDataActor({ items } = {}) {
+function _actionInitiativeDialogData({ items } = {}) {
   items ??= this.items;
 
   const { meleeWeapons, rangedWeapons, weaponTypes } = CONFIG[MODULE_ID];
@@ -203,7 +187,7 @@ export function _actionInitiativeDialogDataActor({ items } = {}) {
  * Helper to retrieve initiative selections for a given actor.
  * @returns {object} Selections, by id of the combatant.
  */
-export function getActionInitiativeSelectionsActor() {
+function getActionInitiativeSelections() {
   return game.combat.combatants.map(c => {
     return { [c.id]: c.getActionInitiativeSelections() };
   });
@@ -216,7 +200,7 @@ export function getActionInitiativeSelectionsActor() {
  * @param {object} [options]
  * @param {string} [options.combatantId] Limit to a single combatant associated with the actor.
  */
-export async function setActionInitiativeSelectionsActor(selections, { combatantId } = {}) {
+async function setActionInitiativeSelections(selections, { combatantId } = {}) {
   if ( !Settings.get(Settings.KEYS.GROUP_ACTORS) && !combatantId ) {
     console.error("setActionInitiativeSelectionsActor requires combatant id when GROUP_ACTORS is disabled.");
   }
@@ -232,40 +216,46 @@ export async function setActionInitiativeSelectionsActor(selections, { combatant
   await Promise.all(promises);
 }
 
+PATCHES.BASIC.METHODS = {
+  actionInitiativeDialog,
+  _actionInitiativeDialogData,
+  getActionInitiativeSelections,
+  setActionInitiativeSelections
+};
+
+// ----- NOTE: Helper functions ----- //
+
 /**
  * Helper to get all combatants associated with the actor.
  * @param {Actor} actor
  * @returns {Combatant[]}
  */
-export function getCombatantsForActor(actor) {
+function getCombatantsForActor(actor) {
   return game.combat.combatants.filter(c => c.actor.id === actor.id);
 }
 
 /**
- * Override Actor5e.prototype.rollInitiativeDialog
- * Present user with dialog to select actions.
- * Store the selections made by the user.
- * Then roll initiative as usual.
- * @param {object} [rollOptions]
- * @param {D20Roll.ADV_MODE} [options.advantageMode]    A specific advantage mode to apply
- * @param {string} [options.combatantId]                Id of the combatant chosen
- * @returns {Promise<void>}
+ * Helper to handle the return from ActionInitiativeDialog
+ * @param {object} html   Dialog html
+ * @param {D20Roll.ADV_MODE} advantageMode
+ * @returns {object} Object representing user selections for actions.
  */
-export async function rollInitiativeDialogActor5e({advantageMode, combatantId} = {}) {
-  const selections = await this.actionInitiativeDialog(this, { advantageMode });
-  if ( !selections ) return; // Closed dialog.
+function onDialogSubmit(html, advantageMode) {
+  const form = html[0].querySelector("form");
+  const data = new FormDataExtended(form);
+  data.object.advantageMode = advantageMode;
 
-  // Set initiative for either only active tokens or all
-  if ( Settings.get(Settings.KEYS.GROUP_ACTORS) ) combatantId = undefined;
+  // Check the formulae in BonusAction
+  // To be safe, do regardless of the checkbox value
+  const FORMULAS = Settings.get(Settings.KEYS.DICE_FORMULAS);
+  const bonusFormula = data.object["BonusAction.Text"];
+  if ( !Roll.validate(bonusFormula) ) data.object["BonusAction.Text"] = FORMULAS["BASIC.BonusAction"];
 
-  // Retrieve the action choices made by the user for this actor.
-  // Ultimate tied to the combatant that represents the actor.
-  await this.setActionInitiativeSelections(selections, { combatantId });
-  await this.rollInitiative({createCombatants: true, initiativeOptions: { combatantId }});
+  const otherFormula = data.object["OtherAction.Text"];
+  if ( !Roll.validate(otherFormula) ) data.object["OtherAction.Text"] = FORMULAS["BASIC.OtherAction"];
+
+  return data.object;
 }
-
-
-/* NOTE: Helper functions */
 
 /**
  * Filter items for melee weapons.
@@ -294,69 +284,3 @@ function filterRangedWeapons(items) {
     return canThrowWeapon(i) || rangedWeapons.has(type);
   });
 }
-
-class ActionInitiativeDialog extends Dialog {
-
-  static get defaultOptions() {
-    const opts = super.defaultOptions;
-    opts.height = "auto";
-    return opts;
-  }
-
-  /**
-   * Activate additional listeners to display/hide spell levels and weapon properties
-   * Also monitor for incorrect dice formulae.
-   */
-  activateListeners(html) {
-    super.activateListeners(html);
-    html.on("change", ".actioninitiative-actionCheckbox", this._actionChanged.bind(this));
-    html.on("change", ".actioninitiative-actionTextbox", this._textBoxChanged.bind(this));
-  }
-
-  _actionChanged(event) {
-    let elem;
-    const KEYS = Settings.KEYS;
-    switch ( event.target.name ) {
-      case "MeleeAttack": {
-        if ( Settings.get(KEYS.VARIANTS.KEY) === KEYS.VARIANTS.TYPES.BASIC ) break;
-        elem = document.getElementById("actioninitiative-sectionWeaponTypeMelee");
-        break;
-      }
-
-      case "RangedAttack": {
-        if ( Settings.get(KEYS.VARIANTS.KEY) === KEYS.VARIANTS.TYPES.BASIC ) break;
-        elem = document.getElementById("actioninitiative-sectionWeaponTypeRanged");
-        break;
-      }
-
-      case "CastSpell": {
-        if ( !Settings.get(KEYS.SPELL_LEVELS) ) break;
-        elem = document.getElementById("actioninitiative-sectionSpellLevel");
-        break;
-      }
-    }
-
-    if ( elem ) elem.style.display = event.target.checked ? "block" : "none";
-  }
-
-  _textBoxChanged(event) {
-    const elem = document.getElementById(event.target.name);
-    const formula = elem.value;
-
-    // If a formula is added, toggle the checkbox to be on.
-    if ( formula !== "" && Roll.validate(formula) ) {
-      let checkboxName;
-      switch ( elem.name ) {
-        case "OtherAction.Text": checkboxName = "OtherAction.Checkbox"; break;
-        case "BonusAction.Text": checkboxName = "BonusAction.Checkbox"; break;
-      }
-      const checkbox = document.getElementById(checkboxName);
-      checkbox.checked = true;
-    }
-
-    if ( formula === "" || Roll.validate(formula) ) elem.className.replace(" actionInitiativeError", "");
-    else elem.className = `${elem.className} actionInitiativeError`;
-  }
-}
-
-

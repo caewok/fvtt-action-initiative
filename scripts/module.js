@@ -11,8 +11,8 @@ import { MODULE_ID } from "./const.js";
 import { log } from "./util.js";
 
 // Patching
-import { registerActionInitiative } from "./patching.js";
-import { CombatTrackerActionInitiative } from "./CombatTracker.js";
+import { PATCHER, initializePatching } from "./patching.js";
+import { CombatTrackerActionInitiative } from "./CombatTrackerActionInitiative.js";
 
 // Settings
 import {
@@ -20,11 +20,10 @@ import {
   Settings,
   defaultDiceFormulaObject } from "./settings.js";
 
-import { MultipleCombatantDialog } from "./combat.js";
+import { MultipleCombatantDialog } from "./MultipleCombatantDialog.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";
-import "./render.js";
 
 /**
  * Tell DevMode that we want a flag for debugging this module.
@@ -36,10 +35,11 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 
 Hooks.once("init", () => {
   log("Initializing...");
-  registerActionInitiative();
+  initializePatching();
 
   game.modules.get(MODULE_ID).api = {
-    MultipleCombatantDialog
+    MultipleCombatantDialog,
+    PATCHER
   };
 
   CONFIG.ui.combat = CombatTrackerActionInitiative;

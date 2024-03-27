@@ -1,91 +1,28 @@
 /* globals
-libWrapper,
-Actor,
-Combatant
 */
 "use strict";
 
-import { MODULE_ID } from "./const.js";
-import {
-  _sortCombatantsCombat,
-  rollAllCombat,
-  rollNPCCombat,
-  rollInitiativeCombat } from "./combat.js";
+import { Patcher } from "./Patcher.js";
 
-import {
-  getActionInitiativeSelectionsCombatant,
-  setActionInitiativeSelectionsCombatant,
-  _getInitiativeFormulaCombatant,
-  _actionInitiativeSelectionSummaryCombatant,
-  addToInitiativeCombatant,
-  resetInitiativeCombatant,
-  getInitiativeRollCombatant } from "./combatant.js";
+import { PATCHES as PATCHES_Actor } from "./Actor.js";
+import { PATCHES as PATCHES_Actor5e } from "./Actor5e.js";
+import { PATCHES as PATCHES_Combat } from "./Combat.js";
+import { PATCHES as PATCHES_Combatant } from "./Combatant.js";
+import { PATCHES as PATCHES_CombatTrackerConfig } from "./CombatTrackerConfig.js";
+import { PATCHES as PATCHES_ClientSettings } from "./ModuleSettingsAbstract.js";
 
-import {
-  actionInitiativeDialogActor,
-  _actionInitiativeDialogDataActor,
-  getActionInitiativeSelectionsActor,
-  setActionInitiativeSelectionsActor,
-  rollInitiativeDialogActor5e
-} from "./actor.js";
+const PATCHES = {
+  Actor: PATCHES_Actor,
+  "dnd5e.documents.Actor5e": PATCHES_Actor5e,
+  ClientSettings: PATCHES_ClientSettings,
+  Combat: PATCHES_Combat,
+  Combatant: PATCHES_Combatant,
+  CombatTrackerConfig: PATCHES_CombatTrackerConfig
+};
 
-import { getDataCombatTrackerConfig, _updateObjectCombatTrackerConfig } from "./render.js";
+export const PATCHER = new Patcher();
+PATCHER.addPatchesFromRegistrationObject(PATCHES);
 
-
-/**
- * Helper to wrap methods.
- * @param {string} method       Method to wrap
- * @param {function} fn   Function to use for the wrap
- */
-function wrap(method, fn) { libWrapper.register(MODULE_ID, method, fn, libWrapper.WRAPPER); }
-
-/**
- * Helper to override methods.
- * @param {string} method       Method to wrap
- * @param {function} fn   Function to use for the wrap
- */
-function override(method, fn) { libWrapper.register(MODULE_ID, method, fn, libWrapper.OVERRIDE); }
-
-/**
- * Helper to add a method to a class.
- * @param {class} cl      Either Class.prototype or Class
- * @param {string} name   Name of the method
- * @param {function} fn   Function to use for the method
- */
-function addClassMethod(cl, name, fn) {
-  Object.defineProperty(cl, name, {
-    value: fn,
-    writable: true,
-    configurable: true
-  });
-}
-
-/**
- * Register libWrapper patches for this module.
- */
-export function registerActionInitiative() {
-  wrap("Combat.prototype.rollInitiative", rollInitiativeCombat);
-  override("Combat.prototype._sortCombatants", _sortCombatantsCombat);
-  override("Combat.prototype.rollAll", rollAllCombat);
-  override("Combat.prototype.rollNPC", rollNPCCombat);
-
-  override("Combatant.prototype._getInitiativeFormula", _getInitiativeFormulaCombatant);
-  override("Combatant.prototype.getInitiativeRoll", getInitiativeRollCombatant);
-
-  override("dnd5e.documents.Actor5e.prototype.rollInitiativeDialog", rollInitiativeDialogActor5e);
-
-  wrap("CombatTrackerConfig.prototype._updateObject", _updateObjectCombatTrackerConfig);
-  wrap("CombatTrackerConfig.prototype.getData", getDataCombatTrackerConfig);
-
-  // New methods
-  addClassMethod(Actor.prototype, "actionInitiativeDialog", actionInitiativeDialogActor);
-  addClassMethod(Actor.prototype, "_actionInitiativeDialogData", _actionInitiativeDialogDataActor);
-  addClassMethod(Actor.prototype, "getActionInitiativeSelections", getActionInitiativeSelectionsActor);
-  addClassMethod(Actor.prototype, "setActionInitiativeSelections", setActionInitiativeSelectionsActor);
-
-  addClassMethod(Combatant.prototype, "_actionInitiativeSelectionSummary", _actionInitiativeSelectionSummaryCombatant);
-  addClassMethod(Combatant.prototype, "getActionInitiativeSelections", getActionInitiativeSelectionsCombatant);
-  addClassMethod(Combatant.prototype, "setActionInitiativeSelections", setActionInitiativeSelectionsCombatant);
-  addClassMethod(Combatant.prototype, "addToInitiative", addToInitiativeCombatant);
-  addClassMethod(Combatant.prototype, "resetInitiative", resetInitiativeCombatant);
+export function initializePatching() {
+  PATCHER.registerGroup("BASIC");
 }
