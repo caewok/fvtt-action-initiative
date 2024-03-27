@@ -11,7 +11,7 @@ import { MODULE_ID } from "./const.js";
 import { log } from "./util.js";
 
 // Patching
-import { initializePatching } from "./patching.js";
+import { PATCHER } from "./patching.js";
 import { CombatTrackerActionInitiative } from "./CombatTracker.js";
 
 // Settings
@@ -39,7 +39,8 @@ Hooks.once("init", () => {
   initializePatching();
 
   game.modules.get(MODULE_ID).api = {
-    MultipleCombatantDialog
+    MultipleCombatantDialog,
+    PATCHER
   };
 
   CONFIG.ui.combat = CombatTrackerActionInitiative;
