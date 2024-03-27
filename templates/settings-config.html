@@ -77,7 +77,7 @@
       {{#each spellLevels as |spellLevelFormula spellLevel|}}
 
       <div class="form-group">
-        <label> {{localize(lookup ../localized.spellLevels spellLevel)}} </label>
+        <label> {{localize (lookup ../localized.spellLevels spellLevel)}} </label>
         <div class="form-fields">
           <input class="actioninitiative-actionTextbox" type="text" name="{{concat 'SPELL_LEVELS.' spellLevel}}" id="{{concat 'SPELL_LEVELS.' spellLevel}}" value="{{spellLevelFormula}}" placeholder="{{lookup ../placeholder.SPELL_LEVELS spellLevel}}">
         </div>

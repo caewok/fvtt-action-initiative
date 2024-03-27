@@ -6,7 +6,7 @@ flattenObject
 
 "use strict";
 
-import { MODULE_ID } from "./const.js";
+import { MODULE_ID, FORMULA_DEFAULTS } from "./const.js";
 import { ModuleSettingsAbstract } from "./ModuleSettingsAbstract.js";
 import { ActionConfigureMenu } from "./ActionConfigureMenu.js";
 
@@ -59,30 +59,12 @@ export function getDiceValueForProperty(prop) {
 function getDiceValue(config, fallback) { return (config ?? "0") || fallback; }
 
 
-export const FORMULA_DEFAULTS = {
-  BASIC: {
-    CastSpell: "1d10",
-    MeleeAttack: "1d8",
-    Movement: "1d6",
-    OtherAction: "1d6",
-    RangedAttack: "1d4",
-    SurprisePenalty: "+10",
-    SwapGear: "1d6",
-    BonusAction: "1d8"
-  },
-
-  // Added dynamically
-  WEAPON_TYPES: {},
-  WEAPON_PROPERTIES: {},
-  SPELL_LEVELS: {}
-};
-
+// ----- NOTE: Functions to construct default weapon properties ----- //
 /**
  * Take an object with key(s) separated by commas in the name, and
  * assign the value to each key in that name.
  * See https://stackoverflow.com/questions/14743536/multiple-key-names-same-pair-value
  * @param {object} obj
- * @returns {object}
  * @example
  * expand({ "thanksgiving day, thanksgiving, t-day": 1});
  */
@@ -98,51 +80,60 @@ function expand(obj) {
   return obj;
 }
 
+/**
+ * Construct modifiers for default weapon properties, based on properties identified in CONFIG.
+ * @returns {object}
+ */
 function dnd5eDefaultWeaponProperties() {
   const keys = Object.keys(CONFIG[MODULE_ID].weaponProperties).join(",");
   const props = expand({[`${keys}`]: "0"});
-
-  // Set some of the defaults
-  props.fin = "-1"; // Finesse
-  props.hvy = "+2"; // Heavy
-  props.lod = "1d4"; // Loading
-  props.two = "1d4"; // Two-handed
-  props.amm = "+1"; // Ammunition
-
+  for ( const [key, mod] of Object.entries(FORMULA_DEFAULTS.WEAPON_PROPERTIES) ) {
+    if ( !Object.hasOwn(props, key) ) continue;
+    props[key] = mod;
+  }
   return props;
 }
 
+/**
+ * Construct modifiers for default weapon types, based on properties identified in CONFIG.
+ * @returns {object}
+ */
 function dnd5eDefaultWeaponTypes() {
   const keys = Object.keys(CONFIG[MODULE_ID].weaponTypes).join(",");
   const props = expand({[`${keys}`]: "0"});
-
-  // Set some of the defaults
-  props.natural = "1";
-  props.siege = "2d10";
-  props.simpleM = "1d6";
-  props.martialM = "1d8";
-  props.simpleR = "1d4";
-  props.martialR = "1d6";
-
+  for ( const [key, mod] of Object.entries(FORMULA_DEFAULTS.WEAPON_TYPES) ) {
+    if ( !Object.hasOwn(props, key) ) continue;
+    props[key] = mod;
+  }
   return props;
 }
 
+/**
+ * Construct modifiers for default spell levels, based on properties identified in CONFIG.
+ * @returns {object}
+ */
 function dnd5eDefaultSpellLevels() {
   // Each spell level is 1d10 + spell_level
   // Take advantage of fact that DND5e keys spell levels by number
   const props = {};
   for ( const key of Object.keys(CONFIG[MODULE_ID].spellLevels) ) {
-    props[key] = `1d10 + ${key}`;
+    props[key] = `${FORMULA_DEFAULTS.SPELL_BASE} + ${key}`;
   }
   return props;
 }
 
+/**
+ * Construct a flattened formula object using all default values.
+ * @returns {object}
+ */
 export function defaultDiceFormulaObject() {
   const flat = flattenObject(FORMULA_DEFAULTS);
   Object.keys(flat).forEach(key => flat[key] = "");
   return flat;
 }
 
+
+// ----- NOTE: Settings class ----- //
 export class Settings extends ModuleSettingsAbstract {
   /** @type {object} */
   static KEYS = SETTINGS;

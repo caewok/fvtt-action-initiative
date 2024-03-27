@@ -8,8 +8,8 @@ ui
 
 "use strict";
 
-import { MODULE_ID } from "./const.js";
-import { Settings, FORMULA_DEFAULTS } from "./settings.js";
+import { MODULE_ID, FORMULA_DEFAULTS } from "./const.js";
+import { Settings } from "./settings.js";
 
 export class ActionConfigureMenu extends FormApplication {
   /** @override */
