@@ -5,6 +5,22 @@ Combatant
 */
 "use strict";
 
+import { Patcher } from "./Patcher.js";
+
+import { PATCHES as PATCHES_Combat } from "./Combat.js";
+
+const PATCHES = {
+  Combat: PATCHES_Combat
+};
+
+export const PATCHER = new Patcher();
+PATCHER.addPatchesFromRegistrationObject(PATCHES);
+
+export function initializePatching() {
+  PATCHER.registerGroup("BASIC");
+}
+
+
 import { MODULE_ID } from "./const.js";
 import {
   _sortCombatantsCombat,
@@ -32,33 +48,7 @@ import {
 import { getDataCombatTrackerConfig, _updateObjectCombatTrackerConfig } from "./render.js";
 
 
-/**
- * Helper to wrap methods.
- * @param {string} method       Method to wrap
- * @param {function} fn   Function to use for the wrap
- */
-function wrap(method, fn) { libWrapper.register(MODULE_ID, method, fn, libWrapper.WRAPPER); }
 
-/**
- * Helper to override methods.
- * @param {string} method       Method to wrap
- * @param {function} fn   Function to use for the wrap
- */
-function override(method, fn) { libWrapper.register(MODULE_ID, method, fn, libWrapper.OVERRIDE); }
-
-/**
- * Helper to add a method to a class.
- * @param {class} cl      Either Class.prototype or Class
- * @param {string} name   Name of the method
- * @param {function} fn   Function to use for the method
- */
-function addClassMethod(cl, name, fn) {
-  Object.defineProperty(cl, name, {
-    value: fn,
-    writable: true,
-    configurable: true
-  });
-}
 
 /**
  * Register libWrapper patches for this module.

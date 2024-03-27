@@ -11,7 +11,7 @@ import { MODULE_ID } from "./const.js";
 import { log } from "./util.js";
 
 // Patching
-import { registerActionInitiative } from "./patching.js";
+import { initializePatching } from "./patching.js";
 import { CombatTrackerActionInitiative } from "./CombatTracker.js";
 
 // Settings
@@ -36,7 +36,7 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 
 Hooks.once("init", () => {
   log("Initializing...");
-  registerActionInitiative();
+  initializePatching();
 
   game.modules.get(MODULE_ID).api = {
     MultipleCombatantDialog
