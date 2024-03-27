@@ -13,7 +13,7 @@ import { PATCHES as PATCHES_ClientSettings } from "./ModuleSettingsAbstract.js";
 
 const PATCHES = {
   Actor: PATCHES_Actor,
-  Actor5e: PATCHES_Actor5e,
+  "dnd5e.documents.Actor5e": PATCHES_Actor5e,
   ClientSettings: PATCHES_ClientSettings,
   Combat: PATCHES_Combat,
   Combatant: PATCHES_Combatant,

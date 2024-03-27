@@ -101,7 +101,7 @@ function _sortCombatants(a, b) {
   return (ia - ib) || a.token.name.localeCompare(b.token.name) || (a.id > b.id ? 1 : -1);
 }
 
-PATCHES.BASIC.OVERRIDES = { rollAll, rollNPC, _sortCombatants, rollInitiative };
+PATCHES.BASIC.OVERRIDES = { rollAll, rollNPC, _sortCombatants };
 
 // ----- NOTE: Helper functions ----- //
 
