@@ -73,21 +73,21 @@ Hooks.once("init", () => {
 
     /**
      * Properties of weapons.
-     * An object with key:name for each. Names are assumed to be localized.
+     * An object with key:name for each. "Name" should be localizable or localized.
      * @type {object}
      */
     weaponProperties: CONFIG.DND5E.weaponProperties,
 
     /**
      * Types of weapons.
-     * An object with key:name for each. Names are assumed to be localized.
+     * An object with key:name for each. "Name" should be localizable or localized.
      * @type {object}
      */
     weaponTypes: CONFIG.DND5E.weaponTypes,
 
     /**
      * Spell levels
-     * An object with key:name for each. Names are assumed to be localized.
+     * An object with key:name for each. "Name" should be localizable or localized.
 
      * @type {object}
      */
@@ -134,7 +134,15 @@ Hooks.once("init", () => {
   };
 
   if ( isNewerVersion(game.system.version, "3") ) {
-    CONFIG[MODULE_ID].weaponTypeKey = "system.type.value";
+    const cfg = CONFIG[MODULE_ID];
+    const cfgDnD = CONFIG.DND5E;
+    // const localize = game.i18n.localize;
+
+    cfg.weaponTypeKey = "system.type.value";
+    cfg.weaponProperties = {};
+    for ( const key of Object.keys(cfgDnD.weaponProperties) ) {
+      cfg.weaponProperties[key] = game.i18n.localize(cfgDnD.itemProperties[key].label)
+    }
   }
 
 });

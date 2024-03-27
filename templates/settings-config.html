@@ -45,7 +45,7 @@
       {{#each weaponTypes as |weaponTypeFormula weaponType|}}
 
       <div class="form-group">
-        <label> {{lookup ../localized.weaponTypes weaponType}} </label>
+        <label> {{localize (lookup ../localized.weaponTypes weaponType)}} </label>
         <div class="form-fields">
           <input class="actioninitiative-actionTextbox" type="text" name="{{concat 'WEAPON_TYPES.' weaponType}}" id="{{concat 'WEAPON_TYPES.' weaponType}}" value="{{weaponTypeFormula}}" placeholder="{{lookup ../placeholder.WEAPON_TYPES weaponType}}">
         </div>
@@ -58,7 +58,7 @@
       {{#each weaponProperties as |weaponPropsFormula weaponProp|}}
 
       <div class="form-group">
-        <label> {{lookup ../localized.weaponProperties weaponProp}} </label>
+        <label> {{localize (lookup ../localized.weaponProperties weaponProp)}} </label>
         <div class="form-fields">
           <input class="actioninitiative-actionTextbox" type="text" name="{{concat 'WEAPON_PROPERTIES.' weaponProp}}" id="{{concat 'WEAPON_PROPERTIES.' weaponProp}}" value="{{weaponPropsFormula}}" placeholder="{{lookup ../placeholder.WEAPON_PROPERTIES weaponProp}}">
         </div>
@@ -77,7 +77,7 @@
       {{#each spellLevels as |spellLevelFormula spellLevel|}}
 
       <div class="form-group">
-        <label> {{lookup ../localized.spellLevels spellLevel}} </label>
+        <label> {{localize(lookup ../localized.spellLevels spellLevel)}} </label>
         <div class="form-fields">
           <input class="actioninitiative-actionTextbox" type="text" name="{{concat 'SPELL_LEVELS.' spellLevel}}" id="{{concat 'SPELL_LEVELS.' spellLevel}}" value="{{spellLevelFormula}}" placeholder="{{lookup ../placeholder.SPELL_LEVELS spellLevel}}">
         </div>
