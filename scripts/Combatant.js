@@ -15,7 +15,7 @@ Roll
 import { MODULE_ID } from "./const.js";
 import { Settings, getDiceValueForProperty } from "./settings.js";
 
-const PATCHES = {};
+export const PATCHES = {};
 PATCHES.BASIC = {};
 
 

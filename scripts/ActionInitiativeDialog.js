@@ -4,7 +4,7 @@ Roll
 */
 "use strict";
 
-import { Settings } from "Settings.js";
+import { Settings } from "./settings.js";
 
 export class ActionInitiativeDialog extends Dialog {
 

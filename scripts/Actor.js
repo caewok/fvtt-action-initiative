@@ -216,15 +216,6 @@ async function setActionInitiativeSelections(selections, { combatantId } = {}) {
   await Promise.all(promises);
 }
 
-/**
- * Helper to get all combatants associated with the actor.
- * @param {Actor} actor
- * @returns {Combatant[]}
- */
-export function getCombatantsForActor(actor) {
-  return game.combat.combatants.filter(c => c.actor.id === actor.id);
-}
-
 PATCHES.BASIC.METHODS = {
   actionInitiativeDialog,
   _actionInitiativeDialogData,
@@ -233,6 +224,15 @@ PATCHES.BASIC.METHODS = {
 };
 
 // ----- NOTE: Helper functions ----- //
+
+/**
+ * Helper to get all combatants associated with the actor.
+ * @param {Actor} actor
+ * @returns {Combatant[]}
+ */
+function getCombatantsForActor(actor) {
+  return game.combat.combatants.filter(c => c.actor.id === actor.id);
+}
 
 /**
  * Helper to handle the return from ActionInitiativeDialog

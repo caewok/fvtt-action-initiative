@@ -26,7 +26,39 @@ async function combatRoundHook(combat, _updateData, opts) {
 
 PATCHES.BASIC.HOOKS = { combatRound: combatRoundHook };
 
-// ----- NOTE: Wraps ---- //
+// ----- NOTE: Wraps ----- //
+
+/**
+ * Wrap Combat.prototype.rollInitiative
+ * If limiting to actor id, then use only combatant id for the active tokens of the actor.
+ * This means synthetic tokens will be rolled separately.
+ */
+async function rollInitiative(wrapped, ids,
+  {formula=null, updateTurn=true, messageOptions={}, combatantId}={}) {
+
+  if ( !combatantId ) return wrapped(ids, { formula, updateTurn, messageOptions });
+
+  // Pull actors from combatants b/c game.actor will not get synthetic actors.
+  const combatant = game.combat.combatants.get(combatantId);
+  if ( !combatant || !combatant.actor ) return wrapped( ids, { formula, updateTurn, messageOptions });
+
+  // Only use the actor's active tokens for combatant ids.
+  // Only if the combatant is already in ids.
+  const tokens = combatant.actor.getActiveTokens();
+  const oldIds = new Set(ids);
+  ids = [];
+  tokens.forEach(t => {
+    if ( !t.inCombat ) return;
+    const c = game.combat.getCombatantByToken(t.id);
+    if ( oldIds.has(c.id) ) ids.push(c.id);
+  });
+
+  return wrapped(ids, { formula, updateTurn, messageOptions });
+}
+
+PATCHES.BASIC.WRAPS = { rollInitiative };
+
+// ----- NOTE: Overrides ---- //
 
 /**
  * Wrap async Combat.prototype.rollAll
@@ -69,36 +101,7 @@ function _sortCombatants(a, b) {
   return (ia - ib) || a.token.name.localeCompare(b.token.name) || (a.id > b.id ? 1 : -1);
 }
 
-/**
- * Wrap Combat.prototype.rollInitiative
- * If limiting to actor id, then use only combatant id for the active tokens of the actor.
- * This means synthetic tokens will be rolled separately.
- */
-async function rollInitiative(wrapped, ids,
-  {formula=null, updateTurn=true, messageOptions={}, combatantId}={}) {
-
-  if ( !combatantId ) return wrapped(ids, { formula, updateTurn, messageOptions });
-
-  // Pull actors from combatants b/c game.actor will not get synthetic actors.
-  const combatant = game.combat.combatants.get(combatantId);
-  if ( !combatant || !combatant.actor ) return wrapped( ids, { formula, updateTurn, messageOptions });
-
-  // Only use the actor's active tokens for combatant ids.
-  // Only if the combatant is already in ids.
-  const tokens = combatant.actor.getActiveTokens();
-  const oldIds = new Set(ids);
-  ids = [];
-  tokens.forEach(t => {
-    if ( !t.inCombat ) return;
-    const c = game.combat.getCombatantByToken(t.id);
-    if ( oldIds.has(c.id) ) ids.push(c.id);
-  });
-
-  return wrapped(ids, { formula, updateTurn, messageOptions });
-}
-
-
-PATCHES.BASIC.WRAPS = { rollAll, rollNPC, _sortCombatants, rollInitiative };
+PATCHES.BASIC.OVERRIDES = { rollAll, rollNPC, _sortCombatants, rollInitiative };
 
 // ----- NOTE: Helper functions ----- //
 

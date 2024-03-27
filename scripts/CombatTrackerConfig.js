@@ -9,7 +9,7 @@ renderTemplate
 import { MODULE_ID } from "./const.js";
 import { Settings } from "./settings.js";
 
-const PATCHES = {};
+export const PATCHES = {};
 PATCHES.BASIC = {};
 
 // ----- NOTE: Hooks -----

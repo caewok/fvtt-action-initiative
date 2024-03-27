@@ -7,7 +7,7 @@
 
 import { Settings } from "./settings.js";
 
-const PATCHES = {};
+export const PATCHES = {};
 PATCHES.BASIC = {};
 
 // ----- NOTE: Overrides ----- //
