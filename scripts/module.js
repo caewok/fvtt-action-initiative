@@ -133,6 +133,10 @@ Hooks.once("init", () => {
     }))
   };
 
+  if ( isNewerVersion(game.system.version, "3") ) {
+    CONFIG[MODULE_ID].weaponTypeKey = "system.type.value";
+  }
+
 });
 
 Hooks.once("setup", () => {
