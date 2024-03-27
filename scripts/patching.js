@@ -7,14 +7,16 @@ Combatant
 
 import { Patcher } from "./Patcher.js";
 
-import { PATCHES as PATCHES_Combat } from "./Combat.js";
 import { PATCHES as PATCHES_Actor } from "./Actor.js";
 import { PATCHES as PATCHES_Actor5e } from "./Actor5e.js";
+import { PATCHES as PATCHES_Combat } from "./Combat.js";
+import { PATCHES as PATCHES_Combatant } from "./Combatant.js";
 
 const PATCHES = {
-  Combat: PATCHES_Combat,
   Actor: PATCHES_Actor,
-  Actor5e: PATCHES_Actor5e
+  Actor5e: PATCHES_Actor5e,
+  Combat: PATCHES_Combat,
+  Combatant: PATCHES_Combatant
 };
 
 export const PATCHER = new Patcher();
