@@ -8,8 +8,8 @@ ui
 
 "use strict";
 
-import { MODULE_ID } from "./const.js";
-import { Settings, FORMULA_DEFAULTS } from "./settings.js";
+import { MODULE_ID, FORMULA_DEFAULTS } from "./const.js";
+import { Settings } from "./settings.js";
 
 export class ActionConfigureMenu extends FormApplication {
   /** @override */
@@ -41,9 +41,9 @@ export class ActionConfigureMenu extends FormApplication {
     data.placeholder = FORMULA_DEFAULTS;
 
     data.localized = {
-      spellLevels: CONFIG.DND5E.spellLevels,
-      weaponTypes: CONFIG.DND5E.weaponTypes,
-      weaponProperties: CONFIG.DND5E.weaponProperties
+      spellLevels: CONFIG[MODULE_ID].spellLevels,
+      weaponTypes: CONFIG[MODULE_ID].weaponTypes,
+      weaponProperties: CONFIG[MODULE_ID].weaponProperties
     };
 
     return data;

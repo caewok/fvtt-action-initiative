@@ -13,8 +13,8 @@ Roll
 
 // Patches for the Actor class
 
-import { MODULE_ID } from "./const.js";
-import { FORMULA_DEFAULTS, getDiceValueForProperty, Settings } from "./settings.js";
+import { MODULE_ID, FORMULA_DEFAULTS } from "./const.js";
+import { getDiceValueForProperty, Settings } from "./settings.js";
 import { ActionInitiativeDialog } from "./ActionInitiativeDialog.js";
 
 export const PATCHES = {};

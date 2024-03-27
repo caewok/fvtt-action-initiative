@@ -7,7 +7,7 @@ Hooks
 "use strict";
 
 // Basics
-import { MODULE_ID } from "./const.js";
+import { MODULE_ID, constructConfigObject } from "./const.js";
 import { log } from "./util.js";
 
 // Patching
@@ -16,7 +16,6 @@ import { CombatTrackerActionInitiative } from "./CombatTrackerActionInitiative.j
 
 // Settings
 import {
-  FORMULA_DEFAULTS,
   Settings,
   defaultDiceFormulaObject } from "./settings.js";
 
@@ -44,95 +43,8 @@ Hooks.once("init", () => {
 
   CONFIG.ui.combat = CombatTrackerActionInitiative;
 
-  // Set configuration values used internally
-  CONFIG[MODULE_ID] = {
-    FORMULA_DEFAULTS: FORMULA_DEFAULTS,
-
-    /**
-     * Melee weapon categories
-     * @type {string[]}
-     */
-    meleeWeapons: new Set([
-      "simpleM",
-      "martialM",
-      "natural",
-      "improv"
-    ]),
-
-    /**
-     * Melee weapon categories
-     * @type {string[]}
-     */
-    rangedWeapons: new Set([
-      "simpleR",
-      "martialR",
-      "natural",
-      "improv",
-      "siege"
-    ]),
-
-    /**
-     * Properties of weapons.
-     * An object with key:name for each. Names are assumed to be localized.
-     * @type {object}
-     */
-    weaponProperties: CONFIG.DND5E.weaponProperties,
-
-    /**
-     * Types of weapons.
-     * An object with key:name for each. Names are assumed to be localized.
-     * @type {object}
-     */
-    weaponTypes: CONFIG.DND5E.weaponTypes,
-
-    /**
-     * Spell levels
-     * An object with key:name for each. Names are assumed to be localized.
-
-     * @type {object}
-     */
-    spellLevels: CONFIG.DND5E.spellLevels,
-
-    /**
-     * In items, where to find the weapon type. (See meleeWeapons and rangedWeapons for types.)
-     * @type {string}
-     */
-    weaponTypeKey: "system.weaponType",
-
-    /**
-     * In items, where to find the weapon properties.
-     * @type {string}
-     */
-    weaponPropertiesKey: "system.properties",
-
-    /**
-     * In items, where to find the weapon damage formula.
-     * The first term of this string may be used as the formula for purposes of initiative,
-     * if the Weapon Damage variant is selected.
-     * @type {string}
-     */
-    weaponDamageKey: "labels.damage",
-
-    /**
-     * Callback to determine if a weapon can be thrown.
-     * Thrown weapons are listed as both melee and ranged.
-     * @type {function}
-     */
-    canThrowWeapon: i => i.system.properties.thr,
-
-    /**
-     * Properties used for grouping combatants when using rollAll and rollNPCs in initiative
-     * Based on the actor class.
-     * @type {Map<string, string>}
-     */
-    filterProperties: new Map(Object.entries({
-      Race: "system.details.race",
-      Type: "system.details.type.value",
-      Walk: "system.attributes.movement.walk",
-      Darkvision: "system.attributes.senses.darkvision"
-    }))
-  };
-
+  // Set configuration values used internally. May be modified by users.
+  CONFIG[MODULE_ID] = constructConfigObject();
 });
 
 Hooks.once("setup", () => {
