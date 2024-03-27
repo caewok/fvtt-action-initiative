@@ -1,5 +1,4 @@
 /* globals
-game,
 getProperty,
 CONFIG,
 flattenObject
@@ -168,9 +167,9 @@ export class Settings extends ModuleSettingsAbstract {
       config: true,
       type: String,
       choices: {
-        [VARIANT.BASIC]: game.i18n.localize(VARIANT.BASIC),
-        [VARIANT.WEAPON_DAMAGE]: game.i18n.localize(VARIANT.WEAPON_DAMAGE),
-        [VARIANT.WEAPON_TYPE]: game.i18n.localize(VARIANT.WEAPON_TYPE)
+        [VARIANT.BASIC]: localize(VARIANT.BASIC),
+        [VARIANT.WEAPON_DAMAGE]: localize(VARIANT.WEAPON_DAMAGE),
+        [VARIANT.WEAPON_TYPE]: localize(VARIANT.WEAPON_TYPE)
       },
       default: VARIANT.BASIC
     });

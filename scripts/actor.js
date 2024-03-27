@@ -89,10 +89,10 @@ function onDialogSubmit(html, advantageMode) {
   // To be safe, do regardless of the checkbox value
   const FORMULAS = Settings.get(Settings.KEYS.DICE_FORMULAS);
   const bonusFormula = data.object["BonusAction.Text"];
-  if ( !Roll.validate(bonusFormula) ) data.object["BonusAction.Text"] = FORMULAS["BASIC.BonusAction"]
+  if ( !Roll.validate(bonusFormula) ) data.object["BonusAction.Text"] = FORMULAS["BASIC.BonusAction"];
 
   const otherFormula = data.object["OtherAction.Text"];
-  if ( !Roll.validate(otherFormula) ) data.object["OtherAction.Text"] = FORMULAS["BASIC.OtherAction"]
+  if ( !Roll.validate(otherFormula) ) data.object["OtherAction.Text"] = FORMULAS["BASIC.OtherAction"];
 
   return data.object;
 }

@@ -16,7 +16,6 @@ import { CombatTrackerActionInitiative } from "./CombatTracker.js";
 
 // Settings
 import {
-  registerSettings,
   FORMULA_DEFAULTS,
   Settings,
   defaultDiceFormulaObject } from "./settings.js";
@@ -137,7 +136,7 @@ Hooks.once("init", () => {
 });
 
 Hooks.once("setup", () => {
-  registerSettings();
+  Settings.registerAll();
 
   CONFIG[MODULE_ID].filterSets = {};
   for ( const key of CONFIG[MODULE_ID].filterProperties.keys()) {

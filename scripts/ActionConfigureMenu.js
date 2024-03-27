@@ -1,11 +1,15 @@
 /* globals
-FormApplication
+CONFIG,
+expandObject,
+FormApplication,
+Roll,
+ui
 */
 
 "use strict";
 
 import { MODULE_ID } from "./const.js";
-import { Settings } from "./settings.js";
+import { Settings, FORMULA_DEFAULTS } from "./settings.js";
 
 export class ActionConfigureMenu extends FormApplication {
   /** @override */
@@ -28,7 +32,7 @@ export class ActionConfigureMenu extends FormApplication {
 
   getData() {
     const data = super.getData();
-    const formulae = Settings.get(Settings.DICE_FORMULAS);
+    const formulae = Settings.get(Settings.KEYS.DICE_FORMULAS);
     const formulaeObj = expandObject(formulae);
     data.basic = formulaeObj.BASIC;
     data.weaponTypes = formulaeObj.WEAPON_TYPES;

@@ -1,6 +1,5 @@
 /* globals
 Hooks,
-SETTINGS,
 renderTemplate
 */
 "use strict";
