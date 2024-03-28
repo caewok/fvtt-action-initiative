@@ -25,6 +25,7 @@ PATCHES.BASIC = {};
  * Override Combatant.prototype.getInitiativeRoll.
  * DND5e patches this to point to documents.combat.getInitiativeRoll,
  * which calls actor.getInitiativeRoll.
+ * In dnd5e v3, this is not used.
  */
 function getInitiativeRoll(formula) {
   // This just copied from v11 Combatant.prototype.getInitiativeRoll.
