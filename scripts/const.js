@@ -63,6 +63,8 @@ const RANGED_WEAPONS = [
   "siege"
 ];
 
+// TODO: Use CONFIG.DND5E.validProperties.weapon instead of CONFIG.DND5E.weaponProperties
+
 /**
  * Construct the CONFIG object for this module containing basic properties.
  * Must be called in the init hook (or later) to retrieve relevant DND5e properties.
