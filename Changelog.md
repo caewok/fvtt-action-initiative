@@ -1,3 +1,6 @@
+## 0.1.3
+Fix for the initiative roll defaulting to 1d20 in dnd5e v3.1 or higher. Closes #6.
+
 ## 0.1.2
 Fix for combatant dialog not displaying properly. Closes issue #4. Thanks @DreamyNiri for the PR!
 Fix for token weapons not getting picked up in dnd5e version 3.
