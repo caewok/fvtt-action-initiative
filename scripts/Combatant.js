@@ -382,8 +382,8 @@ function weaponTypeFormula(weapon) {
   const base = getDiceValueForProperty(`WEAPON_TYPES.${type}`);
 
   // Each property potentially contributes to the formula
-  if ( !props.length ) return base;
-  const propF = props.map(prop => getDiceValueForProperty(`WEAPON_PROPERTIES.${prop}`));
+  if ( !props.size ) return base;
+  const propF = [...props.values().map(prop => getDiceValueForProperty(`WEAPON_PROPERTIES.${prop}`))];
   return `${base} + ${propF.join(" + ")}`;
 }
 
