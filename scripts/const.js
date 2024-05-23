@@ -157,7 +157,7 @@ export function constructConfigObject() {
     const cfgDnD = CONFIG.DND5E;
     cfg.weaponTypeKey = "system.type.value";
     cfg.weaponProperties = {};
-    for ( const key of Object.keys(cfgDnD.weaponProperties) ) {
+    for ( const key of cfgDnD.validProperties.weapon ) {
       cfg.weaponProperties[key] = game.i18n.localize(cfgDnD.itemProperties[key].label);
     }
   }
