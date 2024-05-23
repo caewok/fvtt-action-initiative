@@ -83,7 +83,11 @@ function preCreateChatMessageHook(document, data, _options, _userId) {
   if ( !document.getFlag("core", "initiativeRoll") ) return;
 
   const actorId = data.speaker.actor;
-  const c = game.combat.getCombatantByActor(actorId);
+  const combatants = game.combat.getCombatantByActors(actorId);
+  if ( !combatants.length ) return;
+
+  // Just pick the first combatant, b/c we don't currently have a good reason to pick another.
+  const c = combatants[0];
   const summary = c._actionInitiativeSelectionSummary("chat");
   data.flavor += summary;
   document.updateSource({ flavor: data.flavor });

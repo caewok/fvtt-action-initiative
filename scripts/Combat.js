@@ -1,6 +1,6 @@
 /* globals
-expandObject,
 FormDataExtended,
+foundry,
 game
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
@@ -49,8 +49,10 @@ async function rollInitiative(wrapped, ids,
   ids = [];
   tokens.forEach(t => {
     if ( !t.inCombat ) return;
-    const c = game.combat.getCombatantByToken(t.id);
-    if ( oldIds.has(c.id) ) ids.push(c.id);
+    const combatants = game.combat.getCombatantsByToken(t.id);
+    combatants.forEach(c => {
+       if ( oldIds.has(c.id) ) ids.push(c.id);
+    });
   });
 
   return wrapped(ids, { formula, updateTurn, messageOptions });
@@ -122,7 +124,7 @@ async function setMultipleCombatants(ids, _options) {
   if ( obj === null ) return;
 
   // Determine which combatants were selected
-  const expanded = expandObject(obj);
+  const expanded = foundry.utils.expandObject(obj);
   const combatantIds = new Set(Object.entries(expanded.combatant)
     .filter(([_key, value]) => value)
     .map(([key, _value]) => key));

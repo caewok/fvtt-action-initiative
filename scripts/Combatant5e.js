@@ -1,11 +1,10 @@
 /* globals
+Roll
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
 // Patches for the Combatant5e class
-
-import { Settings } from "./settings.js";
 
 export const PATCHES = {};
 PATCHES.DND5E_V3 = {};
