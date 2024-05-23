@@ -1,7 +1,7 @@
 /* globals
 CONFIG,
-expandObject,
 FormApplication,
+foundry,
 Roll,
 ui
 */
@@ -33,7 +33,7 @@ export class ActionConfigureMenu extends FormApplication {
   getData() {
     const data = super.getData();
     const formulae = Settings.get(Settings.KEYS.DICE_FORMULAS);
-    const formulaeObj = expandObject(formulae);
+    const formulaeObj = foundry.utils.expandObject(formulae);
     data.basic = formulaeObj.BASIC;
     data.weaponTypes = formulaeObj.WEAPON_TYPES;
     data.weaponProperties = formulaeObj.WEAPON_PROPERTIES;

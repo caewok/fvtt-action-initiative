@@ -1,7 +1,7 @@
 /* globals
 CONFIG,
+foundry,
 game,
-isNewerVersion
 */
 "use strict";
 
@@ -153,7 +153,7 @@ export function constructConfigObject() {
     }))
   };
 
-  if ( isNewerVersion(game.system.version, "3") ) {
+  if ( foundry.utils.isNewerVersion(game.system.version, "3") ) {
     const cfgDnD = CONFIG.DND5E;
     cfg.weaponTypeKey = "system.type.value";
     cfg.weaponProperties = {};

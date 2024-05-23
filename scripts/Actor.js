@@ -1,7 +1,6 @@
 /* globals
 CONFIG,
 dnd5e,
-expandObject,
 FormDataExtended,
 foundry,
 game,
@@ -121,7 +120,7 @@ function _actionInitiativeDialogData({ items } = {}) {
 
   const KEYS = Settings.KEYS;
   const variant = Settings.get(KEYS.VARIANTS.KEY);
-  const defaults = expandObject(Settings.get(KEYS.DICE_FORMULAS));
+  const defaults = foundry.utils.expandObject(Settings.get(KEYS.DICE_FORMULAS));
   for ( const [key, value] of Object.entries(defaults.BASIC) ) {
     if ( value !== "0" ) continue;
     let remove = false;
