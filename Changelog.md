@@ -1,5 +1,5 @@
 ## 0.2.0
-Foundry v12 combatibility. Address warnings re deprecated utility method calls. Address change from `getCombatant` to `getCombatants`.
+Foundry v12 combatibility. Address warnings re deprecated utility method calls. Address change from `getCombatant` to `getCombatants`. Requires v12, because of the deprecated methods.
 
 ## 0.1.4
 Fix for weapon properties not properly accounted for in the roll. Closes #7.
