@@ -49,8 +49,10 @@ async function rollInitiative(wrapped, ids,
   ids = [];
   tokens.forEach(t => {
     if ( !t.inCombat ) return;
-    const c = game.combat.getCombatantByToken(t.id);
-    if ( oldIds.has(c.id) ) ids.push(c.id);
+    const combatants = game.combat.getCombatantsByToken(t.id);
+    combatants.forEach(c => {
+       if ( oldIds.has(c.id) ) ids.push(c.id);
+    });
   });
 
   return wrapped(ids, { formula, updateTurn, messageOptions });
