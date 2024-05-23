@@ -63,6 +63,8 @@ const RANGED_WEAPONS = [
   "siege"
 ];
 
+// TODO: Use CONFIG.DND5E.validProperties.weapon instead of CONFIG.DND5E.weaponProperties
+
 /**
  * Construct the CONFIG object for this module containing basic properties.
  * Must be called in the init hook (or later) to retrieve relevant DND5e properties.
@@ -155,7 +157,7 @@ export function constructConfigObject() {
     const cfgDnD = CONFIG.DND5E;
     cfg.weaponTypeKey = "system.type.value";
     cfg.weaponProperties = {};
-    for ( const key of Object.keys(cfgDnD.weaponProperties) ) {
+    for ( const key of cfgDnD.validProperties.weapon ) {
       cfg.weaponProperties[key] = game.i18n.localize(cfgDnD.itemProperties[key].label);
     }
   }

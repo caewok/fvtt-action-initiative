@@ -6,6 +6,8 @@
 ![Latest Release Download Count](https://img.shields.io/github/downloads/caewok/fvtt-action-initiative/latest/module.zip)
 ![All Downloads](https://img.shields.io/github/downloads/caewok/fvtt-action-initiative/total)
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/H2H3Y7IJW)
+
 # Action Initiative
 
 Action Initiative implements initiative similar to that of the [Unearthed Arcana Greyhawk Initiative](https://media.wizards.com/2017/dnd/downloads/UAGreyhawkInitiative.pdf).          Combatants declare actions in advance each turn; different actions use different        combinations of die rolls to determine initiative position. Initiative goes from lowest to highest.
