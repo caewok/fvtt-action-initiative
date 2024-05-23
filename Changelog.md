@@ -1,3 +1,6 @@
+## 0.1.4
+Fix for weapon properties not properly accounted for in the roll. Closes #7.
+
 ## 0.1.3
 Fix for the initiative roll defaulting to 1d20 in dnd5e v3.1 or higher. Closes #6.
 
