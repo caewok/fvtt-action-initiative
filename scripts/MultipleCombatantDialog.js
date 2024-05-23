@@ -3,7 +3,6 @@ CONFIG,
 Dialog,
 foundry,
 game,
-getProperty,
 renderTemplate
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
@@ -160,7 +159,7 @@ export class MultipleCombatantDialog extends Dialog {
           };
 
           filterProperties.forEach((value, key) => {
-            const attr = getProperty(a, value);
+            const attr = foundry.utils.getProperty(a, value);
             props[key] = attr;
             if ( !attr ) filterSets[key].add("n/a");
             else filterSets[key].add(attr);

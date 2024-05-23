@@ -3,10 +3,8 @@ ChatMessage,
 CONFIG,
 CONST,
 dnd5e,
-expandObject,
 foundry,
 game,
-getProperty,
 Roll
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
@@ -43,7 +41,7 @@ function getInitiativeRoll(formula) {
 function _getInitiativeFormula(lastSelections) {
   lastSelections ??= this.getActionInitiativeSelections();
   if ( !lastSelections ) return "0";
-  const selections = expandObject(lastSelections);
+  const selections = foundry.utils.expandObject(lastSelections);
   const actor = this.actor;
 
   // Build the formula parts
@@ -124,7 +122,7 @@ async function setActionInitiativeSelections(selections) {
 function _actionInitiativeSelectionSummary() {
   const lastSelections = this.getActionInitiativeSelections();
   if ( !lastSelections ) return undefined;
-  const selections = expandObject(lastSelections);
+  const selections = foundry.utils.expandObject(lastSelections);
   const { KEY, TYPES } = Settings.KEYS.VARIANTS;
   const variant = Settings.get(KEY);
   const modes = dnd5e.dice.D20Roll.ADV_MODE;
@@ -355,7 +353,7 @@ function filterWeaponsChoices(selections, actor, type = "MeleeAttack") {
  * @returns {string|"0"}
  */
 function weaponDamageFormula(weapon) {
-  const dmg = getProperty(weapon, CONFIG[MODULE_ID].weaponDamageKey);
+  const dmg = foundry.utils.getProperty(weapon, CONFIG[MODULE_ID].weaponDamageKey);
   const roll = new Roll(dmg);
   return roll.terms[0]?.formula ?? "0";
 }

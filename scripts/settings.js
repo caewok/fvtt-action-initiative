@@ -1,7 +1,6 @@
 /* globals
-getProperty,
 CONFIG,
-flattenObject
+foundry
 */
 
 "use strict";
@@ -53,7 +52,7 @@ Each dice formula should be set to null if not defined, and "0" if not
 
 export function getDiceValueForProperty(prop) {
   const diceFormulas = Settings.get(Settings.KEYS.DICE_FORMULAS); // DICE_FORMULAS are flat
-  return getDiceValue(diceFormulas[prop], getProperty(FORMULA_DEFAULTS, prop));
+  return getDiceValue(diceFormulas[prop], foundry.utils.getProperty(FORMULA_DEFAULTS, prop));
 }
 
 function getDiceValue(config, fallback) { return (config ?? "0") || fallback; }
@@ -127,7 +126,7 @@ function dnd5eDefaultSpellLevels() {
  * @returns {object}
  */
 export function defaultDiceFormulaObject() {
-  const flat = flattenObject(FORMULA_DEFAULTS);
+  const flat = foundry.utils.flattenObject(FORMULA_DEFAULTS);
   Object.keys(flat).forEach(key => flat[key] = "");
   return flat;
 }

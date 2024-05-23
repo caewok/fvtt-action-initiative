@@ -1,4 +1,6 @@
 /* globals
+foundry,
+game
 */
 "use strict";
 
@@ -28,7 +30,7 @@ PATCHER.addPatchesFromRegistrationObject(PATCHES);
 export function initializePatching() {
   PATCHER.registerGroup("BASIC");
 
-  if ( isNewerVersion(game.system.version, "3.0.9") ) {
+  if ( foundry.utils.isNewerVersion(game.system.version, "3.0.9") ) {
     PATCHER.registerGroup("DND5E_V3"); // Combatant5e, added in v3.
   }
 }
