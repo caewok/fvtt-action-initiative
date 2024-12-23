@@ -9,7 +9,7 @@ import { MODULE_ID, FORMULA_DEFAULTS } from "./const.js";
 import { ModuleSettingsAbstract } from "./ModuleSettingsAbstract.js";
 import { ActionConfigureMenu } from "./ActionConfigureMenu.js";
 
-export const SETTINGS = {
+const SETTINGS = {
   CHANGELOG: "changelog",
 
   VARIANTS: {
