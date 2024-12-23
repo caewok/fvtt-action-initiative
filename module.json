@@ -3,7 +3,7 @@
   "minimumCoreVersion": "10",
   "id": "actioninitiative",
   "title": "Action Initiative",
-  "version": "This is auto replaced",
+  "version": "#{VERSION}#",
   "library": false,
   "compatibility": {
     "minimum": "12",
@@ -37,9 +37,9 @@
       "description": "Initiative based on actions taken by the combatants."
     }
   ],
-  "url": "This is auto replaced",
-  "manifest": "This is auto replaced",
-  "download": "This is auto replaced",
+  "url": "#{URL}#",
+  "manifest": "#{MANIFEST}#",
+  "download": "#{DOWNLOAD}#",
   "license": "LICENSE",
   "readme": "README.md"
 }
