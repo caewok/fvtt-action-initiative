@@ -5,6 +5,7 @@ game,
 */
 "use strict";
 
+// TODO: Move the CONFIG to module.js
 export const MODULE_ID = "actioninitiative";
 
 export const FLAGS = {
@@ -17,9 +18,9 @@ export const FORMULA_DEFAULTS = {
   BASIC: {
     CastSpell: "1d10",
     MeleeAttack: "1d8",
+    RangedAttack: "1d4",
     Movement: "1d6",
     OtherAction: "1d6",
-    RangedAttack: "1d4",
     SurprisePenalty: "+10",
     SwapGear: "1d6",
     BonusAction: "1d8"
@@ -150,7 +151,7 @@ export function constructConfigObject() {
       Type: "system.details.type.value",
       Walk: "system.attributes.movement.walk",
       Darkvision: "system.attributes.senses.darkvision"
-    }))
+    })),
   };
 
   if ( foundry.utils.isNewerVersion(game.system.version, "3") ) {

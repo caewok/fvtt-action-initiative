@@ -86,16 +86,8 @@ async function actionInitiativeDialog({ advantageMode, dialogData } = {}) {
  * @returns {object} The data object used in the dialog.
  */
 function _actionInitiativeDialogData({ items } = {}) {
-  items ??= this.items;
-
-  const { meleeWeapons, rangedWeapons, weaponTypes } = CONFIG[MODULE_ID];
   const data = {
     actions: Object.keys(FORMULA_DEFAULTS.BASIC),
-    weaponTypes: {
-      melee: [...meleeWeapons.keys()],
-      ranged: [...rangedWeapons.keys()]
-    },
-    weaponProperties: Object.keys(FORMULA_DEFAULTS.WEAPON_PROPERTIES),
     spellLevels: Object.keys(FORMULA_DEFAULTS.SPELL_LEVELS)
   };
 
@@ -141,40 +133,8 @@ function _actionInitiativeDialogData({ items } = {}) {
   data.bonusActionDefault = getDiceValueForProperty("BASIC.BonusAction");
 
   data.localized = {
-    spellLevels: CONFIG[MODULE_ID].spellLevels,
-    meleeWeapons: {},
-    rangedWeapons: {},
-    weaponTypes: CONFIG[MODULE_ID].weaponTypes,
-    weaponProperties: CONFIG[MODULE_ID].weaponProperties
+    spellLevels: CONFIG[MODULE_ID].spellLevels
   };
-
-  // Add column splits
-  data.splits = {
-    actions: Math.ceil(data.actions.length * 0.5),
-    weaponProperties: Math.ceil(data.weaponProperties.length * 0.5),
-    spellLevels: Math.ceil(data.spellLevels.length * 0.5)
-  };
-
-  // Add weapons
-  data.weapons = {
-    melee: filterMeleeWeapons(items).map(i => {
-      const { id, name, img } = i;
-      return { id, name, img };
-    }),
-
-    ranged: filterRangedWeapons(items).map(i => {
-      const { id, name, img } = i;
-      return { id, name, img };
-    })
-  };
-
-  Object.keys(weaponTypes).forEach(wpn => {
-    if ( meleeWeapons.has(wpn) ) data.localized.meleeWeapons[wpn] = weaponTypes[wpn];
-  });
-
-  Object.keys(weaponTypes).forEach(wpn => {
-    if ( rangedWeapons.has(wpn) ) data.localized.rangedWeapons[wpn] = weaponTypes[wpn];
-  });
 
   data.useSpellLevels = Settings.get(KEYS.SPELL_LEVELS);
   data.defaultSpellLevel = "0"
@@ -216,12 +176,28 @@ async function setActionInitiativeSelections(selections, { combatantId } = {}) {
   await Promise.all(promises);
 }
 
+/**
+ * Store actor methods / class instantiations.
+ */
+/**
+ * New getter: Actor#actioninitiative
+ * Class that handles action initiative items for the actor
+ * @type {object}
+ */
+function actioninitiative() {
+  const ai = this._actioninitiative ??= {};
+  ai.weaponsHandler ??= new CONFIG[MODULE_ID].WeaponsHandler(this);
+  return ai;
+}
+
 PATCHES.BASIC.METHODS = {
   actionInitiativeDialog,
   _actionInitiativeDialogData,
   getActionInitiativeSelections,
   setActionInitiativeSelections
 };
+
+PATCHES.BASIC.GETTERS = { actioninitiative };
 
 // ----- NOTE: Helper functions ----- //
 
@@ -255,32 +231,4 @@ function onDialogSubmit(html, advantageMode) {
   if ( !Roll.validate(otherFormula) ) data.object["OtherAction.Text"] = FORMULAS["BASIC.OtherAction"];
 
   return data.object;
-}
-
-/**
- * Filter items for melee weapons.
- * @param {EmbeddedCollection[Item]} items     Items to filter
- * @returns {Item[]} Array of weapons.
- */
-function filterMeleeWeapons(items) {
-  const { weaponTypeKey, meleeWeapons } = CONFIG[MODULE_ID];
-  return items.filter(i => {
-    if ( i.type !== "weapon" ) return false;
-    const type = foundry.utils.getProperty(i, weaponTypeKey);
-    return meleeWeapons.has(type);
-  });
-}
-
-/**
- * Filter items for ranged or thrown weapons.
- * @param {EmbeddedCollection[Item]} items    Items to filter
- * @returns {Item[]} Array of weapons.
- */
-function filterRangedWeapons(items) {
-  const { weaponTypeKey, rangedWeapons, canThrowWeapon } = CONFIG[MODULE_ID];
-  return items.filter(i => {
-    if ( i.type !== "weapon" ) return false;
-    const type = foundry.utils.getProperty(i, weaponTypeKey);
-    return canThrowWeapon(i) || rangedWeapons.has(type);
-  });
 }

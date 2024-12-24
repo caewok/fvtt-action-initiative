@@ -21,6 +21,8 @@ import {
 
 import { MultipleCombatantDialog } from "./MultipleCombatantDialog.js";
 
+import { WeaponsHandler, WeaponsHandlerDND5e } from "./WeaponsHandler.js";
+
 // Self-executing scripts for hooks
 import "./changelog.js";
 
@@ -38,13 +40,22 @@ Hooks.once("init", () => {
 
   game.modules.get(MODULE_ID).api = {
     MultipleCombatantDialog,
-    PATCHER
+    PATCHER,
+    Settings,
+    WeaponsHandler, WeaponsHandlerDND5e
   };
 
   CONFIG.ui.combat = CombatTrackerActionInitiative;
 
   // Set configuration values used internally. May be modified by users.
   CONFIG[MODULE_ID] = constructConfigObject();
+
+  /**
+   * Class to handle weapons categorization and damage formulas.
+   * @type {class}
+   */
+  CONFIG[MODULE_ID].WeaponsHandler = WeaponsHandlerDND5e;
+  CONFIG[MODULE_ID].WeaponsHandler.initialize();
 });
 
 Hooks.once("setup", () => {
