@@ -6,7 +6,7 @@ Roll
 
 import { Settings } from "./settings.js";
 
-export class ActionInitiativeDialog extends Dialog {
+export class ActionInitiativeDialog extends foundry.applications.api.DialogV2 {
 
   static get defaultOptions() {
     const opts = super.defaultOptions;
@@ -18,10 +18,13 @@ export class ActionInitiativeDialog extends Dialog {
    * Activate additional listeners to display/hide spell levels and weapon properties
    * Also monitor for incorrect dice formulae.
    */
-  activateListeners(html) {
-    super.activateListeners(html);
-    html.on("change", ".actioninitiative-actionCheckbox", this._actionChanged.bind(this));
-    html.on("change", ".actioninitiative-actionTextbox", this._textBoxChanged.bind(this));
+  _attachFrameListeners() {
+    super._attachFrameListeners();
+    this.element.addEventListener("change", this._actionChanged.bind(this));
+    this.element.addEventListener("change", this._textBoxChanged.bind(this));
+
+    // html.on("change", ".actioninitiative-actionCheckbox", this._actionChanged.bind(this));
+    // html.on("change", ".actioninitiative-actionTextbox", this._textBoxChanged.bind(this));
   }
 
   _actionChanged(event) {
