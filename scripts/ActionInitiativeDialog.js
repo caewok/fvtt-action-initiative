@@ -46,7 +46,7 @@ export class ActionInitiativeDialog extends foundry.applications.api.DialogV2 {
       case "CastSpell": {
         if ( !Settings.get(KEYS.SPELL_LEVELS) ) break;
         elem = document.getElementById("actioninitiative-fieldSpellLevel");
-        elem.disabled = false;
+        elem.disabled = !event.target.checked;
         break;
       }
     }
@@ -56,6 +56,7 @@ export class ActionInitiativeDialog extends foundry.applications.api.DialogV2 {
 
   _textBoxChanged(event) {
     const elem = document.getElementById(event.target.name);
+    if ( !elem ) return;
     const formula = elem.value;
 
     // If a formula is added, toggle the checkbox to be on.

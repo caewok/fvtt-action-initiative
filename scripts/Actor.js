@@ -177,6 +177,7 @@ function _actionInitiativeDialogData({ items } = {}) {
   });
 
   data.useSpellLevels = Settings.get(KEYS.SPELL_LEVELS);
+  data.defaultSpellLevel = "0"
 
   return data;
 }
