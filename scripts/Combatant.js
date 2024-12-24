@@ -202,7 +202,7 @@ async function addToInitiative() {
   // Determine additional dice to roll.
   const formula = this._getInitiativeFormula(selections);
   const roll = this.getInitiativeRoll(formula);
-  await roll.evaluate({async: true});
+  await roll.evaluate();
   await this.update({initiative: roll.total + (this.initiative ?? 0)});
 
   // Construct chat message data
@@ -324,7 +324,7 @@ function attackFormula(selections, actor, attackType = "MeleeAttack") {
   // For multiple weapons, pick the one that can cause the maximum damage.
   const max = weaponFormulas.reduce((acc, curr) => {
     const roll = new Roll(curr, actor);
-    const max = roll.evaluate({ maximize: true, async: false }).total;
+    const max = roll.evaluateSync({ maximize: true }).total;
     if ( max > acc.max ) return { max, formula: curr };
     return acc;
   }, { max: Number.NEGATIVE_INFINITY, formula: "0" });

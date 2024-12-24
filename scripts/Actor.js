@@ -39,36 +39,34 @@ async function actionInitiativeDialog({ advantageMode, dialogData } = {}) {
   return new Promise(resolve => {
 
     const advantage = {
-      label: game.i18n.localize("DND5E.Advantage"),
+      action: "advantage",
+      label: "DND5E.Advantage",
+      icon: "fa-solid fa-dice-six",
       callback: html => resolve(onDialogSubmit(html, modes.ADVANTAGE))
     };
 
     const normal = {
-      label: game.i18n.localize("DND5E.Normal"),
+      action: "normal",
+      label: "DND5E.Normal",
+      icon: "fa-solid fa-dice",
+      default: true,
       callback: html => resolve(onDialogSubmit(html, modes.NORMAL))
     };
 
     const disadvantage = {
-      label: game.i18n.localize("DND5E.Disadvantage"),
+      action: "disadvantage",
+      label: "DND5E.Disadvantage",
+      icon: "fa-solid fa-dice-one",
       callback: html => resolve(onDialogSubmit(html, modes.DISADVANTAGE))
     };
 
     // If a specific advantage mode applies, use only that button. Otherwise, give user the choice.
-    const buttons = {};
+    const buttons = [];
     switch ( advantageMode ) {
-      case modes.ADVANTAGE:
-        buttons.advantage = advantage;
-        break;
-      case modes.DISADVANTAGE:
-        buttons.disadvantage = disadvantage;
-        break;
-      case modes.NORMAL:
-        buttons.normal = normal;
-        break;
-      default:
-        buttons.advantage = advantage;
-        buttons.normal = normal;
-        buttons.disadvantage = disadvantage;
+      case modes.ADVANTAGE: buttons.push(advantage); break;
+      case modes.DISADVANTAGE: buttons.push(disadvantage); break;
+      case modes.NORMAL: buttons.push(normal); break;
+      default: buttons.push(advantage, normal, disadvantage);
     }
 
     new ActionInitiativeDialog({
@@ -177,6 +175,9 @@ function _actionInitiativeDialogData({ items } = {}) {
   Object.keys(weaponTypes).forEach(wpn => {
     if ( rangedWeapons.has(wpn) ) data.localized.rangedWeapons[wpn] = weaponTypes[wpn];
   });
+
+  data.useSpellLevels = Settings.get(KEYS.SPELL_LEVELS);
+  data.defaultSpellLevel = "0"
 
   return data;
 }
