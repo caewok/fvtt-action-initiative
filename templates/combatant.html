@@ -1,18 +1,15 @@
 <style>
-.row {
+.box {
   display: flex;
+  flex-flow: row wrap;
+  height: 100px;
+  width: 300px;
+  border: 2px dotted rgb(96 139 168);
 }
 
-.column {
-  flex: 50%;
-}
-
-input[type=text].actionInitiativeError {
-  border: 3px solid #8B0000;
-}
 </style>
 
-<form class="flexcol">
+<form>
   <h2>Actions</h2>
   <p>{{localize "actioninitiative.template.combatant.intro"}}</p>
 
@@ -41,66 +38,16 @@ input[type=text].actionInitiativeError {
     <input class="actioninitiative-actionTextbox" type="text" name="BonusAction.Text" id="BonusAction.Text" placeholder="{{bonusActionDefault}}"/>
   </div>
 
-  <div style="display:none" id="actioninitiative-sectionWeaponTypeMelee">
-    <br>
-    <h2>Melee Weapons</h2>
-
-
-    {{#each weapons.melee}}
-
-    <div class="flexrow" style="align-items:baseline">
-      <input type="checkbox" name="{{concat 'meleeWeapon.' this.id}}"/>
-      <img src="{{this.img}}" width="24" height="24" class="flex0"/>
-      <h4 style="align-self:center"> {{this.name}} </hr>
-
-    </div>
-
-    {{/each}}
-
-
-
-  </div>
-
-
-  <div style="display:none" id="actioninitiative-sectionWeaponTypeRanged">
-    <br>
-    <h2>Ranged Weapons</h2>
-
-
-
-    {{#each weapons.ranged}}
-
-    <div class="flexrow" style="align-items:center">
-      <input type="checkbox" name="{{concat 'rangeWeapon.' this.id}}"/>
-      <h4> {{this.name}} </hr>
-      <img src="{{this.img}}" width="24" height="24" class="flex0" style="align-self:end"/>
-    </div>
-
-    {{/each}}
-
-
-
-  </div>
-
-
-  <div style="display:none" id="actioninitiative-sectionSpellLevel">
+  <div style="display:{{ifThen useSpellLevels 'block' 'none'}}" id="actioninitiative-sectionSpellLevel">
     <br>
     <h2>Spell Level</h2>
-
-
-
-    <div class="form-fields">
-      {{ radioBoxes "spellLevels" localized.spellLevels }}
-    </div>
-
-
+        <fieldset id="actioninitiative-fieldSpellLevel" disabled>
+        <div class="box">
+          {{ radioBoxes "spellLevels" localized.spellLevels }}
+        </div>
+        </fieldset>
 
   </div>
-
-
-
-
-  <br><br>
 
 </form>
 

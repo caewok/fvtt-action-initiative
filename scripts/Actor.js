@@ -176,6 +176,8 @@ function _actionInitiativeDialogData({ items } = {}) {
     if ( rangedWeapons.has(wpn) ) data.localized.rangedWeapons[wpn] = weaponTypes[wpn];
   });
 
+  data.useSpellLevels = Settings.get(KEYS.SPELL_LEVELS);
+
   return data;
 }
 

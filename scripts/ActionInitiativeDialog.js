@@ -31,26 +31,27 @@ export class ActionInitiativeDialog extends foundry.applications.api.DialogV2 {
     let elem;
     const KEYS = Settings.KEYS;
     switch ( event.target.name ) {
-      case "MeleeAttack": {
-        if ( Settings.get(KEYS.VARIANTS.KEY) === KEYS.VARIANTS.TYPES.BASIC ) break;
-        elem = document.getElementById("actioninitiative-sectionWeaponTypeMelee");
-        break;
-      }
-
-      case "RangedAttack": {
-        if ( Settings.get(KEYS.VARIANTS.KEY) === KEYS.VARIANTS.TYPES.BASIC ) break;
-        elem = document.getElementById("actioninitiative-sectionWeaponTypeRanged");
-        break;
-      }
+//       case "MeleeAttack": {
+//         if ( Settings.get(KEYS.VARIANTS.KEY) === KEYS.VARIANTS.TYPES.BASIC ) break;
+//         elem = document.getElementById("actioninitiative-sectionWeaponTypeMelee");
+//         break;
+//       }
+//
+//       case "RangedAttack": {
+//         if ( Settings.get(KEYS.VARIANTS.KEY) === KEYS.VARIANTS.TYPES.BASIC ) break;
+//         elem = document.getElementById("actioninitiative-sectionWeaponTypeRanged");
+//         break;
+//       }
 
       case "CastSpell": {
         if ( !Settings.get(KEYS.SPELL_LEVELS) ) break;
-        elem = document.getElementById("actioninitiative-sectionSpellLevel");
+        elem = document.getElementById("actioninitiative-fieldSpellLevel");
+        elem.disabled = false;
         break;
       }
     }
 
-    if ( elem ) elem.style.display = event.target.checked ? "block" : "none";
+    // if ( elem ) elem.style.display = event.target.checked ? "block" : "none";
   }
 
   _textBoxChanged(event) {
