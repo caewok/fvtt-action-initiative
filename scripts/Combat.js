@@ -9,7 +9,6 @@ game
 // Patches for the Combat class
 
 import { MODULE_ID } from "./const.js";
-import { MultipleCombatantDialog } from "./MultipleCombatantDialog.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
@@ -114,14 +113,8 @@ PATCHES.BASIC.OVERRIDES = { rollAll, rollNPC, _sortCombatants };
  */
 async function setMultipleCombatants(ids, _options) {
   if ( !ids.length ) return;
-  const obj = await MultipleCombatantDialog.prompt({
-    title: game.i18n.localize(`${MODULE_ID}.template.multiple-combatant-config.Title`),
-    label: "Okay",
-    callback: html => onDialogSubmit(html),
-    rejectClose: false,
-    options: { combatantIds: ids }
-  });
-  if ( obj === null ) return;
+  const obj = await CONFIG[MODULE_ID].MultipleCombatantDialog.create({ combatantIds: ids })
+  if ( !obj ) return;
 
   // Determine which combatants were selected
   const expanded = foundry.utils.expandObject(obj);

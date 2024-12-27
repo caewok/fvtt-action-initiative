@@ -20,7 +20,6 @@ import {
   defaultDiceFormulaObject } from "./settings.js";
 
 import { MultipleCombatantDialog } from "./MultipleCombatantDialog.js";
-
 import { WeaponsHandler, WeaponsHandlerDND5e } from "./WeaponsHandler.js";
 import { CombatantInitiativeHandler, CombatantInitiativeHandlerDND5e } from "./CombatantInitiativeHandler.js";
 import { ActionSelectionDialog, ActionSelectionDialogDND5e } from "./ActionSelectionDialog.js";
@@ -49,7 +48,8 @@ Hooks.once("init", () => {
     CombatantInitiativeHandler, CombatantInitiativeHandlerDND5e,
     WeaponsHandler, WeaponsHandlerDND5e,
     ActionSelectionDialog, ActionSelectionDialogDND5e,
-    ActorInitiativeHandler
+    ActorInitiativeHandler,
+    MultipleCombatantDialog
   };
 
   CONFIG.ui.combat = CombatTrackerActionInitiative;
@@ -67,6 +67,7 @@ Hooks.once("init", () => {
   CONFIG[MODULE_ID].CombatantInitiativeHandler = CombatantInitiativeHandlerDND5e;
   CONFIG[MODULE_ID].ActionSelectionDialog = ActionSelectionDialogDND5e;
   CONFIG[MODULE_ID].WeaponSelectionDialog = WeaponSelectionDialog;
+  CONFIG[MODULE_ID].MultipleCombatantDialog = MultipleCombatantDialog;
 });
 
 Hooks.once("setup", () => {

@@ -86,7 +86,7 @@ export class ActionSelectionDialog extends foundry.applications.api.DialogV2 {
       spellLevels: data.object.spellLevels
     }
     delete res.actions.spellLevels;
-    return this.validateActionSelection(res);
+    return this.validateSelection(res);
   }
 
   /**
@@ -94,7 +94,7 @@ export class ActionSelectionDialog extends foundry.applications.api.DialogV2 {
    * @param {ActionSelectionResult}
    * @returns {ActionSelectionResult}
    */
-  static validateActionSelection(data) {
+  static validateSelection(data) {
     const FORMULAS = Settings.get(Settings.KEYS.DICE_FORMULAS);
     const bonusFormula = data.actions.BonusAction.Text;
     if ( !Roll.validate(bonusFormula) ) data.actions.BonusAction.Text = FORMULAS["BASIC.BonusAction"];
@@ -189,11 +189,16 @@ export class ActionSelectionDialog extends foundry.applications.api.DialogV2 {
    */
   _attachFrameListeners() {
     super._attachFrameListeners();
-    this.element.addEventListener("change", this._actionChanged.bind(this));
-    this.element.addEventListener("change", this._textBoxChanged.bind(this));
+    this.element.addEventListener("change", this._handleChangeEvent.bind(this));
 
     // html.on("change", ".actioninitiative-actionCheckbox", this._actionChanged.bind(this));
     // html.on("change", ".actioninitiative-actionTextbox", this._textBoxChanged.bind(this));
+  }
+
+  _handleChangeEvent(event) {
+    const targetClasses = new Set(event.target.classList);
+    if ( targetClasses.has("actioninitiative-actionCheckbox") ) this._actionChanged(event);
+    if ( targetClasses.has("actioninitiative-actionTextbox") ) this._textBoxChanged(event);
   }
 
   _actionChanged(event) {
@@ -243,7 +248,6 @@ export class ActionSelectionDialog extends foundry.applications.api.DialogV2 {
     else elem.className = `${elem.className} actionInitiativeError`;
   }
 }
-
 
 export class ActionSelectionDialogDND5e extends ActionSelectionDialog {
   /**

@@ -67,7 +67,7 @@ export class WeaponSelectionDialog extends foundry.applications.api.DialogV2 {
       checked: foundry.utils.expandObject(data.object),
       button: button.dataset.action
     }
-    return this.validateWeaponSelection(res);
+    return this.validateSelection(res);
   }
 
   static onDialogCancel(event, dialog) {
@@ -75,10 +75,7 @@ export class WeaponSelectionDialog extends foundry.applications.api.DialogV2 {
     return null;
   }
 
-  static validateWeaponSelection(data) {
-    return data;
-  }
-
+  static validateSelection(data) { return data; }
 
   /**
    * Construct data required to display the dialog for this combatant.
