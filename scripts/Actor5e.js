@@ -1,11 +1,12 @@
 /* globals
+CONFIG,
 Roll
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
 // Patches for the Actor5e class
-
+import { MODULE_ID } from "./const.js";
 import { Settings } from "./settings.js";
 
 export const PATCHES = {};
@@ -24,15 +25,18 @@ PATCHES.BASIC = {};
  * @returns {Promise<void>}
  */
 async function rollInitiativeDialog({advantageMode, combatantId} = {}) {
-  const selections = await this.actionInitiativeDialog(this, { advantageMode });
+  const initiativeHandler = this[MODULE_ID].initiativeHandler;
+
+
+  const selections = await initiativeHandler.initiativeDialogs();
   if ( !selections ) return; // Closed dialog.
 
   // Set initiative for either only active tokens or all
   if ( Settings.get(Settings.KEYS.GROUP_ACTORS) ) combatantId = undefined;
 
   // Retrieve the action choices made by the user for this actor.
-  // Ultimate tied to the combatant that represents the actor.
-  await this.setActionInitiativeSelections(selections, { combatantId });
+  // Ultimately tied to the combatant(s) that represents the actor.
+  await initiativeHandler.setInitiativeSelections(selections, { combatantId });
   await this.rollInitiative({createCombatants: true, initiativeOptions: { combatantId }});
 }
 

@@ -145,7 +145,7 @@ async function setMultipleCombatants(ids, _options) {
 
   for ( const combatantId of combatantIds ) {
     const thisC = game.combat.combatants.get(combatantId);
-    await thisC.actor.setActionInitiativeSelections(selections, { combatantId });
+    await thisC[MODULE_ID].CombatantInitiativeHandler.setInitiativeSelections(selections);
     await thisC.actor.rollInitiative({createCombatants: true, initiativeOptions: { combatantId }});
   }
 }

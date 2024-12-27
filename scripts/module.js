@@ -22,6 +22,10 @@ import {
 import { MultipleCombatantDialog } from "./MultipleCombatantDialog.js";
 
 import { WeaponsHandler, WeaponsHandlerDND5e } from "./WeaponsHandler.js";
+import { CombatantInitiativeHandler, CombatantInitiativeHandlerDND5e } from "./CombatantInitiativeHandler.js";
+import { ActionSelectionDialog, ActionSelectionDialogDND5e } from "./ActionSelectionDialog.js";
+import { WeaponSelectionDialog } from "./WeaponSelectionDialog.js";
+import { ActorInitiativeHandler } from "./ActorInitiativeHandler.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";
@@ -42,7 +46,10 @@ Hooks.once("init", () => {
     MultipleCombatantDialog,
     PATCHER,
     Settings,
-    WeaponsHandler, WeaponsHandlerDND5e
+    CombatantInitiativeHandler, CombatantInitiativeHandlerDND5e,
+    WeaponsHandler, WeaponsHandlerDND5e,
+    ActionSelectionDialog, ActionSelectionDialogDND5e,
+    ActorInitiativeHandler
   };
 
   CONFIG.ui.combat = CombatTrackerActionInitiative;
@@ -56,6 +63,10 @@ Hooks.once("init", () => {
    */
   CONFIG[MODULE_ID].WeaponsHandler = WeaponsHandlerDND5e;
   CONFIG[MODULE_ID].WeaponsHandler.initialize();
+  CONFIG[MODULE_ID].ActorInitiativeHandler = ActorInitiativeHandler;
+  CONFIG[MODULE_ID].CombatantInitiativeHandler = CombatantInitiativeHandlerDND5e;
+  CONFIG[MODULE_ID].ActionSelectionDialog = ActionSelectionDialogDND5e;
+  CONFIG[MODULE_ID].WeaponSelectionDialog = WeaponSelectionDialog;
 });
 
 Hooks.once("setup", () => {
@@ -99,7 +110,7 @@ function preCreateChatMessageHook(document, data, _options, _userId) {
 
   // Just pick the first combatant, b/c we don't currently have a good reason to pick another.
   const c = combatants[0];
-  const summary = c._actionInitiativeSelectionSummary("chat");
+  const summary = c[MODULE_ID].initiativeHandler.initiativeSelectionSummary();;
   data.flavor += summary;
   document.updateSource({ flavor: data.flavor });
 }
@@ -114,7 +125,7 @@ function renderCombatTrackerHook(app, html, data) {
   data.turns.forEach(turn => {
     if ( !turn.hasRolled || i >= elems.length ) return;
     const c = game.combat.combatants.get(turn.id);
-    const summary = c._actionInitiativeSelectionSummary("combatTrackerTooltip");
+    const summary = c[MODULE_ID].initiativeHandler.initiativeSelectionSummary();
     elems[i].setAttribute("data-tooltip", summary);
     i += 1;
   });

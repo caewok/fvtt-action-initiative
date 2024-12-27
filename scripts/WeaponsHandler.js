@@ -17,6 +17,10 @@ import { Settings } from "./settings.js";
  * Subclasses intended to handle specific systems.
  */
 export class WeaponsHandler {
+  /** @type {enum} */
+  static ATTACK_TYPES = { MELEE: 1, RANGED: 2 };
+
+
   /**
    * Helper to set up any data that is not defined at load. E.g., CONFIG.DND5E.
    * Called on init hook.
@@ -173,6 +177,20 @@ export class WeaponsHandler {
 
   /* ----- NOTE: Primary methods ----- */
 
+  /**
+   * Display a dialog so the user can select between specific weapons for the combatant.
+   */
+  async weaponSelectionDialog({ combatantNames, weapons, attackType } = {}) {
+    const { MELEE, RANGED } = this.constructor.ATTACK_TYPES;
+    combatantNames ??= this.actor[MODULE_ID].initiativeHandler.getCombatantNames();
+    weapons ??= this.weapons;
+    attackType ??= MELEE;
+    switch ( attackType ) {
+      case MELEE: weapons = weapons.filter(w => this.constructor.isMelee(w)); break;
+      case RANGED: weapons = weapons.filter(w => this.constructor.isRanged(w)); break;
+    }
+    return CONFIG[MODULE_ID].WeaponSelectionDialog.create(combatantNames, weapons);
+  }
 
   /* ----- NOTE: Helper methods -----*/
 }
