@@ -7,6 +7,15 @@ renderTemplate
 
 import { MODULE_ID } from "./const.js";
 
+/**
+ * @typedef {object} WeaponSelectionResult
+ * @param {object} weapons
+ * One or more keys, one for each weapon:
+ * - @prop {bool} weaponId         Key is the weapon id; true if checked.
+ * ...
+ * @param {string} button         The button pressed by the user
+ */
+
 export class WeaponSelectionDialog extends foundry.applications.api.DialogV2 {
 
   static DEFAULT_OPTIONS = {
@@ -18,14 +27,15 @@ export class WeaponSelectionDialog extends foundry.applications.api.DialogV2 {
   /**
    * @param {string[]} combatantNames
    */
-  static async create(combatantNames, weapons) {
-    const dialogData = this.dialogData(combatantNames, weapons);
+  static async create(weapons, opts) {
+    if ( !weapons || !(weapons.size || weapons.length) ) return {};
+    const dialogData = this.dialogData(weapons, opts);
     const content = await renderTemplate(`modules/${MODULE_ID}/templates/weapons.html`, dialogData);
     return this.wait({
       content,
       rejectClose: false,
       close: this.onDialogCancel,
-      buttons: this.constructButtons()
+      buttons: this.constructButtons(opts)
     })
   }
 
@@ -33,13 +43,13 @@ export class WeaponSelectionDialog extends foundry.applications.api.DialogV2 {
    * Create the button(s) for the dialog submission.
    * @returns {DialogV2Button[]}
    */
-  static constructButtons() {
+  static constructButtons(opts) {
     const save = {
       action: "save",
       label: "Save",
       icon: "fa-solid fa-dice",
       default: true,
-      callback: this.onDialogSubmit
+      callback: this.onDialogSubmit.bind(this)
     };
     return [save];
   }
@@ -51,11 +61,22 @@ export class WeaponSelectionDialog extends foundry.applications.api.DialogV2 {
    * @returns {object} Object representing user selections for actions.
    */
   static onDialogSubmit(event, button, dialog) {
-    console.log("onDialogSubmit", event, button, dialog);
+    const form = dialog.querySelector("form");
+    const data = new FormDataExtended(form);
+    const res = {
+      checked: foundry.utils.expandObject(data.object),
+      button: button.dataset.action
+    }
+    return this.validateWeaponSelection(res);
   }
 
   static onDialogCancel(event, dialog) {
-    console.log("onDialogCancel", event, dialog);
+    console.log("WeaponsSelectionDialog|onDialogCancel", event, dialog);
+    return null;
+  }
+
+  static validateWeaponSelection(data) {
+    return data;
   }
 
 
@@ -64,7 +85,7 @@ export class WeaponSelectionDialog extends foundry.applications.api.DialogV2 {
    * @param {string[]} combatantNames
    * @returns {object}
    */
-  static dialogData(combatantNames, weapons) {
+  static dialogData(weapons, { combatantNames } = {}) {
     const data = { groupedNames: groupNames(combatantNames) };
     data.weapons = weapons.map(w => {
        const { id, name, img } = w;
@@ -87,6 +108,7 @@ export class WeaponSelectionDialog extends foundry.applications.api.DialogV2 {
  * @returns {string} Combined list
  */
 function groupNames(names) {
+  if ( !names || !names.length ) return "";
   const nameMap = new Map();
   for ( const name of names ) nameMap.set(name, (nameMap.get(name) || 0) + 1);
   let groupedNames = [];

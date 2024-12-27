@@ -7,7 +7,7 @@ Hooks
 "use strict";
 
 // Basics
-import { MODULE_ID, constructConfigObject } from "./const.js";
+import { MODULE_ID, FLAGS, constructConfigObject } from "./const.js";
 import { log } from "./util.js";
 
 // Patching
@@ -115,7 +115,24 @@ function preCreateChatMessageHook(document, data, _options, _userId) {
   document.updateSource({ flavor: data.flavor });
 }
 
-Hooks.on("renderCombatTracker", renderCombatTrackerHook);
+Hooks.once("renderCombatTracker", async (_app, _html, _data) => {
+  // Get the combatants for each combat and update flags as necessary.
+  const promises = [];
+  for ( const combat of game.combats ) {
+    for ( const combatant of combat.combatants ) {
+      const currVersion = combatant.getFlag(MODULE_ID, FLAGS.VERSION);
+      if ( currVersion ) continue;
+
+      // Wipe all the old initiative selections.
+      // Not a huge issue b/c these are fleeting.
+      promises.push(combatant.unsetFlag(MODULE_ID, FLAGS.COMBATANT.INITIATIVE_SELECTIONS));
+      promises.push(combatant.setFlag(MODULE_ID, FLAGS.VERSION, game.modules.get("actioninitiative").version));
+    }
+  }
+  await Promise.allSettled(promises);
+  Hooks.on("renderCombatTracker", renderCombatTrackerHook);
+});
+
 
 function renderCombatTrackerHook(app, html, data) {
   // Each combatant that has rolled will have a ".initiative" class

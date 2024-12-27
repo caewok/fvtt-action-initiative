@@ -21,7 +21,7 @@
   "actioninitiative.template.settings-config.tabs.spell-levels": "Spell Levels",
 
   "actioninitiative.template.combatant.intro": "Select one or more actions for: {combatantNames}",
-  "actioninitiative.template.combatant.intro": "Select one or more weapons for:  {combatantNames}",
+  "actioninitiative.template.weapons.intro": "Select one or more weapons for:  {combatantNames}",
 
   "actioninitiative.phrases.BasicVariant": "Basic Variant",
   "actioninitiative.phrases.RangedAttack": "Ranged Attack",

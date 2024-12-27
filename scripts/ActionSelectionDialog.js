@@ -10,6 +10,27 @@ Roll
 import { MODULE_ID, FORMULA_DEFAULTS } from "./const.js";
 import { Settings, getDiceValueForProperty } from "./settings.js";
 
+/**
+ * @typedef {object} ActionSelectionResult
+ * @param {object} actions
+ * In actions object:
+ * @param {object} BonusAction
+ * - @prop {bool} Checkbox
+ * - @prop {string} Text        The dice formula
+ * @param {object} OtherAction
+ * - @prop {bool} Checkbox
+ * - @prop {string} Text        The dice formula
+ * @param {bool} CastSpell
+ * @param {bool} MeleeAttack
+ * @param {bool} Movement
+ * @param {bool} RangedAttack
+ * @param {bool} SurprisePenalty
+ * @param {bool} SwapGear
+ * Other:
+ * @param {string} spellLevels
+ * @param {string} button         The button pressed by the user
+ */
+
 export class ActionSelectionDialog extends foundry.applications.api.DialogV2 {
 
   static DEFAULT_OPTIONS = {
@@ -22,6 +43,7 @@ export class ActionSelectionDialog extends foundry.applications.api.DialogV2 {
 
   /**
    * @param {object} [opts]
+   * @returns {ActionSelectionResult}
    */
   static async create(opts) {
     const dialogData = this.dialogData(opts);
@@ -53,28 +75,37 @@ export class ActionSelectionDialog extends foundry.applications.api.DialogV2 {
    * Helper to handle the return from ActionSelectionDialog
    * @param {object} html   Dialog html
    * @param {D20Roll.ADV_MODE} advantageMode
-   * @returns {object} Object representing user selections for actions.
+   * @returns {ActionSelectionResult} Object representing user selections for actions.
    */
   static onDialogSubmit(event, button, dialog) {
-    console.log("onDialogSubmit", event, button, dialog);
     const form = dialog.querySelector("form");
     const data = new FormDataExtended(form);
-    data.object.button = button.dataset.action;
-    return this.validateActionSelection(data.object);
+    const res = {
+      actions: foundry.utils.expandObject(data.object),
+      button: button.dataset.action,
+      spellLevels: data.object.spellLevels
+    }
+    delete res.actions.spellLevels;
+    return this.validateActionSelection(res);
   }
 
+  /**
+   * Validate the user selections. In particular, clean up entered formulas.
+   * @param {ActionSelectionResult}
+   * @returns {ActionSelectionResult}
+   */
   static validateActionSelection(data) {
     const FORMULAS = Settings.get(Settings.KEYS.DICE_FORMULAS);
-    const bonusFormula = data["BonusAction.Text"];
-    if ( !Roll.validate(bonusFormula) ) data["BonusAction.Text"] = FORMULAS["BASIC.BonusAction"];
+    const bonusFormula = data.actions.BonusAction.Text;
+    if ( !Roll.validate(bonusFormula) ) data.actions.BonusAction.Text = FORMULAS["BASIC.BonusAction"];
 
-    const otherFormula = data["OtherAction.Text"];
-    if ( !Roll.validate(otherFormula) ) data["OtherAction.Text"] = FORMULAS["BASIC.OtherAction"];
+    const otherFormula = data.actions.OtherAction.Text;
+    if ( !Roll.validate(otherFormula) ) data.actions.OtherAction.Text = FORMULAS["BASIC.OtherAction"];
     return data;
   }
 
   static onDialogCancel(event, dialog) {
-    console.log("onDialogCancel", event, dialog);
+    console.log("ActionSelectionDialog|onDialogCancel", event, dialog);
     return null;
   }
 
@@ -273,7 +304,6 @@ export class ActionSelectionDialogDND5e extends ActionSelectionDialog {
  */
 function groupNames(names) {
   if ( !names || !names.length ) return "";
-
   const nameMap = new Map();
   for ( const name of names ) nameMap.set(name, (nameMap.get(name) || 0) + 1);
   let groupedNames = [];

@@ -15,6 +15,9 @@ import { Settings } from "./settings.js";
  * Coordinate the multi-combatant dialog.
  */
 export class ActorInitiativeHandler {
+  /** @type {enum} */
+  static ATTACK_TYPES = { MELEE: 1, RANGED: 2 };
+
   /* ----- NOTE: Instantiation ----- */
 
   /** @type {Actor} */
@@ -83,19 +86,36 @@ export class ActorInitiativeHandler {
    * Display the initiative dialog(s) for this combatant.
    * Assumes a single combatant.
    */
-  async initiativeDialogs({ combatantNames, weapons, attackTypes } = {}) {
-    combatantNames ??= this.getCombatantNames();
-    const selections = await this.actionSelectionDialog({ combatantNames });
-    // If melee or ranged chosen and specific weapon is needed.
+  async initiativeDialogs(opts) {
+    opts.combatantNames ??= this.getCombatantNames();
+    const selections = await this._getActionSelections(opts);
     if ( Settings.get(Settings.KEYS.VARIANTS.KEY) !== Settings.KEYS.VARIANTS.TYPES.BASIC ) {
-      attackTypes ??= [this.constructor.ATTACK_TYPES.MELEE, this.constructor.ATTACK_TYPES.RANGED];
-      const wh = this.actor[MODULE_ID].weaponsHandler;
-      for ( const attackType of attackTypes ) {
-        const weaponSelections = await this.weaponSelectionDialog({ attackType, combatantNames, weapons });
-        // TODO: Combine with selections
-      }
+      const weaponSelections = await this._getWeaponSelections(selections, opts);
+      selections.weapons = weaponSelections;
     }
     return selections;
+  }
+
+  async _getActionSelections(opts) {
+    opts.combatantNames ??= this.getCombatantNames();
+    return await this.actionSelectionDialog(opts);
+  }
+
+  async _getWeaponSelections(actionSelections, opts = {}) {
+    opts.combatantNames ??= this.getCombatantNames();
+    const weaponSelections = {
+      melee: {},
+      ranged: {}
+    };
+    if ( actionSelections.actions.MeleeAttack ) {
+      opts.attackType = this.constructor.ATTACK_TYPES.MELEE;
+      weaponSelections.melee = await this.weaponSelectionDialog(opts);
+    }
+    if ( actionSelections.actions.RangedAttack ) {
+      opts.attackType = this.constructor.ATTACK_TYPES.RANGED;
+      weaponSelections.ranged = await this.weaponSelectionDialog(opts);
+    }
+    return weaponSelections;
   }
 
   /**
@@ -118,36 +138,4 @@ export class ActorInitiativeHandler {
 
   /* ----- NOTE: Helper methods ----- */
 }
-export class ActorInitiativeHandlerDND5e extends ActorInitiativeHandler {
 
-  /**
-   * Display the initiative dialog(s) for this combatant.
-   * Assumes a single combatant.
-   */
-  async initiativeDialogs({ combatantNames, weapons, attackTypes, advantageMode } = {}) {
-    combatantNames ??= this.getCombatantNames();
-    const selections = await this.actionSelectionDialog({ combatantNames, advantageMode });
-    // If melee or ranged chosen and specific weapon is needed.
-    if ( Settings.get(Settings.KEYS.VARIANTS.KEY) !== Settings.KEYS.VARIANTS.TYPES.BASIC ) {
-      attackTypes ??= [this.constructor.ATTACK_TYPES.MELEE, this.constructor.ATTACK_TYPES.RANGED];
-      const wh = this.actor[MODULE_ID].weaponsHandler;
-      for ( const attackType of attackTypes ) {
-        const weaponSelections = await this.weaponSelectionDialog({ attackType, combatantNames, weapons });
-        // TODO: Combine with selections
-      }
-    }
-    return selections;
-  }
-
-  /**
-   * Display a dialog so the user can select one or more actions that the combatant will take.
-   * @param {object} [opt]
-   * @param {D20Roll.ADV_MODE} [opt.advantageMode]    A specific advantage mode to apply
-   *   If undefined, user will choose.
-   * @returns {Promise<object>} Ultimately, an object representing user selections.
-   */
-  async actionSelectionDialog(opts) {
-    return CONFIG[MODULE_ID].ActionSelectionDialog.create(opts);
-  }
-
-}

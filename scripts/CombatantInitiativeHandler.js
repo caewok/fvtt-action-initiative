@@ -10,7 +10,7 @@ Roll
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
-import { MODULE_ID, FLAGS } from "./const.js";
+import { MODULE_ID, FLAGS, FORMULA_DEFAULTS } from "./const.js";
 import { Settings, getDiceValueForProperty } from "./settings.js";
 
 /**
@@ -52,7 +52,8 @@ export class CombatantInitiativeHandler {
    * @param {object} selections
    */
   async setInitiativeSelections(selections) {
-    return await this.combatant.setFlag(MODULE_ID, FLAGS.COMBATANT.INITIATIVE_SELECTIONS, selections);
+    await this.combatant.unsetFlag(MODULE_ID, FLAGS.COMBATANT.INITIATIVE_SELECTIONS);
+    return this.combatant.setFlag(MODULE_ID, FLAGS.COMBATANT.INITIATIVE_SELECTIONS, selections);
   }
 
   /* ----- NOTE: Primary methods ----- */
@@ -61,15 +62,15 @@ export class CombatantInitiativeHandler {
    * Display the initiative dialog(s) for this combatant.
    * Assumes a single combatant.
    */
-  async initiativeDialogs() {
-    return this.actor[MODULE_ID].initiativeHandler.initiativeDialogs();
+  async initiativeDialogs(opts) {
+    return this.actor[MODULE_ID].initiativeHandler.initiativeDialogs(opts);
   }
 
   /**
    * Display a dialog so the user can select one or more actions that the combatant will take.
    */
-  async actionSelectionDialog() {
-    return this.actor[MODULE_ID].initiativeHandler.actionSelectionDialog();
+  async actionSelectionDialog(opts) {
+    return this.actor[MODULE_ID].initiativeHandler.actionSelectionDialog(opts);
   }
 
   /**
@@ -77,8 +78,8 @@ export class CombatantInitiativeHandler {
    * @param {Item[]} weapons
    * @param {ATTACK_TYPES} type
    */
-  async weaponSelectionDialog({ weapons, type } = {}) {
-    return this.actor[MODULE_ID].initiativeHandler.weaponSelectionDialog({ weapons, type });
+  async weaponSelectionDialog(opts) {
+    return this.actor[MODULE_ID].initiativeHandler.weaponSelectionDialog(opts);
   }
 
   /**
@@ -133,69 +134,51 @@ export class CombatantInitiativeHandler {
   /**
    * Construct text describing what the user chose for the combatant actions.
    * Used in chat message and in the tooltip in the Combat Tracker.
+   * @param {object} [selections]   Optional returned object from ActionSelectionDialog.
    * @returns {string}
    */
-  initiativeSelectionSummary(lastSelections) {
-    lastSelections ??= this.initiativeSelections;
-    if ( !lastSelections ) return undefined;
+  initiativeSelectionSummary(selections) {
+    selections ??= this.initiativeSelections;
+    if ( !selections ) return undefined;
 
-    const selections = foundry.utils.expandObject(lastSelections);
     const { KEY, TYPES } = Settings.KEYS.VARIANTS;
     const variant = Settings.get(KEY);
+    const weaponVariant = variant === TYPES.WEAPON_DAMAGE || variant === TYPES.WEAPON_TYPE;
 
+    const selectedActions = selections.actions;
     const actions = [];
-    const weapons = [];
     let spellLevel;
-    for ( const [key, value] of Object.entries(selections) ) {
-      if ( !value
-        || key === "meleeWeapon"
-        || key === "rangeWeapon"
-        || key === "spellLevels") continue;
-
+    selectionLoop: for ( const [key, value] of Object.entries(selectedActions) ) {
+      if ( !value ) continue;
+      let label = `${game.i18n.localize(`${MODULE_ID}.phrases.${key}`)}`;
       switch ( key ) {
-        case "MeleeAttack":
-        case "RangedAttack":
-          actions.push(`${game.i18n.localize(`${MODULE_ID}.phrases.${key}`)}`);
-          if ( variant === TYPES.WEAPON_DAMAGE
-            || variant === TYPES.WEAPON_TYPE ) weapons.push(...filterWeaponsChoices(selections, this.actor, key));
-          break;
-        case "CastSpell":
-          actions.push(`${game.i18n.localize(`${MODULE_ID}.phrases.${key}`)}`);
-
-          if ( Settings.get(Settings.KEYS.SPELL_LEVELS) ) {
-            const spellLevels = new Set(Object.keys(CONFIG[MODULE_ID].spellLevels));
-            const chosenLevel = Object.entries(selections).find(([_key, value]) => value && spellLevels.has(value));
-            spellLevel = `${CONFIG[MODULE_ID].spellLevels[chosenLevel ? chosenLevel[1] : 9]}`;
-          }
-          break;
         case "BonusAction":
-          if ( selections.BonusAction.Checkbox ) actions.push(`${game.i18n.localize(`${MODULE_ID}.phrases.${key}`)} (${selections.BonusAction.Text})`);
-          break;
         case "OtherAction":
-          if ( selections.OtherAction.Checkbox ) actions.push(`${game.i18n.localize(`${MODULE_ID}.phrases.${key}`)} (${selections.OtherAction.Text})`);
+          if ( !selectedActions[key].Checkbox ) continue selectionLoop;
+          label += `(${selections[key].Text})`
+          break;
+
+        case "CastSpell":
+          if ( Settings.get(Settings.KEYS.SPELL_LEVELS) ) spellLevel = this.chosenSpellLevel(selections);
           break;
       }
+      actions.push(label);
     }
 
     let text = `<br><b>Actions:</b> ${actions.join(", ")}`;
-    if ( weapons.length ) {
-      const weaponNames = weapons.map(w => w.name);
-      text += `<br><b>Weapons:</b> ${weaponNames.join(", ")}`;
-    }
+    if ( weaponVariant ) text += this.combatant.actor[MODULE_ID].weaponsHandler.summarizeWeaponsChoices(selections);
     if ( spellLevel ) text += `<br><b>Maximum Spell Level:</b> ${spellLevel}`;
     return text;
   }
 
   /**
    * Construct the initiative formula for a combatant based on user-selected actions.
-   * @param {object} [lastSelections]   Optional returned object from ActionSelectionDialog.
+   * @param {object} [selections]   Optional returned object from ActionSelectionDialog.
    * @returns {string} Cleaned dice formula
    */
-  constructInitiativeFormula(lastSelections) {
-    lastSelections ??= this.initiativeSelections;
-    if ( !lastSelections ) return "0";
-
-    const selections = foundry.utils.expandObject(lastSelections);
+  constructInitiativeFormula(selections) {
+    selections ??= this.initiativeSelections;
+    if ( !selections ) return "0";
     const formula = this._constructInitiativeFormula(selections);
 
     // Clean the roll last, and re-do
@@ -204,33 +187,42 @@ export class CombatantInitiativeHandler {
 
   /**
    * Construct the initiative formula for a combatant based on user-selected actions.
-   * @param {object} [lastSelections]   Optional returned object from ActionSelectionDialog.
+   * @param {object} [selections]   Optional returned object from ActionSelectionDialog.
    * @returns {string} Dice formula
    */
   _constructInitiativeFormula(selections) {
+    const { MELEE, RANGED } = this.constructor.ATTACK_TYPES;
     const actor = this.combatant.actor;
+    const keyType = {
+      MeleeAttack: MELEE,
+      RangedAttack: RANGED
+    };
 
     // Build the formula parts
+    const selectedActions = selections.actions;
     const formula = [];
-    for ( const [key, value] of Object.entries(selections) ) {
-      if ( !value
-        || key === "meleeWeapon"
-        || key === "rangeWeapon"
-        || key === "advantageMode" ) continue;
+    for ( const [key, value] of Object.entries(selectedActions) ) {
+      if ( !value ) continue;
 
       switch ( key ) {
         case "MeleeAttack":
         case "RangedAttack":
-          formula.push(attackFormula(selections, actor, key) ?? "0");
+          formula.push(actor[MODULE_ID].weaponsHandler.attackFormula(selections, keyType[key]) ?? "0");
           break;
-        case "CastSpell":
-          formula.push(castSpellFormula(selections) ?? "0");
+        case "CastSpell": {
+          const chosenLevel = this.chosenSpellLevel(selections);
+          const str = chosenLevel === null ? "BASIC.CastSpell"
+            : `SPELL_LEVELS.${Object.entries(CONFIG[MODULE_ID].spellLevels)
+              .find(([key, value]) => value === chosenLevel)[0]}`
+          formula.push(getDiceValueForProperty(str));
           break;
+        }
+
         case "BonusAction":
-          if ( selections.BonusAction.Checkbox ) formula.push(selections.BonusAction.Text);
+          if ( selectedActions.BonusAction.Checkbox ) formula.push(selectedActions.BonusAction.Text);
           break;
         case "OtherAction":
-          if ( selections.OtherAction.Checkbox ) formula.push(selections.OtherAction.Text);
+          if ( selectedActions.OtherAction.Checkbox ) formula.push(selectedActions.OtherAction.Text);
           break;
         default:
           formula.push(getDiceValueForProperty(`BASIC.${key}`) ?? "0");
@@ -239,6 +231,19 @@ export class CombatantInitiativeHandler {
 
     // Combine the parts
     return formula.join("+");
+  }
+
+  /**
+   * Determine the init formula for a spell optionally using spell levels.
+   * @param {object} params   Parameters chosen for initiative
+   * @returns {string}
+   */
+  chosenSpellLevel(selections) {
+    selections ??= this.initiativeSelections;
+    if ( !Settings.get(Settings.KEYS.SPELL_LEVELS) ) return null;
+    const spellLevels = new Set(Object.keys(CONFIG[MODULE_ID].spellLevels));
+    const chosenLevel = Object.entries(selections).find(([_key, value]) => value && spellLevels.has(value));
+    return CONFIG[MODULE_ID].spellLevels[chosenLevel ? chosenLevel[1] : 9];
   }
 
   /* ----- NOTE: Helper methods ----- */
@@ -283,105 +288,6 @@ export class CombatantInitiativeHandlerDND5e extends CombatantInitiativeHandler 
     }
     return formula;
   }
-}
-
-/**
- * Helper to filter weapons based on user selections.
- * @param {object}  selections    Selections provided by the user initiative form.
- * @param {Actor}   actor         Actor for the combatant
- * @param {"MeleeAttack"|"RangeAttack"}  type
- * @returns {Item[]}
- */
-function filterWeaponsChoices(selections, actor, type = "MeleeAttack") {
-  type = type === "MeleeAttack" ? "meleeWeapon" : "rangeWeapon";
-  const weaponSelections = selections[type];
-  return Object.entries(weaponSelections)
-    .filter(([_key, value]) => value)
-    .map(([key, _value]) => actor.items.get(key));
-}
-
-/**
- * Determine the base damage for a weapon.
- * For example, a dnd5e dagger return "1d4".
- * @param {Item} weapon
- * @returns {string|"0"}
- */
-function weaponDamageFormula(weapon) {
-  const dmg = foundry.utils.getProperty(weapon, CONFIG[MODULE_ID].weaponDamageKey);
-  const roll = new Roll(dmg);
-  return roll.terms[0]?.formula ?? "0";
-}
-
-/**
- * Determine the init formula for a weapon using weapon type and properties.
- * The given type provides the base formula, for which weapon properties may
- * add/subtract to that base value.
- * For example, a dnd5e dagger is:
- * - simple melee type: Default 1d4
- * - light: Default -1
- * - finesse: Default -1
- * - thrown: no modifier
- * Result: 1d4 - 1 - 1
- * @param {Item} weapon
- * @returns {string|"0"}
- */
-function weaponTypeFormula(weapon) {
-  const { weaponPropertiesKey, weaponTypeKey } = CONFIG[MODULE_ID];
-  const type = foundry.utils.getProperty(weapon, weaponTypeKey);
-  const props = foundry.utils.getProperty(weapon, weaponPropertiesKey);
-
-  // Base is set by the weapon type.
-  const base = getDiceValueForProperty(`WEAPON_TYPES.${type}`);
-
-  // Each property potentially contributes to the formula
-  if ( !props.size ) return base;
-  const propF = [...props.values().map(prop => getDiceValueForProperty(`WEAPON_PROPERTIES.${prop}`))];
-  return `${base} + ${propF.join(" + ")}`;
-}
-
-/**
- * Determine the init formula for a spell optionally using spell levels.
- * @param {object} params   Parameters chosen for initiative
- * @returns {string}
- */
-function castSpellFormula(params) {
-  if ( !Settings.get(Settings.KEYS.SPELL_LEVELS) ) return getDiceValueForProperty("BASIC.CastSpell");
-
-  const spellLevels = new Set(Object.keys(CONFIG[MODULE_ID].spellLevels));
-  const chosenLevel = Object.entries(params).find(([_key, value]) => value && spellLevels.has(value));
-  return getDiceValueForProperty(`SPELL_LEVELS.${chosenLevel[1]}`);
-}
-
-/**
- * Determine the init formula for a melee or ranged attack.
- * @param {Item} weapon   Weapon used.
- * @param {Actor} actor   Actor rolling init
- * @returns {string|"0"}
- */
-function attackFormula(selections, actor, attackType = "MeleeAttack") {
-  const { KEY, TYPES } = Settings.KEYS.VARIANTS;
-  const variant = Settings.get(KEY);
-  const weaponFormulas = [];
-
-  // For the basic variant, just return the formula. Otherwise, get all weapon formulas
-  // for selected weapons.
-  if ( variant === TYPES.BASIC ) return getDiceValueForProperty(`BASIC.${attackType}`);
-  const wpns = filterWeaponsChoices(selections, actor, attackType);
-  const formulaFn = variant === TYPES.WEAPON_DAMAGE ? weaponDamageFormula : weaponTypeFormula;
-  wpns.forEach(w => weaponFormulas.push(formulaFn(w)));
-
-  // If none or one weapon selected, return the corresponding formula.
-  if ( !weaponFormulas.length ) return "0";
-  if ( weaponFormulas.length === 1 ) return weaponFormulas[0];
-
-  // For multiple weapons, pick the one that can cause the maximum damage.
-  const max = weaponFormulas.reduce((acc, curr) => {
-    const roll = new Roll(curr, actor);
-    const max = roll.evaluateSync({ maximize: true }).total;
-    if ( max > acc.max ) return { max, formula: curr };
-    return acc;
-  }, { max: Number.NEGATIVE_INFINITY, formula: "0" });
-  return max.formula;
 }
 
 /**

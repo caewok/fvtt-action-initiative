@@ -14,8 +14,10 @@ export const FLAGS = {
   },
 
   COMBATANT: {
-    INITIATIVE_SELECTIONS: "initSelections"
-  }
+    INITIATIVE_SELECTIONS: "initSelections",
+  },
+
+  VERSION: "version"
 };
 
 export const FORMULA_DEFAULTS = {
