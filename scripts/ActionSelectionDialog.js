@@ -21,16 +21,16 @@ export class ActionSelectionDialog extends foundry.applications.api.DialogV2 {
   };
 
   /**
-   * @param {string[]} combatantNames
+   * @param {object} [opts]
    */
-  static async create(combatantNames) {
-    const dialogData = this.dialogData(combatantNames);
+  static async create(opts) {
+    const dialogData = this.dialogData(opts);
     const content = await renderTemplate(`modules/${MODULE_ID}/templates/combatant.html`, dialogData);
     return this.wait({
       content,
       rejectClose: false,
       close: this.onDialogCancel,
-      buttons: this.constructButtons()
+      buttons: this.constructButtons(opts)
     })
   }
 
@@ -38,7 +38,7 @@ export class ActionSelectionDialog extends foundry.applications.api.DialogV2 {
    * Create the button(s) for the dialog submission.
    * @returns {DialogV2Button[]}
    */
-  static constructButtons() {
+  static constructButtons(opt) {
     const save = {
       action: "save",
       label: "Save",
@@ -86,7 +86,7 @@ export class ActionSelectionDialog extends foundry.applications.api.DialogV2 {
    * @param {string[]} combatantNames
    * @returns {object}
    */
-  static dialogData(combatantNames) {
+  static dialogData({ combatantNames } = {}) {
     // TODO: Move the trimming of actions elsewhere.
     const data = {
       actions: Object.keys(FORMULA_DEFAULTS.BASIC),
@@ -219,7 +219,7 @@ export class ActionSelectionDialogDND5e extends ActionSelectionDialog {
    * Create the button(s) for the dialog submission.
    * @returns {DialogV2Button[]}
    */
-  static constructButtons() {
+  static constructButtons({ advantageMode } = {}) {
     const modes = dnd5e.dice.D20Roll.ADV_MODE;
     const advantage = {
       action: modes.ADVANTAGE,
@@ -242,8 +242,14 @@ export class ActionSelectionDialogDND5e extends ActionSelectionDialog {
       icon: "fa-solid fa-dice-one",
       callback: this.onDialogSubmit.bind(this)
     };
+    const buttons = {
+      [modes.ADVANTAGE]: advantage,
+      [modes.NORMAL]: normal,
+      [modes.DISADVANTAGE]: disadvantage
+    }
 
-    return [advantage, normal, disadvantage];
+    if ( advantageMode ) return buttons[advantageMode];
+    return Object.values(buttons);
   }
 
   /**
@@ -266,6 +272,8 @@ export class ActionSelectionDialogDND5e extends ActionSelectionDialog {
  * @returns {string} Combined list
  */
 function groupNames(names) {
+  if ( !names || !names.length ) return "";
+
   const nameMap = new Map();
   for ( const name of names ) nameMap.set(name, (nameMap.get(name) || 0) + 1);
   let groupedNames = [];

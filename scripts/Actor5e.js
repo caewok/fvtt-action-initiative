@@ -24,11 +24,9 @@ PATCHES.BASIC = {};
  * @param {string} [options.combatantId]                Id of the combatant chosen
  * @returns {Promise<void>}
  */
-async function rollInitiativeDialog({advantageMode, combatantId} = {}) {
+async function rollInitiativeDialog({ advantageMode, combatantId } = {}) {
   const initiativeHandler = this[MODULE_ID].initiativeHandler;
-
-
-  const selections = await initiativeHandler.initiativeDialogs();
+  const selections = await initiativeHandler.initiativeDialogs({ advantageMode });
   if ( !selections ) return; // Closed dialog.
 
   // Set initiative for either only active tokens or all
@@ -37,7 +35,7 @@ async function rollInitiativeDialog({advantageMode, combatantId} = {}) {
   // Retrieve the action choices made by the user for this actor.
   // Ultimately tied to the combatant(s) that represents the actor.
   await initiativeHandler.setInitiativeSelections(selections, { combatantId });
-  await this.rollInitiative({createCombatants: true, initiativeOptions: { combatantId }});
+  await this.rollInitiative({ createCombatants: true, initiativeOptions: { combatantId } });
 }
 
 PATCHES.BASIC.OVERRIDES = { rollInitiativeDialog };

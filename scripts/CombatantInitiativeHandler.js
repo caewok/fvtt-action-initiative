@@ -77,7 +77,7 @@ export class CombatantInitiativeHandler {
    * @param {Item[]} weapons
    * @param {ATTACK_TYPES} type
    */
-  async weaponSelectionDialog(weapons, type) {
+  async weaponSelectionDialog({ weapons, type } = {}) {
     return this.actor[MODULE_ID].initiativeHandler.weaponSelectionDialog({ weapons, type });
   }
 

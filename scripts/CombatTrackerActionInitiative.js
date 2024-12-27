@@ -28,12 +28,9 @@ export class CombatTrackerActionInitiative extends CombatTracker {
     if ( (btn.dataset.control === "rollInitiative")
       && combatant?.actor ) return combatant.actor.rollInitiativeDialog({combatantId});
 
-    if ( btn.dataset.control === "addToInitiative" ) {
-      const selections = await combatant.actor.actionInitiativeDialog(this.actor);
-      if ( !selections ) return; // Closed dialog.
-      return combatant.addToInitiative();
-    }
-    if ( btn.dataset.control === "resetInitiative" ) return combatant[MODULE_ID].initiativeHandler.resetInitiative();
+    const iH = combatant.actor[MODULE_ID].initiativeHandler;
+    if ( btn.dataset.control === "addToInitiative" ) return iH.addToInitiative(this.actor);
+    if ( btn.dataset.control === "resetInitiative" ) return iH.resetInitiative();
     return super._onCombatantControl(event);
   }
 
