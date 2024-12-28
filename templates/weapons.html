@@ -1,15 +1,35 @@
+<style>
+h3.actioninitiative {
+  margin-top: 1px;
+  margin-bottom: 5px;
+  <!-- border: 1px dashed blue; -->
+}
+
+span.actioninitiative {
+  margin: auto;
+  text-align: left;
+  width: 100%;
+  padding-left: 5px;
+  <!-- border: 1px dashed red; -->
+}
+</style>
+
 <form>
-  <h2>Weapons</h2>
+  <h3 class="actioninitiative">Weapons</h3>
   <p>{{localize "actioninitiative.template.weapons.intro" combatantNames=groupedNames}}</p>
 
+  <div class="grid grid-2col">
   {{#each weapons}}
 
-  <div class="flexrow" style="align-items:baseline">
-    <input type="checkbox" name="{{this.id}}"/>
-    <img src="{{this.img}}" width="24" height="24" class="flex0"/>
-    <h4 style="align-self:center"> {{this.name}} </hr>
+  <div>
+    <label>
+      <input type="checkbox" name="{{this.id}}"/>
+      <img src="{{this.img}}" width="24" height="24" class="flex0"/>
+      <span class="actioninitiative">{{this.name}}</span>
+    </label>
   </div>
 
   {{/each}}
+  </div>
 
 </form>
