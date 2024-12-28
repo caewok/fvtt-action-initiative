@@ -9,7 +9,6 @@ game
 // Patches for the Combat class
 
 import { MODULE_ID } from "./const.js";
-import { MultipleCombatantDialog } from "./MultipleCombatantDialog.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
@@ -112,40 +111,12 @@ PATCHES.BASIC.OVERRIDES = { rollAll, rollNPC, _sortCombatants };
  * @param {string[]} ids
  * @param {object} _options     Options, unused
  */
-async function setMultipleCombatants(ids, _options) {
-  if ( !ids.length ) return;
-  const obj = await MultipleCombatantDialog.prompt({
-    title: game.i18n.localize(`${MODULE_ID}.template.multiple-combatant-config.Title`),
-    label: "Okay",
-    callback: html => onDialogSubmit(html),
-    rejectClose: false,
-    options: { combatantIds: ids }
-  });
-  if ( obj === null ) return;
+async function setMultipleCombatants(combatantIds, _opts) {
+  const res = await CONFIG[MODULE_ID].CombatantInitiativeHandler.setMultipleCombatants(combatantIds, _opts);
+  if ( res === null ) return; // Dialog canceled.
 
-  // Determine which combatants were selected
-  const expanded = foundry.utils.expandObject(obj);
-  const combatantIds = new Set(Object.entries(expanded.combatant)
-    .filter(([_key, value]) => value)
-    .map(([key, _value]) => key));
-  if ( !combatantIds.size ) return;
-
-  // Gather all items from all the combatants
-  const items = [];
-  game.combat.combatants
-    .filter(c => combatantIds.has(c.id))
-    .forEach(c => items.push(...c.actor.items.values()));
-
-  // Present DM with action dialog
-  const [firstCombatantId] = combatantIds;
-  const firstCombatant = game.combat.combatants.get(firstCombatantId);
-  const dialogData = firstCombatant.actor._actionInitiativeDialogData({ items });
-  const selections = await firstCombatant.actor.actionInitiativeDialog({ dialogData });
-  if ( !selections ) return; // Closed dialog.
-
-  for ( const combatantId of combatantIds ) {
+  for ( const combatantId of res ) {
     const thisC = game.combat.combatants.get(combatantId);
-    await thisC.actor.setActionInitiativeSelections(selections, { combatantId });
     await thisC.actor.rollInitiative({createCombatants: true, initiativeOptions: { combatantId }});
   }
 }

@@ -1,12 +1,14 @@
 /* globals
 CONFIG,
-foundry
+foundry,
+game,
+Roll
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
 import { MODULE_ID, FORMULA_DEFAULTS } from "./const.js";
-import { Settings } from "./settings.js";
+import { Settings, getDiceValueForProperty } from "./settings.js";
 
 
 /**
@@ -17,6 +19,9 @@ import { Settings } from "./settings.js";
  * Subclasses intended to handle specific systems.
  */
 export class WeaponsHandler {
+  /** @type {enum} */
+  static ATTACK_TYPES = { MELEE: 1, RANGED: 2 };
+
   /**
    * Helper to set up any data that is not defined at load. E.g., CONFIG.DND5E.
    * Called on init hook.
@@ -129,20 +134,84 @@ export class WeaponsHandler {
       case WEAPON_TYPE: dmg = FORMULA_DEFAULTS.WEAPON_TYPES; break;
     }
     if ( !dmg ) return this.DEFAULT_DAMAGE;
-
   }
 
   /**
-   * Determine the initiative formula based on weapon type.
+   * Determine the base damage for a weapon.
+   * For example, a dnd5e dagger return "1d4".
+   * @param {Item} weapon
+   * @returns {string|"0"}
    */
-
+  static weaponBaseDamageFormula(weapon) {
+    const dmg = this.weaponDamageFormula(weapon);
+    const roll = new Roll(dmg);
+    return roll.terms[0]?.formula ?? "0";
+  }
 
   /**
-   * Determine the base damage for a weapon.
-   * For example, a dnd5e dagger returns "1d4".
+   * Determine the init formula for a weapon using weapon type and properties.
+   * The given type provides the base formula, for which weapon properties may
+   * add/subtract to that base value.
+   * For example, a dnd5e dagger is:
+   * - simple melee type: Default 1d4
+   * - light: Default -1
+   * - finesse: Default -1
+   * - thrown: no modifier
+   * Result: 1d4 - 1 - 1
    * @param {Item} weapon
-   * @returns {string} The damage. If not determined, uses a default value.
+   * @returns {string|"0"}
    */
+  static weaponTypeFormula(weapon) {
+    const { weaponPropertiesKey, weaponTypeKey } = this;
+    const type = foundry.utils.getProperty(weapon, weaponTypeKey);
+    const props = foundry.utils.getProperty(weapon, weaponPropertiesKey);
+
+    // Base is set by the weapon type.
+    const base = getDiceValueForProperty(`WEAPON_TYPES.${type}`);
+
+    // Each property potentially contributes to the formula
+    if ( !props.size ) return base;
+    const propF = [...props.values().map(prop => getDiceValueForProperty(`WEAPON_PROPERTIES.${prop}`))];
+    return `${base} + ${propF.join(" + ")}`;
+  }
+
+  /**
+   * Determine the init formula for a melee or ranged attack.
+   * @param {Item} weapon   Weapon used.
+   * @param {Actor} actor   Actor rolling init
+   * @returns {string|"0"}
+   */
+  attackFormula(selections, attackType) {
+    const { MELEE } = this.constructor.ATTACK_TYPES;
+    const { KEY, TYPES } = Settings.KEYS.VARIANTS;
+    const variant = Settings.get(KEY);
+    const weaponFormulas = [];
+    attackType ??= MELEE;
+    const actor = this.actor;
+
+    // For the basic variant, just return the formula. Otherwise, get all weapon formulas
+    // for selected weapons.
+    if ( variant === TYPES.BASIC ) return getDiceValueForProperty(`BASIC.${attackType === MELEE ? "MeleeAttack" : "RangedAttack"}`);
+
+    const wpns = this.filterWeaponsChoices(selections, attackType);
+    const formulaFn = variant === TYPES.WEAPON_DAMAGE
+      ? this.constructor.weaponBaseDamageFormula.bind(this.constructor)
+      : this.constructor.weaponTypeFormula.bind(this.constructor);
+    wpns.forEach(w => weaponFormulas.push(formulaFn(w)));
+
+    // If none or one weapon selected, return the corresponding formula.
+    if ( !weaponFormulas.length ) return "0";
+    if ( weaponFormulas.length === 1 ) return weaponFormulas[0];
+
+    // For multiple weapons, pick the one that can cause the maximum damage.
+    const max = weaponFormulas.reduce((acc, curr) => {
+      const roll = new Roll(curr, actor);
+      const max = roll.evaluateSync({ maximize: true }).total;
+      if ( max > acc.max ) return { max, formula: curr };
+      return acc;
+    }, { max: Number.NEGATIVE_INFINITY, formula: "0" });
+    return max.formula;
+  }
 
   /* ----- NOTE: Static getters / setters ----- */
 
@@ -173,8 +242,45 @@ export class WeaponsHandler {
 
   /* ----- NOTE: Primary methods ----- */
 
+  /**
+   * Display a dialog so the user can select between specific weapons for the combatant.
+   */
+  async weaponSelectionDialog({ weapons, combatantNames, attackType, ...opts } = {}) {
+    const { MELEE, RANGED } = this.constructor.ATTACK_TYPES;
+    combatantNames ??= this.actor[MODULE_ID].initiativeHandler.getCombatantNames();
+    weapons ??= this.weapons;
+    attackType ??= MELEE;
+    switch ( attackType ) {
+      case MELEE: weapons = weapons.filter(w => this.constructor.isMelee(w)); break;
+      case RANGED: weapons = weapons.filter(w => this.constructor.isRanged(w)); break;
+    }
+    return CONFIG[MODULE_ID].WeaponSelectionDialog.create(weapons, { combatantNames, ...opts });
+  }
 
   /* ----- NOTE: Helper methods -----*/
+
+  /**
+   * Helper to filter weapons based on user selections.
+   * @param {object}  selections    Selections provided by the user initiative form.
+   * @param {ATTACK_TYPES}  type
+   * @returns {Item[]}
+   */
+  filterWeaponsChoices(selections, type) {
+    const { MELEE } = this.constructor.ATTACK_TYPES;
+    const typeKey = type === MELEE ? "melee" : "ranged";
+    const weaponSelections = selections.weapons?.[typeKey]?.checked;
+    if ( !weaponSelections ) return [];
+    return Object.entries(weaponSelections)
+      .filter(([_key, value]) => value)
+      .map(([key, _value]) => this.actor.items.get(key));
+  }
+
+  /**
+   * Summarize the weapon choices for chat display.
+   * @param {object}  selections    Selections provided by the user initiative form.
+   * @returns {string}
+   */
+  summarizeWeaponsChoices(_selections) { return ""; }
 }
 
 export class WeaponsHandlerDND5e extends WeaponsHandler {
@@ -245,5 +351,24 @@ export class WeaponsHandlerDND5e extends WeaponsHandler {
     return weapon.system.type.value === "simpleM"
       || weapon.system.type === "martialM"
       || !this.isRanged(weapon);
+  }
+
+  /**
+   * Summarize the weapon choices for chat display.
+   * @param {object}  selections    Selections provided by the user initiative form.
+   * @returns {string}
+   */
+  summarizeWeaponsChoices(selections) {
+    const { MELEE, RANGED } = this.constructor.ATTACK_TYPES;
+    let text = "";
+    if ( selections.actions.MeleeAttack ) {
+      const weaponNames = this.filterWeaponsChoices(selections, MELEE).map(w => w.name ?? "");
+      text += `<br><b>${game.i18n.localize("DND5E.ATTACK.Weapon.Melee")}:</b> ${weaponNames.join(", ")}`;
+    }
+    if ( selections.actions.RangedAttack ) {
+      const weaponNames = this.filterWeaponsChoices(selections, RANGED).map(w => w.name ?? "");
+      text += `<br><b>${game.i18n.localize("DND5E.ATTACK.Weapon.Ranged")}:</b> ${weaponNames.join(", ")}`;
+    }
+    return text;
   }
 }

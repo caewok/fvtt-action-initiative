@@ -7,7 +7,7 @@ Hooks
 "use strict";
 
 // Basics
-import { MODULE_ID, constructConfigObject } from "./const.js";
+import { MODULE_ID, FLAGS, constructConfigObject } from "./const.js";
 import { log } from "./util.js";
 
 // Patching
@@ -20,8 +20,11 @@ import {
   defaultDiceFormulaObject } from "./settings.js";
 
 import { MultipleCombatantDialog } from "./MultipleCombatantDialog.js";
-
 import { WeaponsHandler, WeaponsHandlerDND5e } from "./WeaponsHandler.js";
+import { CombatantInitiativeHandler, CombatantInitiativeHandlerDND5e } from "./CombatantInitiativeHandler.js";
+import { ActionSelectionDialog, ActionSelectionDialogDND5e } from "./ActionSelectionDialog.js";
+import { WeaponSelectionDialog } from "./WeaponSelectionDialog.js";
+import { ActorInitiativeHandler } from "./ActorInitiativeHandler.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";
@@ -42,7 +45,11 @@ Hooks.once("init", () => {
     MultipleCombatantDialog,
     PATCHER,
     Settings,
-    WeaponsHandler, WeaponsHandlerDND5e
+    CombatantInitiativeHandler, CombatantInitiativeHandlerDND5e,
+    WeaponsHandler, WeaponsHandlerDND5e,
+    ActionSelectionDialog, ActionSelectionDialogDND5e,
+    ActorInitiativeHandler,
+    MultipleCombatantDialog
   };
 
   CONFIG.ui.combat = CombatTrackerActionInitiative;
@@ -56,6 +63,11 @@ Hooks.once("init", () => {
    */
   CONFIG[MODULE_ID].WeaponsHandler = WeaponsHandlerDND5e;
   CONFIG[MODULE_ID].WeaponsHandler.initialize();
+  CONFIG[MODULE_ID].ActorInitiativeHandler = ActorInitiativeHandler;
+  CONFIG[MODULE_ID].CombatantInitiativeHandler = CombatantInitiativeHandlerDND5e;
+  CONFIG[MODULE_ID].ActionSelectionDialog = ActionSelectionDialogDND5e;
+  CONFIG[MODULE_ID].WeaponSelectionDialog = WeaponSelectionDialog;
+  CONFIG[MODULE_ID].MultipleCombatantDialog = MultipleCombatantDialog;
 });
 
 Hooks.once("setup", () => {
@@ -93,18 +105,33 @@ Hooks.on("preCreateChatMessage", preCreateChatMessageHook);
 function preCreateChatMessageHook(document, data, _options, _userId) {
   if ( !document.getFlag("core", "initiativeRoll") ) return;
 
-  const actorId = data.speaker.actor;
-  const combatants = game.combat.getCombatantByActor(actorId);
-  if ( !combatants.length ) return;
+  const combatant = game.combat.getCombatantByActor(data.speaker.actor);
+  if ( !combatant ) return;
 
   // Just pick the first combatant, b/c we don't currently have a good reason to pick another.
-  const c = combatants[0];
-  const summary = c._actionInitiativeSelectionSummary("chat");
+  const summary = combatant[MODULE_ID].initiativeHandler.initiativeSelectionSummary();
   data.flavor += summary;
   document.updateSource({ flavor: data.flavor });
 }
 
-Hooks.on("renderCombatTracker", renderCombatTrackerHook);
+Hooks.once("renderCombatTracker", async (_app, _html, _data) => {
+  // Get the combatants for each combat and update flags as necessary.
+  const promises = [];
+  for ( const combat of game.combats ) {
+    for ( const combatant of combat.combatants ) {
+      const currVersion = combatant.getFlag(MODULE_ID, FLAGS.VERSION);
+      if ( currVersion ) continue;
+
+      // Wipe all the old initiative selections.
+      // Not a huge issue b/c these are fleeting.
+      promises.push(combatant.unsetFlag(MODULE_ID, FLAGS.COMBATANT.INITIATIVE_SELECTIONS));
+      promises.push(combatant.setFlag(MODULE_ID, FLAGS.VERSION, game.modules.get("actioninitiative").version));
+    }
+  }
+  await Promise.allSettled(promises);
+  Hooks.on("renderCombatTracker", renderCombatTrackerHook);
+});
+
 
 function renderCombatTrackerHook(app, html, data) {
   // Each combatant that has rolled will have a ".initiative" class
@@ -114,7 +141,7 @@ function renderCombatTrackerHook(app, html, data) {
   data.turns.forEach(turn => {
     if ( !turn.hasRolled || i >= elems.length ) return;
     const c = game.combat.combatants.get(turn.id);
-    const summary = c._actionInitiativeSelectionSummary("combatTrackerTooltip");
+    const summary = c[MODULE_ID].initiativeHandler.initiativeSelectionSummary();
     elems[i].setAttribute("data-tooltip", summary);
     i += 1;
   });
