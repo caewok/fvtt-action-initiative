@@ -67,13 +67,7 @@ export class MultipleCombatantDialog extends foundry.applications.api.DialogV2 {
   static onDialogSubmit(event, button, dialog) {
     const form = dialog.querySelector("form");
     const data = new FormDataExtended(form);
-    const res = {
-      actions: foundry.utils.expandObject(data.object),
-      button: button.dataset.action,
-      spellLevels: data.object.spellLevels
-    }
-    delete res.actions.spellLevels;
-    return this.validateSelection(res);
+    return this.validateSelection(foundry.utils.expandObject(data.object));
   }
 
   static validateSelection(data) { return data; }

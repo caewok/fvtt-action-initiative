@@ -10,7 +10,7 @@ Roll
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
-import { MODULE_ID, FLAGS, FORMULA_DEFAULTS } from "./const.js";
+import { MODULE_ID, FLAGS } from "./const.js";
 import { Settings, getDiceValueForProperty } from "./settings.js";
 
 /**
@@ -27,6 +27,42 @@ export class CombatantInitiativeHandler {
   static ATTACK_TYPES = { MELEE: 1, RANGED: 2 };
 
   /* ----- NOTE: Static quasi-getters and setters ----- */
+
+
+  /* ----- NOTE: Static methods ----- */
+
+  /**
+   * Present GM with options to set actions for multiple combatants.
+   * @param {string[]} combatantIds     Combatants to include
+   * @param {object} _options           Options, unused
+   */
+  static async setMultipleCombatants(combatantIds, _opts) {
+    if ( !combatantIds.length ) return;
+    const res = await CONFIG[MODULE_ID].MultipleCombatantDialog.create({ combatantIds })
+    if ( !res ) return null;
+
+    // Determine which combatants were selected
+    combatantIds = new Set(Object.entries(res.combatant)
+      .filter(([_key, value]) => value)
+      .map(([key, _value]) => key));
+    if ( !combatantIds.size ) return null;
+
+    // Present DM with action dialog
+    // Use first combatant for calling the dialog(s).
+    const firstCombatant = game.combat.combatants.get(combatantIds.first());
+    const selectedActions = await firstCombatant[MODULE_ID].initiativeHandler.actionSelectionDialog({ combatantIds });
+
+    // For weapons, need to present multiple dialogs. One per actor.
+    const promises = [];
+    const actors = [...game.combat.combatants].filter(c => combatantIds.has(c.id)).map(c => c.actor);
+    for ( const actor of actors ) {
+      const iH = actor[MODULE_ID].initiativeHandler;
+      const weaponSelections = await iH._getWeaponSelections(selectedActions);
+      promises.push(iH.setInitiativeSelections({ ...selectedActions, weapons: weaponSelections }));
+    }
+    await Promise.allSettled(promises);
+    return combatantIds;
+  }
 
   /* ----- NOTE: Instantiation ----- */
 
@@ -63,14 +99,14 @@ export class CombatantInitiativeHandler {
    * Assumes a single combatant.
    */
   async initiativeDialogs(opts) {
-    return this.actor[MODULE_ID].initiativeHandler.initiativeDialogs(opts);
+    return this.combatant.actor[MODULE_ID].initiativeHandler.initiativeDialogs(opts);
   }
 
   /**
    * Display a dialog so the user can select one or more actions that the combatant will take.
    */
   async actionSelectionDialog(opts) {
-    return this.actor[MODULE_ID].initiativeHandler.actionSelectionDialog(opts);
+    return this.combatant.actor[MODULE_ID].initiativeHandler.actionSelectionDialog(opts);
   }
 
   /**
@@ -79,7 +115,7 @@ export class CombatantInitiativeHandler {
    * @param {ATTACK_TYPES} type
    */
   async weaponSelectionDialog(opts) {
-    return this.actor[MODULE_ID].initiativeHandler.weaponSelectionDialog(opts);
+    return this.combatant.actor[MODULE_ID].initiativeHandler.weaponSelectionDialog(opts);
   }
 
   /**
@@ -213,7 +249,7 @@ export class CombatantInitiativeHandler {
           const chosenLevel = this.chosenSpellLevel(selections);
           const str = chosenLevel === null ? "BASIC.CastSpell"
             : `SPELL_LEVELS.${Object.entries(CONFIG[MODULE_ID].spellLevels)
-              .find(([key, value]) => value === chosenLevel)[0]}`
+              .find(([_key, value]) => value === chosenLevel)[0]}`
           formula.push(getDiceValueForProperty(str));
           break;
         }
