@@ -361,11 +361,11 @@ export class WeaponsHandlerDND5e extends WeaponsHandler {
   summarizeWeaponsChoices(selections) {
     const { MELEE, RANGED } = this.constructor.ATTACK_TYPES;
     let text = "";
-    if ( selections.MeleeAttack ) {
+    if ( selections.actions.MeleeAttack ) {
       const weaponNames = this.filterWeaponsChoices(selections, MELEE).map(w => w.name ?? "");
       text += `<br><b>${game.i18n.localize("DND5E.ATTACK.Weapon.Melee")}:</b> ${weaponNames.join(", ")}`;
     }
-    if ( selections.RangedAttack ) {
+    if ( selections.actions.RangedAttack ) {
       const weaponNames = this.filterWeaponsChoices(selections, RANGED).map(w => w.name ?? "");
       text += `<br><b>${game.i18n.localize("DND5E.ATTACK.Weapon.Ranged")}:</b> ${weaponNames.join(", ")}`;
     }
