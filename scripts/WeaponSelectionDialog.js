@@ -29,6 +29,16 @@ export class WeaponSelectionDialog extends foundry.applications.api.DialogV2 {
    */
   static async create(weapons, opts) {
     if ( !weapons || !(weapons.size || weapons.length) ) return {};
+
+    // If only one weapon to select, bypass the dialog entirely.
+    if ( weapons.size === 1 || weapons.length === 1 ) {
+      const [weapon] = weapons;
+      return {
+        checked: { [weapon.id]: true },
+        button: "none"
+      }
+    }
+
     const dialogData = this.dialogData(weapons, opts);
     const content = await renderTemplate(`modules/${MODULE_ID}/templates/weapons.html`, dialogData);
     return this.wait({
