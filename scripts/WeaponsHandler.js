@@ -193,11 +193,13 @@ export class WeaponsHandler {
     // for selected weapons.
     if ( variant === TYPES.BASIC ) return getDiceValueForProperty(`BASIC.${attackType === MELEE ? "MeleeAttack" : "RangedAttack"}`);
 
-    const wpns = this.filterWeaponsChoices(selections, attackType);
+    const weapons = this.filterWeaponsChoices(selections, attackType);
+    if ( !weapons.length ) return getDiceValueForProperty(`BASIC.${attackType === MELEE ? "MeleeAttack" : "RangedAttack"}`);
+
     const formulaFn = variant === TYPES.WEAPON_DAMAGE
       ? this.constructor.weaponBaseDamageFormula.bind(this.constructor)
       : this.constructor.weaponTypeFormula.bind(this.constructor);
-    wpns.forEach(w => weaponFormulas.push(formulaFn(w)));
+    weapons.forEach(w => weaponFormulas.push(formulaFn(w)));
 
     // If none or one weapon selected, return the corresponding formula.
     if ( !weaponFormulas.length ) return "0";
