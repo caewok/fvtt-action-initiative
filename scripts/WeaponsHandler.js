@@ -193,11 +193,14 @@ export class WeaponsHandler {
     // for selected weapons.
     if ( variant === TYPES.BASIC ) return getDiceValueForProperty(`BASIC.${attackType === MELEE ? "MeleeAttack" : "RangedAttack"}`);
 
-    const wpns = this.filterWeaponsChoices(selections, attackType);
+    // If no weapons selected, use the default melee or ranged dice formula.
+    const weapons = this.filterWeaponsChoices(selections, attackType);
+    if ( !weapons.length ) return getDiceValueForProperty(`BASIC.${attackType === MELEE ? "MeleeAttack" : "RangedAttack"}`);
+
     const formulaFn = variant === TYPES.WEAPON_DAMAGE
       ? this.constructor.weaponBaseDamageFormula.bind(this.constructor)
       : this.constructor.weaponTypeFormula.bind(this.constructor);
-    wpns.forEach(w => weaponFormulas.push(formulaFn(w)));
+    weapons.forEach(w => weaponFormulas.push(formulaFn(w)));
 
     // If none or one weapon selected, return the corresponding formula.
     if ( !weaponFormulas.length ) return "0";
@@ -352,6 +355,20 @@ export class WeaponsHandlerDND5e extends WeaponsHandler {
       || weapon.system.type === "martialM"
       || !this.isRanged(weapon);
   }
+
+
+  /* ----- NOTE: Getters ----- */
+
+  /** @type {Set<Item>} */
+  get weapons() {
+    // Use equipped-only weapons if any are equipped.
+    const weapons = new Set([...this.actor.items.values()].filter(i => this.constructor.isWeapon(i)));
+    const equipped = weapons.filter(w => w.system.equipped);
+    if ( equipped.size ) return equipped;
+    return weapons;
+  }
+
+  /* ----- NOTE: Primary methods ----- */
 
   /**
    * Summarize the weapon choices for chat display.
