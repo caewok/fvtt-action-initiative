@@ -14,7 +14,9 @@ export class MultipleCombatantDialog extends foundry.applications.api.DialogV2 {
 
   static DEFAULT_OPTIONS = {
     window: {
-      title: `${MODULE_ID}.template.multiple-combatant-config.Title`
+      title: `${MODULE_ID}.template.multiple-combatant-config.Title`,
+      resizable: true,
+      width: "400px"
     }
   };
 
@@ -116,9 +118,9 @@ export class MultipleCombatantDialog extends foundry.applications.api.DialogV2 {
 
   _handleChangeEvent(event) {
     const targetClasses = new Set(event.target.classList);
-    if ( targetClasses.has("filterChoice") ) this._filterChanged(event);
-    if ( targetClasses.has("combatantChoice") ) this._combatantChanged(event);
-    if ( targetClasses.has("combatantSelectAll") ) this._selectAll(event);
+    if ( targetClasses.has("actioninitiative-filterChoice") ) this._filterChanged(event);
+    if ( targetClasses.has("actioninitiative-combatantChoice") ) this._combatantChanged(event);
+    if ( targetClasses.has("actioninitiative-combatantSelectAll") ) this._selectAll(event);
   }
 
   _combatantChanged(_event) { this._syncFilters(); }

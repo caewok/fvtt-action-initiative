@@ -36,8 +36,8 @@ export class ActionSelectionDialog extends foundry.applications.api.DialogV2 {
   static DEFAULT_OPTIONS = {
     window: {
       title: `${MODULE_ID}.legend`,
-      width: 200,
-      height: 400
+      resizable: false,
+      width: "500px"
     }
   };
 
@@ -178,8 +178,6 @@ export class ActionSelectionDialog extends foundry.applications.api.DialogV2 {
 
   static get defaultOptions() {
     const opts = super.defaultOptions;
-    opts.height = "700px";
-    opts.width = "400px"
     return opts;
   }
 

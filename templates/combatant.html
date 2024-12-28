@@ -1,48 +1,56 @@
 <style>
-.box {
-  display: flex;
-  flex-flow: row wrap;
-  height: 100px;
-  width: 300px;
-  border: 2px dotted rgb(96 139 168);
+h3.actioninitiative {
+  margin-top: 1px;
+  margin-bottom: 5px;
+  <!-- border: 1px dashed blue; -->
 }
 
+span.actioninitiative {
+  margin: auto;
+  text-align: left;
+  width: 100%;
+  padding-left: 0px;
+  <!-- border: 1px dashed red; -->
+}
 </style>
 
 <form>
-  <h2>Actions</h2>
+  <h3 class="actioninitiative">Actions</h3>
   <p>{{localize "actioninitiative.template.combatant.intro" combatantNames=groupedNames}}</p>
 
+  <div class="flexrow flex-group-left">
   {{#each actions}}
-
-  <div class="form-fields">
-    <input class="actioninitiative-actionCheckbox" type="checkbox" name="{{this}}" />
-    <!-- https://ptb.discord.com/channels/170995199584108546/811676497965613117/1098253076089012374 -->
-    <label> {{ localize (concat "actioninitiative.phrases." this) }} </label>
-  </div>
+    <label>
+      <input class="actioninitiative-actionCheckbox" type="checkbox" name="{{this}}" />
+      <!-- https://ptb.discord.com/channels/170995199584108546/811676497965613117/1098253076089012374 -->
+      <span class="actioninitiative"> {{ localize (concat "actioninitiative.phrases." this) }} </span>
+    </label>
 
   {{/each}}
-
-  <div class="form-fields">
-    <input type="checkbox" name="OtherAction.Checkbox" id="OtherAction.Checkbox" />
-    <label> {{ localize "actioninitiative.phrases.OtherAction" }} </label>
-    <input class="actioninitiative-actionTextbox" type="text" name="OtherAction.Text" id="OtherAction.Text" placeholder="{{otherActionDefault}}"/>
   </div>
 
-  <div class="form-fields">
-    <input type="checkbox" name="BonusAction.Checkbox" id="BonusAction.Checkbox" />
-    <label> {{ localize "actioninitiative.phrases.BonusAction" }} </label>
-    <input class="actioninitiative-actionTextbox" type="text" name="BonusAction.Text" id="BonusAction.Text" placeholder="{{bonusActionDefault}}"/>
+  <div class="flexcol flex-group-left">
+    <label>
+      <input type="checkbox" name="OtherAction.Checkbox" id="OtherAction.Checkbox" />
+      <span> {{ localize "actioninitiative.phrases.OtherAction" }} </span>
+      <input class="actioninitiative-actionTextbox" type="text" name="OtherAction.Text" id="OtherAction.Text" placeholder="{{otherActionDefault}}"/>
+    </label>
+
+    <label>
+      <input type="checkbox" name="BonusAction.Checkbox" id="BonusAction.Checkbox" />
+      <span> {{ localize "actioninitiative.phrases.BonusAction" }} </span>
+      <input class="actioninitiative-actionTextbox" type="text" name="BonusAction.Text" id="BonusAction.Text" placeholder="{{bonusActionDefault}}"/>
+    </label>
   </div>
 
   <div style="display:{{ifThen useSpellLevels 'block' 'none'}}" id="actioninitiative-sectionSpellLevel">
     <br>
-    <h2>Spell Level</h2>
-        <fieldset id="actioninitiative-fieldSpellLevel" disabled>
-        <div class="box">
-          {{ radioBoxes "spellLevels" localized.spellLevels checked=defaultSpellLevel }}
-        </div>
-        </fieldset>
+    <h3 class="actioninitiative">Spell Level</h3>
+    <fieldset id="actioninitiative-fieldSpellLevel" disabled>
+      <div class="flexrow">
+      {{ radioBoxes "spellLevels" localized.spellLevels checked=defaultSpellLevel }}
+      </div>
+    </fieldset>
 
   </div>
 
