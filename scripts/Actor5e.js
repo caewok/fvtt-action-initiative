@@ -10,7 +10,7 @@ import { MODULE_ID } from "./const.js";
 import { Settings } from "./settings.js";
 
 export const PATCHES = {};
-PATCHES.BASIC = {};
+PATCHES.DND5E = {};
 
 // ----- NOTE: Overrides ----- //
 
@@ -38,7 +38,7 @@ async function rollInitiativeDialog({ advantageMode, combatantId } = {}) {
   await this.rollInitiative({ createCombatants: true, initiativeOptions: { combatantId } });
 }
 
-PATCHES.BASIC.OVERRIDES = { rollInitiativeDialog };
+PATCHES.DND5E.OVERRIDES = { rollInitiativeDialog };
 
 
 /**
@@ -62,5 +62,5 @@ function getInitiativeRoll(wrapped, options = {}) {
   return Roll.create(formula, rollData);
 }
 
-PATCHES.BASIC.MIXES = { getInitiativeRoll };
+PATCHES.DND5E.MIXES = { getInitiativeRoll };
 

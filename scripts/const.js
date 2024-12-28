@@ -79,7 +79,6 @@ const RANGED_WEAPONS = [
  */
 export function constructConfigObject() {
   const cfg = {
-
     /**
      * Default dice formulas if not set by GM in settings.
      * @type {object}
@@ -87,88 +86,33 @@ export function constructConfigObject() {
     FORMULA_DEFAULTS,
 
     /**
-     * Melee weapon categories. Labels correspond to keys.
-     * @type {Set<string>}
-     */
-    meleeWeapons: new Set(MELEE_WEAPONS),
-
-    /**
-     * Range weapon categories. Labels correspond to keys.
-     * @type {Set<string>}
-     */
-    rangedWeapons: new Set(RANGED_WEAPONS),
-
-    /**
-     * Properties of weapons.
-     * An object with key:name for each. "Name" should be localizable or localized.
-     * @type {object}
-     */
-    weaponProperties: CONFIG.DND5E.weaponProperties,
-
-    /**
-     * Types of weapons.
-     * An object with key:name for each. "Name" should be localizable or localized.
-     * @type {object}
-     */
-    weaponTypes: CONFIG.DND5E.weaponTypes,
-
-    /**
      * Spell levels
      * An object with key:name for each. "Name" should be localizable or localized.
-
-     * @type {object}
+     * @type {object} Each element has {key: localized_name}
      */
-    spellLevels: CONFIG.DND5E.spellLevels,
-
-    /**
-     * In items, where to find the weapon type. (See meleeWeapons and rangedWeapons for types.)
-     * @type {string}
-     */
-    weaponTypeKey: "system.weaponType",
-
-    /**
-     * In items, where to find the weapon properties.
-     * @type {string}
-     */
-    weaponPropertiesKey: "system.properties",
-
-    /**
-     * In items, where to find the weapon damage formula.
-     * The first term of this string may be used as the formula for purposes of initiative,
-     * if the Weapon Damage variant is selected.
-     * @type {string}
-     */
-    weaponDamageKey: "labels.damage",
-
-    /**
-     * Callback to determine if a weapon can be thrown.
-     * Thrown weapons are listed as both melee and ranged.
-     * @type {function}
-     */
-    canThrowWeapon: i => i.system.properties.thr,
+    spellLevels: {},
 
     /**
      * Properties used for grouping combatants when using rollAll and rollNPCs in initiative
      * Based on the actor class.
      * @type {Map<string, string>}
      */
-    filterProperties: new Map(Object.entries({
-      Race: "system.details.race",
-      Type: "system.details.type.value",
-      Walk: "system.attributes.movement.walk",
-      Darkvision: "system.attributes.senses.darkvision"
-    })),
+    filterProperties: new Map(),
   };
 
-  if ( foundry.utils.isNewerVersion(game.system.version, "3") ) {
-    const cfgDnD = CONFIG.DND5E;
-    cfg.weaponTypeKey = "system.type.value";
-    cfg.weaponProperties = {};
-    for ( const key of cfgDnD.validProperties.weapon ) {
-      cfg.weaponProperties[key] = game.i18n.localize(cfgDnD.itemProperties[key].label);
+  switch ( game.system.id ) {
+    case "dnd5e": {
+      cfg.spellLevels = CONFIG.DND5E.spellLevels;
+      cfg.filterProperties = new Map(Object.entries({
+        Race: "system.details.race",
+        Type: "system.details.type.value",
+        Walk: "system.attributes.movement.walk",
+        Darkvision: "system.attributes.senses.darkvision"
+      }));
+    }
+    case "a5e": {
+
     }
   }
   return cfg;
 }
-
-
