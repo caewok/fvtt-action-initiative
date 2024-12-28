@@ -104,10 +104,7 @@ export class ActionSelectionDialog extends foundry.applications.api.DialogV2 {
     return data;
   }
 
-  static onDialogCancel(event, dialog) {
-    console.log("ActionSelectionDialog|onDialogCancel", event, dialog);
-    return null;
-  }
+  static onDialogCancel(event, dialog) { return null; }
 
 
 // ----- NOTE: Helper functions ----- //

@@ -80,10 +80,7 @@ export class WeaponSelectionDialog extends foundry.applications.api.DialogV2 {
     return this.validateSelection(res);
   }
 
-  static onDialogCancel(event, dialog) {
-    console.log("WeaponsSelectionDialog|onDialogCancel", event, dialog);
-    return null;
-  }
+  static onDialogCancel(event, dialog) { return null; }
 
   static validateSelection(data) { return data; }
 

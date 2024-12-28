@@ -55,10 +55,7 @@ export class MultipleCombatantDialog extends foundry.applications.api.DialogV2 {
     return [save];
   }
 
-  static onDialogCancel(event, dialog) {
-    console.log("ActionSelectionDialog|onDialogCancel", event, dialog);
-    return null;
-  }
+  static onDialogCancel(event, dialog) { return null; }
 
   /**
    * Helper to handle the return from ActionSelectionDialog
