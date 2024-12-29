@@ -1,6 +1,5 @@
 /* globals
-FormDataExtended,
-foundry,
+CONFIG,
 game
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
@@ -40,42 +39,12 @@ async function resetAll(wrapped) {
   return wrapped();
 }
 
-/**
- * Wrap Combat.prototype.rollInitiative
- * If limiting to actor id, then use only combatant id for the active tokens of the actor.
- * This means synthetic tokens will be rolled separately.
- */
-async function rollInitiative(wrapped, ids,
-  {formula=null, updateTurn=true, messageOptions={}, combatantId}={}) {
-
-  if ( !combatantId ) return wrapped(ids, { formula, updateTurn, messageOptions });
-
-  // Pull actors from combatants b/c game.actor will not get synthetic actors.
-  const combatant = game.combat.combatants.get(combatantId);
-  if ( !combatant || !combatant.actor ) return wrapped( ids, { formula, updateTurn, messageOptions });
-
-  // Only use the actor's active tokens for combatant ids.
-  // Only if the combatant is already in ids.
-  const tokens = combatant.actor.getActiveTokens();
-  const oldIds = new Set(ids);
-  ids = [];
-  tokens.forEach(t => {
-    if ( !t.inCombat ) return;
-    const combatants = game.combat.getCombatantsByToken(t.id);
-    combatants.forEach(c => {
-       if ( oldIds.has(c.id) ) ids.push(c.id);
-    });
-  });
-
-  return wrapped(ids, { formula, updateTurn, messageOptions });
-}
-
-PATCHES.BASIC.WRAPS = { rollInitiative, resetAll };
+PATCHES.BASIC.WRAPS = { resetAll };
 
 // ----- NOTE: Overrides ---- //
 
 /**
- * Wrap async Combat.prototype.rollAll
+ * Override async Combat.prototype.rollAll
  * @param {object} [options]  Passed to rollInitiative. formula, updateTurn, messageOptions
  */
 async function rollAll(options={}) {
@@ -88,7 +57,7 @@ async function rollAll(options={}) {
 }
 
 /**
- * Wrap async Combat.prototype.rollNPC
+ * Override async Combat.prototype.rollNPC
  * @param {object} [options]  Passed to rollInitiative. formula, updateTurn, messageOptions
  */
 async function rollNPC(options={}) {
@@ -101,7 +70,7 @@ async function rollNPC(options={}) {
 }
 
 /**
- * Wrap Combat.prototype._sortCombatants.
+ * Override Combat.prototype._sortCombatants.
  * Define how the array of Combatants is sorted.
  * As opposed to Foundry default, here the Combatants are initially sorted by
  * initiative bonus. Then by token name. Bonus is checked every sort so that updates can be reflected.
@@ -117,6 +86,41 @@ function _sortCombatants(a, b) {
 
 PATCHES.BASIC.OVERRIDES = { rollAll, rollNPC, _sortCombatants };
 
+// ----- NOTE: Wraps ----- //
+
+/**
+ * Mixed wrap Combat.prototype.rollInitiative
+ * Present 1+ dialogs to get initiative.
+ * If actor is defined, use the actor for the dialog.
+ * Otherwise, get dialog for each combatant if selection not yet made.
+ */
+async function rollInitiative(wrapped, combatantIds, opts = {}) {
+  combatantIds = new Set(combatantIds);
+  if ( opts.actor ) {
+    const iH = opts.actor[MODULE_ID].initiativeHandler;
+    const selections = await iH.initiativeDialogs();
+    if ( !selections ) return;
+    await iH.setInitiativeSelections(selections);
+  } else {
+    for ( const combatantId of combatantIds ) {
+      const c = game.combat.combatants.get(combatantId);
+      if ( !c ) continue;
+      const iH = c[MODULE_ID].initiativeHandler;
+      if ( iH.initiativeSelections ) continue;
+      const selections = await iH.initiativeDialogs();
+      if ( !selections ) {
+        combatantIds.delete(combatantId);
+        continue;
+      }
+      await iH.setInitiativeSelections(selections);
+    }
+  }
+  if ( !combatantIds.size ) return;
+  return wrapped([...combatantIds.values()], opts);
+}
+
+PATCHES.BASIC.MIXES = { rollInitiative };
+
 // ----- NOTE: Helper functions ----- //
 
 /**
@@ -125,23 +129,7 @@ PATCHES.BASIC.OVERRIDES = { rollAll, rollNPC, _sortCombatants };
  * @param {object} _options     Options, unused
  */
 async function setMultipleCombatants(combatantIds, _opts) {
-  const res = await CONFIG[MODULE_ID].CombatantInitiativeHandler.setMultipleCombatants(combatantIds, _opts);
-  if ( res === null ) return; // Dialog canceled.
-
-  for ( const combatantId of res ) {
-    const thisC = game.combat.combatants.get(combatantId);
-    await thisC.actor.rollInitiative({createCombatants: true, initiativeOptions: { combatantId }});
-  }
+  combatantIds = await CONFIG[MODULE_ID].CombatantInitiativeHandler.setMultipleCombatants(combatantIds, _opts);
+  if ( !combatantIds || !combatantIds.size ) return; // Dialog canceled.
+  return game.combat.rollInitiative([...combatantIds]);
 }
-
-/**
- * Helper to construct a new form from html.
- * @param {html} html
- * @returns {object}
- */
-function onDialogSubmit(html) {
-  const form = html[0].querySelector("form");
-  const data = new FormDataExtended(form);
-  return data.object;
-}
-

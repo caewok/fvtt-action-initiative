@@ -1,6 +1,5 @@
 /* globals
-CONFIG,
-Roll
+CONFIG
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
@@ -13,30 +12,40 @@ PATCHES.BASIC = {};
 // ----- NOTE: Overrides ----- //
 
 /**
- * Override Combatant.prototype.getInitiativeRoll.
- * DND5e patches this to point to documents.combat.getInitiativeRoll,
- * which calls actor.getInitiativeRoll.
- * In dnd5e v3, this is not used.
- */
-function getInitiativeRoll(formula) {
-  // This just copied from v11 Combatant.prototype.getInitiativeRoll.
-  formula = formula || this._getInitiativeFormula();
-  const rollData = this.actor?.getRollData() || {};
-  return Roll.create(formula, rollData);
-}
-
-/**
  * Override Combatant.prototype._getInitiativeFormula method.
+ * If no selections, present dialog to retrieve selections for combatant.
  * Construct the initiative formula for a combatant based on user-selected actions.
  * @param {object} [lastSelections]   Optional returned object from ActionSelectionDialog.
  * @returns {string} Dice formula
  */
-function _getInitiativeFormula(lastSelections) {
-  return this[MODULE_ID].initiativeHandler.constructInitiativeFormula(lastSelections);
+function _getInitiativeFormula() {
+  const iH = this[MODULE_ID].initiativeHandler;
+  return iH.constructInitiativeFormula();
 }
 
+PATCHES.BASIC.OVERRIDES = { _getInitiativeFormula };
 
-PATCHES.BASIC.OVERRIDES = { getInitiativeRoll, _getInitiativeFormula };
+// ----- NOTE: Wraps ----- //
+
+/**
+ * Wrap Combatant.prototype.rollInitiative
+ * @param {string} [formula]      A dice formula which overrides the default for this Combatant.
+ * @returns {Promise<Combatant>}  The updated Combatant.
+ */
+async function rollInitiative(wrapped, formula) {
+  if ( !formula ) {
+    const iH = this[MODULE_ID].initiativeHandler;
+    if ( !iH.initiativeSelections ) {
+      // Present the initiative dialog for this combatant and store the result.
+      const selections = await iH.initiativeDialogs();
+      await iH.setInitiativeSelections(selections);
+      // super.rollInitiative should call _getInitiativeFormula to calculate the formula.
+    }
+  }
+  return wrapped(formula);
+}
+
+PATCHES.BASIC.WRAPS = { rollInitiative };
 
 // ----- NOTE: Getters ----- //
 

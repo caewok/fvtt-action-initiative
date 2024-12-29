@@ -86,9 +86,10 @@ export class ActorInitiativeHandler {
    * Display the initiative dialog(s) for this combatant.
    * Assumes a single combatant.
    */
-  async initiativeDialogs(opts) {
+  async initiativeDialogs(opts = {}) {
     opts.combatantNames ??= this.getCombatantNames();
     const selections = await this._getActionSelections(opts);
+    if ( !selections ) return null;
     if ( Settings.get(Settings.KEYS.VARIANTS.KEY) !== Settings.KEYS.VARIANTS.TYPES.BASIC ) {
       const weaponSelections = await this._getWeaponSelections(selections, opts);
       selections.weapons = weaponSelections;
@@ -96,7 +97,7 @@ export class ActorInitiativeHandler {
     return selections;
   }
 
-  async _getActionSelections(opts) {
+  async _getActionSelections(opts = {}) {
     opts.combatantNames ??= this.getCombatantNames();
     return await this.actionSelectionDialog(opts);
   }

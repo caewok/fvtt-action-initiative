@@ -127,7 +127,7 @@ export class CombatantInitiativeHandler {
 
   /**
    * Add to the combatant's initiative.
-   * Add specific selections to combatant's initiative by presenting the action dialog to the user.
+   * Add specific selections to combatant's initiative.
    * Rolls for those actions and add those to existing initiative and constructs chat message.
    * @param {object} selections
    */
@@ -135,13 +135,13 @@ export class CombatantInitiativeHandler {
     const combatant = this.combatant;
 
     // Store the new selections along with prior selections.
-    const combinedSelections = this.getActionInitiativeSelections();
+    const combinedSelections = this.initiativeSelections;
     for ( const [key, value] of Object.entries(selections) ) combinedSelections[key] ||= value;
-    await this.setActionInitiativeSelections(combinedSelections);
+    await this.setInitiativeSelections(combinedSelections);
 
     // Determine additional dice to roll.
-    const formula = combatant._getInitiativeFormula(selections);
-    const roll = combatant.getInitiativeRoll(formula);
+    // const formula = combatant._getInitiativeFormula(selections);
+    const roll = combatant.getInitiativeRoll();
     await roll.evaluate();
     await combatant.update({initiative: roll.total + (combatant.initiative ?? 0)});
 
@@ -152,7 +152,7 @@ export class CombatantInitiativeHandler {
         token: combatant.token,
         alias: combatant.name
       }),
-      flavor: `Added to initiative for ${this.name}.`,
+      flavor: `Added to initiative for ${combatant.name}.`,
       flags: {"core.initiativeRoll": true}
     });
     const chatData = await roll.toMessage(messageData, {create: false});

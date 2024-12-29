@@ -1,5 +1,4 @@
 /* globals
-CONFIG,
 Roll
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
@@ -46,21 +45,23 @@ PATCHES.DND5E.OVERRIDES = { rollInitiativeDialog };
  * Construct the initiative formula for the combatant.
  * If combatant is not present, fall back on original.
  */
-function getInitiativeRoll(wrapped, options = {}) {
-  let c = this.token?.object?.combatant;
-  if ( !c ) {
-    // Hunt for tokens, use the first one that has a combatant.
-    for ( const t of this.getActiveTokens() ) {
-      c = t.object?.combatant;
-      if ( c ) break;
-    }
-  }
-  if ( !c ) return wrapped(options);
+// function getInitiativeRoll(wrapped, options = {}) {
+//
+//
+//   let c = this.token?.object?.combatant;
+//   if ( !c ) {
+//     // Hunt for tokens, use the first one that has a combatant.
+//     for ( const t of this.getActiveTokens() ) {
+//       c = t.object?.combatant;
+//       if ( c ) break;
+//     }
+//   }
+//   if ( !c ) return wrapped(options);
+//
+//   const formula = c._getInitiativeFormula();
+//   const rollData = this.getRollData();
+//   return Roll.create(formula, rollData);
+// }
 
-  const formula = c._getInitiativeFormula();
-  const rollData = this.getRollData();
-  return Roll.create(formula, rollData);
-}
-
-PATCHES.DND5E.MIXES = { getInitiativeRoll };
+// PATCHES.DND5E.MIXES = { getInitiativeRoll };
 
