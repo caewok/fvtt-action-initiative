@@ -8,7 +8,7 @@ game
 
 // Patches for the Combat class
 
-import { MODULE_ID } from "./const.js";
+import { MODULE_ID, FLAGS } from "./const.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
@@ -26,6 +26,19 @@ async function combatRoundHook(combat, _updateData, opts) {
 PATCHES.BASIC.HOOKS = { combatRound: combatRoundHook };
 
 // ----- NOTE: Wraps ----- //
+
+/**
+ * Wrap Combat.prototype.resetAll
+ * If resetting, wipe the initiative selections.
+ * @returns {Promise<Combat>}
+ */
+async function resetAll(wrapped) {
+  for ( const c of this.combatants ) {
+    c.updateSource({ [`flags.${MODULE_ID}.-=${FLAGS.COMBATANT.INITIATIVE_SELECTIONS}`]: null })
+  }
+  // All combatants are updated by resetAll.
+  return wrapped();
+}
 
 /**
  * Wrap Combat.prototype.rollInitiative
@@ -57,7 +70,7 @@ async function rollInitiative(wrapped, ids,
   return wrapped(ids, { formula, updateTurn, messageOptions });
 }
 
-PATCHES.BASIC.WRAPS = { rollInitiative };
+PATCHES.BASIC.WRAPS = { rollInitiative, resetAll };
 
 // ----- NOTE: Overrides ---- //
 

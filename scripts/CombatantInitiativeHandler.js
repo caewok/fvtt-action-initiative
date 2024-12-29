@@ -88,8 +88,15 @@ export class CombatantInitiativeHandler {
    * @param {object} selections
    */
   async setInitiativeSelections(selections) {
-    await this.combatant.unsetFlag(MODULE_ID, FLAGS.COMBATANT.INITIATIVE_SELECTIONS);
+    await this.resetInitiativeSelections();
     return this.combatant.setFlag(MODULE_ID, FLAGS.COMBATANT.INITIATIVE_SELECTIONS, selections);
+  }
+
+  /**
+   * Clear the user action choices.
+   */
+  async resetInitiativeSelections() {
+    await this.combatant.unsetFlag(MODULE_ID, FLAGS.COMBATANT.INITIATIVE_SELECTIONS);
   }
 
   /* ----- NOTE: Primary methods ----- */
@@ -165,7 +172,12 @@ export class CombatantInitiativeHandler {
   /**
    * Reset the combatant's initiative.
    */
-  async resetInitiative() { await this.combatant.update({ initiative: null }); }
+  async resetInitiative() {
+    await this.combatant.update({
+      initiative: null,
+      [`flags.${MODULE_ID}.-=${FLAGS.COMBATANT.INITIATIVE_SELECTIONS}`]: null
+    });
+  }
 
   /**
    * Construct text describing what the user chose for the combatant actions.
