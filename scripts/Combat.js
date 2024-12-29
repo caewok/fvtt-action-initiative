@@ -8,6 +8,7 @@ game
 // Patches for the Combat class
 
 import { MODULE_ID, FLAGS } from "./const.js";
+import { Settings } from "./settings.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
@@ -93,28 +94,43 @@ PATCHES.BASIC.OVERRIDES = { rollAll, rollNPC, _sortCombatants };
  * Present 1+ dialogs to get initiative.
  * If actor is defined, use the actor for the dialog.
  * Otherwise, get dialog for each combatant if selection not yet made.
+ * @param {string[]} combatantIds
+ * @param {object} [opts]
  */
 async function rollInitiative(wrapped, combatantIds, opts = {}) {
   combatantIds = new Set(combatantIds);
+  if ( combatantIds.size === 1 && Settings.get(Settings.KEYS.GROUP_ACTORS) ) {
+    // Locate every combatant with the same actor id.
+    const id = combatantIds.first()
+    const combatant = game.combat.combatants.get(id);
+    if ( combatant.actor.isToken ) {
+      const combatants = game.combat.combatants.filter(c => c.actor.id === combatant.actor.id);
+      combatants.forEach(c => combatantIds.add(c.id));
+      const res = await CONFIG[MODULE_ID].CombatantInitiativeHandler._setActionsForMultipleCombatants(combatantIds);
+      if ( !res ) return;
+    }
+  }
+
   if ( opts.actor ) {
     const iH = opts.actor[MODULE_ID].initiativeHandler;
     const selections = await iH.initiativeDialogs();
     if ( !selections ) return;
     await iH.setInitiativeSelections(selections);
-  } else {
-    for ( const combatantId of combatantIds ) {
-      const c = game.combat.combatants.get(combatantId);
-      if ( !c ) continue;
-      const iH = c[MODULE_ID].initiativeHandler;
-      if ( iH.initiativeSelections ) continue;
-      const selections = await iH.initiativeDialogs();
-      if ( !selections ) {
-        combatantIds.delete(combatantId);
-        continue;
-      }
-      await iH.setInitiativeSelections(selections);
-    }
   }
+
+  for ( const combatantId of combatantIds ) {
+    const c = game.combat.combatants.get(combatantId);
+    if ( !c ) continue;
+    const iH = c[MODULE_ID].initiativeHandler;
+    if ( iH.initiativeSelections ) continue;
+    const selections = await iH.initiativeDialogs();
+    if ( !selections ) {
+      combatantIds.delete(combatantId);
+      continue;
+    }
+    await iH.setInitiativeSelections(selections);
+  }
+
   if ( !combatantIds.size ) return;
   return wrapped([...combatantIds.values()], opts);
 }

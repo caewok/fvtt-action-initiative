@@ -28,6 +28,17 @@ export class CombatantInitiativeHandler {
 
   /* ----- NOTE: Static quasi-getters and setters ----- */
 
+  /**
+   * Retrieve combatant names for the actor.
+   * @param {string[]|Set<string>}
+   * @returns {string[]}
+   */
+  static getCombatantNames(combatantIds) {
+    if ( Array.isArray(combatantIds) ) combatantIds = new Set(combatantIds);
+    return game.combat.combatants
+      .filter(c => combatantIds.has(c.id))
+      .map(c => c.name);
+  }
 
   /* ----- NOTE: Static methods ----- */
 
@@ -35,8 +46,9 @@ export class CombatantInitiativeHandler {
    * Present GM with options to set actions for multiple combatants.
    * @param {string[]} combatantIds     Combatants to include
    * @param {object} _options           Options, unused
+   * @returns {Set<combatantIds>|null}
    */
-  static async setMultipleCombatants(combatantIds, _opts) {
+  static async setMultipleCombatants(combatantIds, opts) {
     if ( !combatantIds.length ) return;
     const res = await CONFIG[MODULE_ID].MultipleCombatantDialog.create({ combatantIds })
     if ( !res ) return null;
@@ -47,22 +59,35 @@ export class CombatantInitiativeHandler {
       .map(([key, _value]) => key));
     if ( !combatantIds.size ) return null;
 
+    return this._setActionsForMultipleCombatants(combatantIds, opts);
+  }
+
+  /**
+   * Present GM with action and weapons dialogs for a set of combatant ids.
+   * @param {string[]} combatantIds     Combatants to include
+   * @param {object} _options           Options, unused
+   * @returns {Set<combatantIds>|null}
+   */
+  static async _setActionsForMultipleCombatants(combatantIds, _opts) {
     // Present DM with action dialog
     // Use first combatant for calling the dialog(s).
     const firstCombatant = game.combat.combatants.get(combatantIds.first());
-    const selectedActions = await firstCombatant[MODULE_ID].initiativeHandler.actionSelectionDialog({ combatantIds });
+    const combatantNames = this.getCombatantNames(combatantIds);
+    const selectedActions = await firstCombatant[MODULE_ID].initiativeHandler.actionSelectionDialog({ combatantIds, combatantNames });
+    if ( !selectedActions ) return null;
 
     // For weapons, need to present multiple dialogs. One per actor.
     const promises = [];
     const actors = [...game.combat.combatants].filter(c => combatantIds.has(c.id)).map(c => c.actor);
     for ( const actor of actors ) {
       const iH = actor[MODULE_ID].initiativeHandler;
-      const weaponSelections = await iH._getWeaponSelections(selectedActions);
+      const weaponSelections = await iH._getWeaponSelections(selectedActions, { combatantNames });
       promises.push(iH.setInitiativeSelections({ ...selectedActions, weapons: weaponSelections }));
     }
     await Promise.allSettled(promises);
     return combatantIds;
   }
+
 
   /* ----- NOTE: Instantiation ----- */
 

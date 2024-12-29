@@ -39,10 +39,7 @@ export class ActorInitiativeHandler {
       const name = game.combat.combatants.get(combatantId).name;
       return name ? [name] : [];
     }
-
-    // Don't repeat the same combatant names. (e.g., 4 Bandits)
-    const nameSet = new Set(this.combatants.map(c => c.name));
-    return [...nameSet.values()];
+    return game.combat.combatants.map(c => c.name);
   }
 
   /**
