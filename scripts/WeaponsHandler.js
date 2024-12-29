@@ -108,9 +108,9 @@ export class WeaponsHandler {
   /**
    * Get the weapon's types.
    * @param {Item} weapon
-   * @returns {Set<string>} The weaponType key(s)
+   * @returns {string} The weapon type
    */
-  static weaponTypes(weapon) { return new Set(foundry.utils.getProperty(weapon, this.weaponTypesKey)); }
+  static weaponType(weapon) { return foundry.utils.getProperty(weapon, this.weaponTypeKey); }
 
   /**
    * Get the weapon's damage formula.
@@ -162,9 +162,8 @@ export class WeaponsHandler {
    * @returns {string|"0"}
    */
   static weaponTypeFormula(weapon) {
-    const { weaponPropertiesKey, weaponTypeKey } = this;
-    const type = foundry.utils.getProperty(weapon, weaponTypeKey);
-    const props = foundry.utils.getProperty(weapon, weaponPropertiesKey);
+    const type = this.weaponType(weapon);
+    const props = this.weaponProperties(weapon);
 
     // Base is set by the weapon type.
     const base = getDiceValueForProperty(`WEAPON_TYPES.${type}`);
@@ -240,7 +239,10 @@ export class WeaponsHandler {
 
   /** @type {Set<Item>} */
   get weapons() {
-    return new Set([...this.actor.items.values()].filter(i => this.constructor.isWeapon(i)));
+    const weapons = new Set(this.actor.items.filter(i => this.constructor.isWeapon(i)));
+    const equipped = weapons.filter(w => this.isEquipped(w));
+    if ( equipped.size ) return equipped;
+    return weapons;
   }
 
   /* ----- NOTE: Primary methods ----- */
@@ -261,6 +263,13 @@ export class WeaponsHandler {
   }
 
   /* ----- NOTE: Helper methods -----*/
+
+  /**
+   * Is this weapon "equipped" or otherwise a favorite such that it should be used before "unequipped"?
+   * @param {Item} weapon
+   * @returns {boolean}
+   */
+  isEquipped(_weapon) { return false; }
 
   /**
    * Helper to filter weapons based on user selections.
@@ -356,18 +365,6 @@ export class WeaponsHandlerDND5e extends WeaponsHandler {
       || !this.isRanged(weapon);
   }
 
-
-  /* ----- NOTE: Getters ----- */
-
-  /** @type {Set<Item>} */
-  get weapons() {
-    // Use equipped-only weapons if any are equipped.
-    const weapons = new Set([...this.actor.items.values()].filter(i => this.constructor.isWeapon(i)));
-    const equipped = weapons.filter(w => w.system.equipped);
-    if ( equipped.size ) return equipped;
-    return weapons;
-  }
-
   /* ----- NOTE: Primary methods ----- */
 
   /**
@@ -388,4 +385,161 @@ export class WeaponsHandlerDND5e extends WeaponsHandler {
     }
     return text;
   }
+
+  /* ----- NOTE: Helper methods -----*/
+
+  /**
+   * Is this weapon "equipped" or otherwise a favorite such that it should be used before "unequipped"?
+   * @param {Item} weapon
+   * @returns {boolean}
+   */
+  isEquipped(weapon) { return weapon.system.equipped; }
+
+}
+
+export class WeaponsHandlerA5e extends WeaponsHandler {
+  /**
+   * Helper to set up any data that is not defined at load. E.g., CONFIG.DND5E.
+   * Called on init hook.
+   */
+  static initialize() {
+    for ( const [key, label] of Object.entries(CONFIG.A5E.weaponCategories) ) this.weaponTypesMap.set(key, label);
+    for ( const [key, label] of Object.entries(CONFIG.A5E.weaponProperties) ) this.weaponPropertiesMap.set(key, label);
+  }
+
+  /* ----- NOTE: Static properties ----- */
+
+  /**
+   * In items, where to find the weapon type.
+   * @type {string}
+   */
+  static weaponTypeKey = null;
+
+  /**
+   * In items, where to find the weapon properties.
+   * @type {string}
+   */
+  static weaponPropertiesKey = "system.weaponProperties";
+
+  /**
+   * In items, where to find the weapon damage formula.
+   * The first term of this string may be used as the formula for purposes of initiative,
+   * if the Weapon Damage variant is selected.
+   * @type {string}
+   */
+  static weaponDamageKey = null;
+
+  /* ----- NOTE: Static filter functions ----- */
+
+  /**
+   * Get the weapon's properties.
+   * @param {Item} weapon
+   * @returns {Set<string>} The weaponProperties key(s)
+   */
+  static weaponProperties(weapon) {
+    return new Set(foundry.utils.getProperty(weapon, this.weaponPropertiesKey)); }
+
+  /**
+   * Get the weapon's types.
+   * @param {Item} weapon
+   * @returns {string} The weapon type.
+   */
+  static weaponType(weapon) {
+    // It appears the weapon type is only in the list by weapon name.
+    for ( const key of CONFIG.A5E.weapons ) {
+      const names = new Set(Object.values(CONFIG.A5E.weapons[key]));
+      if ( names.has(weapon.name) ) return key;
+    }
+    return "other";
+  }
+
+  /**
+   * Is this item a weapon? '
+   * It can be assumed it is a weapon, defined by the weapons getter.
+   * @param {Item} weapon
+   * @returns {boolean}
+   */
+  static isWeapon(weapon) {  return weapon.type === "object" && weapon.system.objectType === "weapon"; }
+
+  /**
+   * Is this item a ranged weapon? '
+   * It can be assumed it is a weapon, defined by `isWeapon`.
+   * @param {Item} weapon
+   * @returns {boolean}
+   */
+  static isRanged(weapon) {
+    if ( weapon.system.weaponProperties.some(elem => elem === "range" || elem === "thrown") ) return true;
+
+    // If one or more actions define a range, then true
+    for ( const action of weapon.actions.values() ) {
+      if ( !foundry.utils.isEmpty(action.ranges) ) return true;
+    }
+    return false;
+  }
+
+  /**
+   * Is this item a melee weapon?
+   * It can be assumed it is a weapon, defined by `isWeapon`.
+   * @param {Item} weapon
+   * @returns {boolean}
+   */
+  static isMelee(weapon) {
+    return !this.isRanged(weapon);
+  }
+
+  /**
+   * Get the weapon's damage formula.
+   * @param {Item} weapon
+   * @returns {string} Can return "" if the formula is unknown.
+   */
+  static weaponDamageFormula(weapon) {
+    // For a5e, damage is contained in the actions for the weapon.
+    // Use the default action.
+    const action = weapon.actions.default;
+
+    // Use the first default damage roll
+    for ( const roll of Object.values(action.rolls) ) {
+      if ( !(roll === "damage" || roll.default) ) continue;
+      if ( roll.formula ) return roll.formula;
+    }
+
+    const { MELEE, RANGED } = this.ATTACK_TYPES;
+    const attackType = this.isMelee(weapon) ? MELEE : RANGED;
+    return getDiceValueForProperty(`BASIC.${attackType === MELEE ? "MeleeAttack" : "RangedAttack"}`);
+  }
+
+  /* ----- NOTE: Getters ----- */
+
+
+  /* ----- NOTE: Primary methods ----- */
+
+  /**
+   * Summarize the weapon choices for chat display.
+   * @param {object}  selections    Selections provided by the user initiative form.
+   * @returns {string}
+   */
+  summarizeWeaponsChoices(selections) {
+    const { MELEE, RANGED } = this.constructor.ATTACK_TYPES;
+    let text = "";
+    if ( selections.actions.MeleeAttack ) {
+      const weaponNames = this.filterWeaponsChoices(selections, MELEE).map(w => w.name ?? "");
+      text += `<br><b>${game.i18n.localize("A5E.AttackTypeMeleeWeapon")}:</b> ${weaponNames.join(", ")}`;
+    }
+    if ( selections.actions.RangedAttack ) {
+      const weaponNames = this.filterWeaponsChoices(selections, RANGED).map(w => w.name ?? "");
+      text += `<br><b>${game.i18n.localize("A5E.AttackTypeRangedWeapon")}:</b> ${weaponNames.join(", ")}`;
+    }
+    return text;
+  }
+
+
+  /* ----- NOTE: Helper methods -----*/
+
+  /**
+   * Is this weapon "equipped" or otherwise a favorite such that it should be used before "unequipped"?
+   * @param {Item} weapon
+   * @returns {boolean}
+   */
+  isEquipped(weapon) { return weapon.system.equippedState === CONFIG.A5E.EQUIPPED_STATES.EQUIPPED; }
+
 }
