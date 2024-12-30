@@ -302,12 +302,12 @@ export class ActionSelectionDialogDND5e extends ActionSelectionDialog {
  * @returns {string} Combined list
  */
 function groupNames(names) {
-  if ( !names || !names.length ) return "";
+  if ( !names || !(names.length || names.size) ) return "";
   const nameMap = new Map();
   for ( const name of names ) nameMap.set(name, (nameMap.get(name) || 0) + 1);
   let groupedNames = [];
   for ( const [name, number] of nameMap.entries() ) {
-    const paren = number > 1 ? `(x${number})` : "";
+    const paren = number > 1 ? ` (x${number})` : "";
     groupedNames.push(`${name}${paren}`);
   }
   return groupedNames.join(", ");

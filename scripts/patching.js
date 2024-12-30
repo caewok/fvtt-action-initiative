@@ -10,7 +10,6 @@ import { PATCHES as PATCHES_Actor } from "./Actor.js";
 import { PATCHES as PATCHES_Actor5e } from "./Actor5e.js";
 import { PATCHES as PATCHES_Combat } from "./Combat.js";
 import { PATCHES as PATCHES_Combatant } from "./Combatant.js";
-import { PATCHES as PATCHES_Combatant5e } from "./Combatant5e.js";
 import { PATCHES as PATCHES_CombatTrackerConfig } from "./CombatTrackerConfig.js";
 import { PATCHES as PATCHES_ClientSettings } from "./ModuleSettingsAbstract.js";
 
@@ -20,7 +19,6 @@ const PATCHES = {
   ClientSettings: PATCHES_ClientSettings,
   Combat: PATCHES_Combat,
   Combatant: PATCHES_Combatant,
-  "dnd5e.documents.Combatant5e": PATCHES_Combatant5e,
   CombatTrackerConfig: PATCHES_CombatTrackerConfig
 };
 

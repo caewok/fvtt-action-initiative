@@ -12,7 +12,7 @@ import { log } from "./util.js";
 
 // Patching
 import { PATCHER, initializePatching } from "./patching.js";
-import { CombatTrackerActionInitiative, CombatTrackerActionInitiativeDND5e } from "./CombatTrackerActionInitiative.js";
+import { CombatTrackerActionInitiative } from "./CombatTrackerActionInitiative.js";
 
 // Settings
 import {
@@ -80,7 +80,6 @@ Hooks.once("init", () => {
       CONFIG[MODULE_ID].WeaponsHandler = WeaponsHandlerDND5e;
       CONFIG[MODULE_ID].CombatantInitiativeHandler = CombatantInitiativeHandlerDND5e;
       CONFIG[MODULE_ID].ActionSelectionDialog = ActionSelectionDialogDND5e;
-      CONFIG.ui.combat = CombatTrackerActionInitiativeDND5e;
       break;
     case "a5e":
       CONFIG[MODULE_ID].WeaponsHandler = WeaponsHandlerA5e;
@@ -171,23 +170,27 @@ function renderCombatTrackerHook(app, html, data) {
 /* Foundry default initiative flow
 
 From combat tracker:
-  - CombatTracker#_onCombatantControl <-- If grouping enabled, call actor#rollInitiative
-  - Combat#rollInitiative
+  - async CombatTracker#_onCombatantControl <-- If grouped, pass multiple ids?
+  - async Combat#rollInitiative <-- Do init dialog if no selections yet
   - Combatant#getInitiativeRoll
-  - Combatant#_getInitiativeFormula  <-- Do init dialog if no selections yet
+  - Combatant#_getInitiativeFormula  <-- Formula from selection.
 
 From actor call:
-  - Actor#rollInitiative  <-- Do init dialog
+  - async Actor#rollInitiative  <-- Pass actor to Combat#rollInitiative
   - For each combatant:
-    - Combat#rollInitiative
+    - async Combat#rollInitiative <-- Tests for init dialog but already run above
     - Combatant#getInitiativeRoll
-    - Combatant#_getInitiativeFormula  <-- Do init dialog if no selections yet
+    - Combatant#_getInitiativeFormula  <-- Formula from selection.
 
+?? call: (Not called in base foundry)
+  - async Combatant#rollInitiative(formula) <-- Do init dialog if no selections yet
+  - Combatant#getInitiativeRoll(formula)
+  - Combatant#_getInitiativeFormula <-- Formula from selection.
 
-CombatTracker#_onCombatantControl
+async CombatTracker#_onCombatantControl
   --> If "rollInitiative" button clicked: combat.rollInitiative([c.id])
 
-Combat#rollInitiative(ids, {formula=null, updateTurn=true, messageOptions={}}={})
+async Combat#rollInitiative(ids, {formula=null, updateTurn=true, messageOptions={}}={})
   For each id:
   --> combatant.getInitiativeRoll(formula), then evaluates the roll
   --> Updates combatants
@@ -197,14 +200,14 @@ Combatant#getInitiativeRoll(formula)
   --> Use existing or call this._getInitiativeFormula
   --> Create the roll
 
-Combatant#rollInitiative(formula)
+async Combatant#rollInitiative(formula)
   --> Create roll by calling this.getInitiativeRoll(formula).
   --> Evaluate roll and update.
 
 Combatant#_getInitiativeFormula
   --> Get default dice formula to roll initiative
 
-Actor#rollInitiative({createCombatants=false, rerollInitiative=false, initiativeOptions={}}={})
+async Actor#rollInitiative({createCombatants=false, rerollInitiative=false, initiativeOptions={}}={})
   Roll initiative for all Combatants in the currently active Combat encounter which are associated with this Actor.
   If viewing a full Actor document, all Tokens which map to that actor will be targeted for initiative rolls.
   If viewing a synthetic Token actor, only that particular Token will be targeted for an initiative roll.
@@ -217,7 +220,7 @@ Actor#rollInitiative({createCombatants=false, rerollInitiative=false, initiative
 
 From combat tracker:
   - CombatTracker5e#_onCombatantControl
-  - Actor#rollInitiativeDialog <-- Do init dialog
+  - Actor5e#rollInitiativeDialog <-- Do init dialog
   - Actor5e#rollInitiative
   - Actor5e#getInitiativeRoll
   - Actor#rollInitiative
@@ -229,10 +232,10 @@ From combat tracker:
 
 From actor (character sheet):
   - _onSheetAction
-  - Actor#rollInitiativeDialog <-- Do init dialog
+  - Actor5e#rollInitiativeDialog <-- Do init dialog
   - Actor5e#rollInitiative
   - Actor5e#getInitiativeRoll
-  - Actor#rollInitiative
+  - Actor5e#rollInitiative
     - For each combatant:
       - Combat#rollInitiative
       - Combatant#getInitiativeRoll
@@ -241,23 +244,23 @@ From actor (character sheet):
 CombatTracker5e#_onCombatantControl
   - If "rollInitiative" button clicked: combatant.actor.rollInitiativeDialog()
 
-Actor#rollInitiativeDialog(rollOptions={})
+Actor5e#rollInitiativeDialog(rollOptions={})
   Roll initiative for this Actor with a dialog that provides an opportunity to elect advantage or other bonuses.
   --> Display dialog
   --> Call this.rollInitiative({ createCombatants: true })
 
-Actor#rollInitiative(options={}, rollOptions={})
+Actor5e#rollInitiative(options={}, rollOptions={})
   --> Call this.getInitiativeRoll(rollOptions)
   --> Hooks.call("dnd5e.preRollInitiative"
   --> super.rollInitiative(options);
   --> Get combatants for the actor
   --> Hooks.callAll("dnd5e.rollInitiative"
 
-Actor#getInitiativeRoll(options={})
+Actor5e#getInitiativeRoll(options={})
   Get an un-evaluated D20Roll instance used to roll initiative for this Actor.
   --> Use either cached initiative roll or call this.getInitiativeRollConfig(options);
 
-Actor#getInitiativeRollConfig(options={})
+Actor5e#getInitiativeRollConfig(options={})
   Get an un-evaluated D20Roll instance used to roll initiative for this Actor.
   --> Constructs parts of the roll
   --> Hooks.callAll("dnd5e.preConfigureInitiative", this, rollConfig);

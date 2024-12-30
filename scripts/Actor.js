@@ -26,3 +26,17 @@ function actioninitiative() {
 }
 
 PATCHES.BASIC.GETTERS = { actioninitiative };
+
+// ----- NOTE: Wraps ----- //
+
+/**
+ * Wrap Actor.prototype.rollInitiative
+ * To avoid copying the whole thing, just pass through the actor in initiativeOptions
+ * and handle rolling in Combat#rollInitiative.
+ */
+async function rollInitiative(wrapped, {createCombatants=false, rerollInitiative=false, initiativeOptions={}}={}) {
+  initiativeOptions.actor = this;
+  return wrapped({ createCombatants, rerollInitiative, initiativeOptions });
+}
+
+PATCHES.BASIC.WRAPS = { rollInitiative };
