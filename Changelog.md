@@ -1,3 +1,23 @@
+## 0.3.0
+Switch to Foundry v12 DialogV2.
+Refactor to use helper classes to handle initiative for combatants, actors, and to handle weapon categorization for actors. Most properties that were standalone in `CONFIG.actioninitiative` are now in classes in `CONFIG.actioninitiative`
+- `ActorInitiativeHandler`: Instantiated at `actor.actioninitiative.initiativeHandler`.
+- `WeaponsHandler`: Instantiated at `actor.actioninitiative.WeaponsHandler`.
+- `CombatantInitiativeHandler`: Instantiated at `combatant.actioninitiative.initiativeHandler`.
+
+Similarly, dialog classes are now stored at `CONFIG.actioninitiative`:
+- `ActionSelectionDialog`: Actions for 1+ combatants.
+- `WeaponSelectionDialog`: Weapon selections for 1+ combatants.
+- `MultipleCombatantDialog`: Filters to select 1+ combatants.
+
+Each of these classes can be subclassed for use with different systems. See A5E and DND5E subclasses set in `module.js`.
+
+In the initiative dialogs, a separate weapon selection dialog is presented after action selection, only as needed. If the actor has equipped weapons, only those weapons will be considered. Weapon selection will not be presented if the actor has 0 or 1 weapons for melee/ranged, respectively.
+
+Removed some unnecessary patches for dnd5e and simplified the initiative workflow.
+Added Level Up (a5e) compatibility. Closes #9.
+Refactoring address #12, #10.
+
 ## 0.2.0
 Foundry v12 combatibility. Address warnings re deprecated utility method calls. Address change from `getCombatant` to `getCombatants`. Requires v12, because of the deprecated methods.
 
