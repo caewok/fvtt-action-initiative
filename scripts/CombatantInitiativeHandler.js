@@ -12,7 +12,7 @@ Roll
 "use strict";
 
 import { MODULE_ID, FLAGS } from "./const.js";
-import { Settings } from "./settings.js";
+import { Settings, getDiceValueForProperty } from "./settings.js";
 
 /**
  * Class to handle combatant initiative.
@@ -86,8 +86,9 @@ export class CombatantInitiativeHandler {
       if ( !(actor instanceof Actor) ) actor = game.actors.get(actor);
       const iH = actor[MODULE_ID].initiativeHandler;
       const combatantNames = [...combatants].map(c => c.name);
+      const combatantIds = [...combatants].map(c => c.id);
       const weaponSelections = await iH._getWeaponSelections(selectedActions, { combatantNames });
-      promises.push(iH.setInitiativeSelections({ ...selectedActions, weapons: weaponSelections }));
+      promises.push(iH.setInitiativeSelections({ ...selectedActions, weapons: weaponSelections, combatantIds }));
     }
     await Promise.allSettled(promises);
     return combatantIds;
@@ -259,10 +260,12 @@ export class CombatantInitiativeHandler {
       let label = `${game.i18n.localize(`${MODULE_ID}.phrases.${key}`)}`;
       switch ( key ) {
         case "BonusAction":
-        case "OtherAction":
+        case "OtherAction": {
           if ( !selectedActions[key].Checkbox ) continue selectionLoop;
-          label += `(${selectedActions[key].Text})`
+          const defaultKey = `BASIC.${key}`;
+          label += `(${selectedActions[key].Text || getDiceValueForProperty(defaultKey)})`
           break;
+        }
 
         case "CastSpell":
           if ( Settings.get(Settings.KEYS.SPELL_LEVELS) ) spellLevel = CONFIG[MODULE_ID].ActorInitiativeHandler.chosenSpellLevel(selections);
