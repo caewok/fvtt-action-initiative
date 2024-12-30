@@ -261,7 +261,7 @@ export class CombatantInitiativeHandler {
         case "BonusAction":
         case "OtherAction":
           if ( !selectedActions[key].Checkbox ) continue selectionLoop;
-          label += `(${selections[key].Text})`
+          label += `(${selectedActions[key].Text})`
           break;
 
         case "CastSpell":

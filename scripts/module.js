@@ -24,7 +24,7 @@ import { WeaponsHandler, WeaponsHandlerDND5e, WeaponsHandlerA5e } from "./Weapon
 import { CombatantInitiativeHandler, CombatantInitiativeHandlerDND5e } from "./CombatantInitiativeHandler.js";
 import { ActionSelectionDialog, ActionSelectionDialogDND5e } from "./ActionSelectionDialog.js";
 import { WeaponSelectionDialog } from "./WeaponSelectionDialog.js";
-import { ActorInitiativeHandler } from "./ActorInitiativeHandler.js";
+import { ActorInitiativeHandler, ActorInitiativeHandlerDND5e, ActorInitiativeHandlerA5e } from "./ActorInitiativeHandler.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";
@@ -49,7 +49,7 @@ Hooks.once("init", () => {
     CombatantInitiativeHandler, CombatantInitiativeHandlerDND5e,
     WeaponsHandler, WeaponsHandlerDND5e,
     ActionSelectionDialog, ActionSelectionDialogDND5e,
-    ActorInitiativeHandler,
+    ActorInitiativeHandler, ActorInitiativeHandlerDND5e, ActorInitiativeHandlerA5e,
     MultipleCombatantDialog
   };
 
@@ -80,9 +80,11 @@ Hooks.once("init", () => {
       CONFIG[MODULE_ID].WeaponsHandler = WeaponsHandlerDND5e;
       CONFIG[MODULE_ID].CombatantInitiativeHandler = CombatantInitiativeHandlerDND5e;
       CONFIG[MODULE_ID].ActionSelectionDialog = ActionSelectionDialogDND5e;
+      CONFIG[MODULE_ID].ActorInitiativeHandler = ActorInitiativeHandlerDND5e;
       break;
     case "a5e":
       CONFIG[MODULE_ID].WeaponsHandler = WeaponsHandlerA5e;
+      CONFIG[MODULE_ID].ActorInitiativeHandler = ActorInitiativeHandlerA5e;
       break;
   }
 
@@ -92,11 +94,6 @@ Hooks.once("init", () => {
 
 Hooks.once("setup", () => {
   Settings.registerAll();
-
-  CONFIG[MODULE_ID].filterSets = {};
-  for ( const key of CONFIG[MODULE_ID].filterProperties.keys()) {
-    CONFIG[MODULE_ID].filterSets[key] = new Set();
-  }
 });
 
 Hooks.once("ready", () => {

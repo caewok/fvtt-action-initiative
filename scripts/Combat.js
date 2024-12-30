@@ -34,9 +34,18 @@ PATCHES.BASIC.HOOKS = { combatRound: combatRoundHook };
  */
 async function resetAll(wrapped) {
   for ( const c of this.combatants ) {
-    c.updateSource({ [`flags.${MODULE_ID}.-=${FLAGS.COMBATANT.INITIATIVE_SELECTIONS}`]: null })
+    // All combatants should be later updated by super.resetAll.
+    // Cannot use undefined.
+    // Cannot use -= as it appears to remove the flag only locally.
+    c.updateSource({ [`flags.${MODULE_ID}.${FLAGS.COMBATANT.INITIATIVE_SELECTIONS}`]: null })
   }
-  // All combatants are updated by resetAll.
+
+  //   Alt to updateSource:
+  //   const promises = [];
+  //   for ( const c of this.combatants ) {
+  //     promises.push(c[MODULE_ID].initiativeHandler.resetInitiativeSelections());
+  //   }
+  //   await Promise.allSettled(promises);
   return wrapped();
 }
 

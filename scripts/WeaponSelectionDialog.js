@@ -20,7 +20,12 @@ export class WeaponSelectionDialog extends foundry.applications.api.DialogV2 {
 
   static DEFAULT_OPTIONS = {
     window: {
-      title: `${MODULE_ID}.legend`
+      title: `${MODULE_ID}.legend`,
+      resizable: true,
+      positioned: true
+    },
+    position: {
+      height: "auto"
     }
   };
 
@@ -96,12 +101,6 @@ export class WeaponSelectionDialog extends foundry.applications.api.DialogV2 {
        return { id, name, img };
     });
     return data;
-  }
-
-  static get defaultOptions() {
-    const opts = super.defaultOptions;
-    opts.height = "auto";
-    return opts;
   }
 }
 
