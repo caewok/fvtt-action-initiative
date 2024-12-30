@@ -7,7 +7,7 @@ Hooks
 "use strict";
 
 // Basics
-import { MODULE_ID, constructConfigObject } from "./const.js";
+import { MODULE_ID, FLAGS, constructConfigObject } from "./const.js";
 import { log } from "./util.js";
 
 // Patching
@@ -20,6 +20,11 @@ import {
   defaultDiceFormulaObject } from "./settings.js";
 
 import { MultipleCombatantDialog } from "./MultipleCombatantDialog.js";
+import { WeaponsHandler, WeaponsHandlerDND5e, WeaponsHandlerA5e } from "./WeaponsHandler.js";
+import { CombatantInitiativeHandler, CombatantInitiativeHandlerDND5e } from "./CombatantInitiativeHandler.js";
+import { ActionSelectionDialog, ActionSelectionDialogDND5e } from "./ActionSelectionDialog.js";
+import { WeaponSelectionDialog } from "./WeaponSelectionDialog.js";
+import { ActorInitiativeHandler, ActorInitiativeHandlerDND5e, ActorInitiativeHandlerA5e } from "./ActorInitiativeHandler.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";
@@ -36,24 +41,59 @@ Hooks.once("init", () => {
   log("Initializing...");
   initializePatching();
 
+  // API; mostly for debugging.
   game.modules.get(MODULE_ID).api = {
     MultipleCombatantDialog,
-    PATCHER
+    PATCHER,
+    Settings,
+    CombatantInitiativeHandler, CombatantInitiativeHandlerDND5e,
+    WeaponsHandler, WeaponsHandlerDND5e,
+    ActionSelectionDialog, ActionSelectionDialogDND5e,
+    ActorInitiativeHandler, ActorInitiativeHandlerDND5e, ActorInitiativeHandlerA5e,
+    MultipleCombatantDialog
   };
 
+  // Add the extra buttons to the combat tracker.
   CONFIG.ui.combat = CombatTrackerActionInitiative;
 
   // Set configuration values used internally. May be modified by users.
   CONFIG[MODULE_ID] = constructConfigObject();
+
+  /**
+   * Classes to handle:
+   * - weapons categorization
+   * - initiative dialogs per-actor
+   * - combatant initiative
+   * - multiple combatants
+   * @type {class}
+   */
+  CONFIG[MODULE_ID].WeaponsHandler = WeaponsHandler;
+  CONFIG[MODULE_ID].ActorInitiativeHandler = ActorInitiativeHandler;
+  CONFIG[MODULE_ID].CombatantInitiativeHandler = CombatantInitiativeHandler;
+  CONFIG[MODULE_ID].ActionSelectionDialog = ActionSelectionDialog;
+  CONFIG[MODULE_ID].WeaponSelectionDialog = WeaponSelectionDialog;
+  CONFIG[MODULE_ID].MultipleCombatantDialog = MultipleCombatantDialog;
+
+  // System-specific changes.
+  switch ( game.system.id ) {
+    case "dnd5e":
+      CONFIG[MODULE_ID].WeaponsHandler = WeaponsHandlerDND5e;
+      CONFIG[MODULE_ID].CombatantInitiativeHandler = CombatantInitiativeHandlerDND5e;
+      CONFIG[MODULE_ID].ActionSelectionDialog = ActionSelectionDialogDND5e;
+      CONFIG[MODULE_ID].ActorInitiativeHandler = ActorInitiativeHandlerDND5e;
+      break;
+    case "a5e":
+      CONFIG[MODULE_ID].WeaponsHandler = WeaponsHandlerA5e;
+      CONFIG[MODULE_ID].ActorInitiativeHandler = ActorInitiativeHandlerA5e;
+      break;
+  }
+
+  // Initialize system-specific properties.
+  CONFIG[MODULE_ID].WeaponsHandler.initialize();
 });
 
 Hooks.once("setup", () => {
   Settings.registerAll();
-
-  CONFIG[MODULE_ID].filterSets = {};
-  for ( const key of CONFIG[MODULE_ID].filterProperties.keys()) {
-    CONFIG[MODULE_ID].filterSets[key] = new Set();
-  }
 });
 
 Hooks.once("ready", () => {
@@ -82,18 +122,33 @@ Hooks.on("preCreateChatMessage", preCreateChatMessageHook);
 function preCreateChatMessageHook(document, data, _options, _userId) {
   if ( !document.getFlag("core", "initiativeRoll") ) return;
 
-  const actorId = data.speaker.actor;
-  const combatants = game.combat.getCombatantByActors(actorId);
-  if ( !combatants.length ) return;
+  const combatant = game.combat.getCombatantByActor(data.speaker.actor);
+  if ( !combatant ) return;
 
   // Just pick the first combatant, b/c we don't currently have a good reason to pick another.
-  const c = combatants[0];
-  const summary = c._actionInitiativeSelectionSummary("chat");
+  const summary = combatant[MODULE_ID].initiativeHandler.initiativeSelectionSummary();
   data.flavor += summary;
   document.updateSource({ flavor: data.flavor });
 }
 
-Hooks.on("renderCombatTracker", renderCombatTrackerHook);
+Hooks.once("renderCombatTracker", async (_app, _html, _data) => {
+  // Get the combatants for each combat and update flags as necessary.
+  const promises = [];
+  for ( const combat of game.combats ) {
+    for ( const combatant of combat.combatants ) {
+      const currVersion = combatant.getFlag(MODULE_ID, FLAGS.VERSION);
+      if ( currVersion ) continue;
+
+      // Wipe all the old initiative selections.
+      // Not a huge issue b/c these are fleeting.
+      promises.push(combatant.unsetFlag(MODULE_ID, FLAGS.COMBATANT.INITIATIVE_SELECTIONS));
+      promises.push(combatant.setFlag(MODULE_ID, FLAGS.VERSION, game.modules.get("actioninitiative").version));
+    }
+  }
+  await Promise.allSettled(promises);
+  Hooks.on("renderCombatTracker", renderCombatTrackerHook);
+});
+
 
 function renderCombatTrackerHook(app, html, data) {
   // Each combatant that has rolled will have a ".initiative" class
@@ -103,11 +158,158 @@ function renderCombatTrackerHook(app, html, data) {
   data.turns.forEach(turn => {
     if ( !turn.hasRolled || i >= elems.length ) return;
     const c = game.combat.combatants.get(turn.id);
-    const summary = c._actionInitiativeSelectionSummary("combatTrackerTooltip");
+    const summary = c[MODULE_ID].initiativeHandler.initiativeSelectionSummary();
     elems[i].setAttribute("data-tooltip", summary);
     i += 1;
   });
 }
+
+/* Foundry default initiative flow
+
+From combat tracker:
+  - async CombatTracker#_onCombatantControl <-- If grouped, pass multiple ids?
+  - async Combat#rollInitiative <-- Do init dialog if no selections yet
+  - Combatant#getInitiativeRoll
+  - Combatant#_getInitiativeFormula  <-- Formula from selection.
+
+From actor call:
+  - async Actor#rollInitiative  <-- Pass actor to Combat#rollInitiative
+  - For each combatant:
+    - async Combat#rollInitiative <-- Tests for init dialog but already run above
+    - Combatant#getInitiativeRoll
+    - Combatant#_getInitiativeFormula  <-- Formula from selection.
+
+?? call: (Not called in base foundry)
+  - async Combatant#rollInitiative(formula) <-- Do init dialog if no selections yet
+  - Combatant#getInitiativeRoll(formula)
+  - Combatant#_getInitiativeFormula <-- Formula from selection.
+
+async CombatTracker#_onCombatantControl
+  --> If "rollInitiative" button clicked: combat.rollInitiative([c.id])
+
+async Combat#rollInitiative(ids, {formula=null, updateTurn=true, messageOptions={}}={})
+  For each id:
+  --> combatant.getInitiativeRoll(formula), then evaluates the roll
+  --> Updates combatants
+  --> Displays chat
+
+Combatant#getInitiativeRoll(formula)
+  --> Use existing or call this._getInitiativeFormula
+  --> Create the roll
+
+async Combatant#rollInitiative(formula)
+  --> Create roll by calling this.getInitiativeRoll(formula).
+  --> Evaluate roll and update.
+
+Combatant#_getInitiativeFormula
+  --> Get default dice formula to roll initiative
+
+async Actor#rollInitiative({createCombatants=false, rerollInitiative=false, initiativeOptions={}}={})
+  Roll initiative for all Combatants in the currently active Combat encounter which are associated with this Actor.
+  If viewing a full Actor document, all Tokens which map to that actor will be targeted for initiative rolls.
+  If viewing a synthetic Token actor, only that particular Token will be targeted for an initiative roll.
+  --> Find combat
+  --> Create combatants (optional)
+  --> Roll initiative for each by calling combat.rollInitiative(combatants, initiativeOptions);
+*/
+
+/* DND5e initiative flow
+
+From combat tracker:
+  - CombatTracker5e#_onCombatantControl
+  - Actor5e#rollInitiativeDialog <-- Do init dialog
+  - Actor5e#rollInitiative
+  - Actor5e#getInitiativeRoll
+  - Actor#rollInitiative
+    - For each combatant:
+      - Combat#rollInitiative
+      - Combatant#getInitiativeRoll
+      - Combatant#_getInitiativeFormula
+
+
+From actor (character sheet):
+  - _onSheetAction
+  - Actor5e#rollInitiativeDialog <-- Do init dialog
+  - Actor5e#rollInitiative
+  - Actor5e#getInitiativeRoll
+  - Actor5e#rollInitiative
+    - For each combatant:
+      - Combat#rollInitiative
+      - Combatant#getInitiativeRoll
+      - Combatant#_getInitiativeFormula
+
+CombatTracker5e#_onCombatantControl
+  - If "rollInitiative" button clicked: combatant.actor.rollInitiativeDialog()
+
+Actor5e#rollInitiativeDialog(rollOptions={})
+  Roll initiative for this Actor with a dialog that provides an opportunity to elect advantage or other bonuses.
+  --> Display dialog
+  --> Call this.rollInitiative({ createCombatants: true })
+
+Actor5e#rollInitiative(options={}, rollOptions={})
+  --> Call this.getInitiativeRoll(rollOptions)
+  --> Hooks.call("dnd5e.preRollInitiative"
+  --> super.rollInitiative(options);
+  --> Get combatants for the actor
+  --> Hooks.callAll("dnd5e.rollInitiative"
+
+Actor5e#getInitiativeRoll(options={})
+  Get an un-evaluated D20Roll instance used to roll initiative for this Actor.
+  --> Use either cached initiative roll or call this.getInitiativeRollConfig(options);
+
+Actor5e#getInitiativeRollConfig(options={})
+  Get an un-evaluated D20Roll instance used to roll initiative for this Actor.
+  --> Constructs parts of the roll
+  --> Hooks.callAll("dnd5e.preConfigureInitiative", this, rollConfig);
+
+
+Combatant#getInitiativeRoll(formula)
+ --> If no actor, return default 1d20
+ --> Return this.actor.getInitiativeRoll();
+
+*/
+
+/* A5E initiative flow
+From combat tracker:
+  - CombatTracker#_onCombatantControl
+  - Combat#rollInitiative
+  - For each combatant:
+    - Combatant#getInitiativeRoll
+    - Combatant#_getInitiativeFormula -- Do init dialog if no selections yet
+    - SimpleInitiativeRollDialog or InitiativeRollDialog
+
+From actor (character sheet):
+  - Actor#rollInitiative?  <-- Do init dialog
+
+CombatTracker#_onCombatantControl(event)
+  - If "rollInitiative" button clicked: combat.rollInitiative([c.id], { rollOptions: { rollMode, skipRollDialog, }, });
+    (Defines skipRollDialog)
+
+Combat#rollInitiative(ids, {updateTurn = true, messageOptions = {}, rollOptions = {})
+  - For each combatant:
+    - combatant.getInitiativeRoll(rollOptions)
+    - Update
+    - Create chat data
+
+Combatant#_getInitiativeFormula(options)
+  Override the default Initiative formula to customize special behaviors of the system.
+  - If skipDialog, returns getDefaultInitiativeFormula
+  - Constructs dialog: SimpleInitiativeRollDialog or InitiativeRollDialog
+  - returns roll formula
+
+Combatant#getInitiativeRoll(options)
+  Get a Roll object which represents the initiative roll for this Combatant.
+  - Calls this._getInitiativeFormula(options);
+  - Creates and evaluates the roll and returns result
+
+Combatant#rollInitiative(options)
+  Roll initiative for this particular combatant.
+  - Calls this.getInitiativeRoll(options);
+  - Updates the combatant's initiative
+
+*/
+
+
 
 /* DND5e combat initiative dialog
 dnd5e.applications.combat.CombatTracker5e

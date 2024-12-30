@@ -1,6 +1,6 @@
 /* globals
 CONFIG,
-Dialog,
+FormDataExtended,
 foundry,
 game,
 renderTemplate
@@ -10,16 +10,70 @@ renderTemplate
 
 import { MODULE_ID } from "./const.js";
 
-export class MultipleCombatantDialog extends Dialog {
+export class MultipleCombatantDialog extends foundry.applications.api.DialogV2 {
 
-  combatantFilters = new Map();
+  static DEFAULT_OPTIONS = {
+    window: {
+      title: `${MODULE_ID}.template.multiple-combatant-config.Title`,
+      resizable: true,
+      positioned: true
+    },
+    position: {
+      width: 500,
+      height: "auto"
+    }
+  };
 
-  constructor(data, options = {}) {
-    if ( !options.combatantIds ) console.error("MultipleCombatantDialog requires 'option = {combatantId: }'.");
-    super(data, options);
-    foundry.utils.mergeObject(this.data, this.constructor.categorizeCombatants(options.combatantIds));
-    this._buildCombatantFilters();
+  /**
+   * @param {object} [opts]
+   * @returns {ActionSelectionResult}
+   */
+  static async create(opts) {
+    const dialogData = this.categorizeCombatants(opts.combatantIds)
+
+    const content = await renderTemplate(`modules/${MODULE_ID}/templates/multiple-combatant-config.html`, dialogData);
+    return this.wait({
+      content,
+      rejectClose: false,
+      close: this.onDialogCancel,
+      buttons: this.constructButtons(opts),
+      combatantFilters: this._buildCombatantFilters(dialogData),
+      combatants: dialogData.combatants,
+      combatantIds: opts.combatantIds,
+      filters: dialogData.filters
+    });
   }
+
+  /**
+   * Create the button(s) for the dialog submission.
+   * @returns {DialogV2Button[]}
+   */
+  static constructButtons(_opts) {
+    const save = {
+      action: "save",
+      label: "Save",
+      icon: "fa-solid fa-dice",
+      default: true,
+      callback: this.onDialogSubmit.bind(this)
+    };
+    return [save];
+  }
+
+  static onDialogCancel(_event, _dialog) { return null; }
+
+  /**
+   * Helper to handle the return from ActionSelectionDialog
+   * @param {object} html   Dialog html
+   * @param {D20Roll.ADV_MODE} advantageMode
+   * @returns {ActionSelectionResult} Object representing user selections for actions.
+   */
+  static onDialogSubmit(event, button, dialog) {
+    const form = dialog.querySelector("form");
+    const data = new FormDataExtended(form);
+    return this.validateSelection(foundry.utils.expandObject(data.object));
+  }
+
+  static validateSelection(data) { return data; }
 
   /**
    * Tracking to link filters to combatants.
@@ -27,46 +81,39 @@ export class MultipleCombatantDialog extends Dialog {
    * E.g., "filter.Race.Half Elf". Matches keys used in the template for the dialog.
    * Each map value is an object with set of combatants, category, choice, checked boolean.
    */
-  _buildCombatantFilters() {
+  static _buildCombatantFilters(data) {
+    const combatantFilters = new Map();
     // Tracking to link filters to combatants.
-    for ( const filterCategory of Object.keys(this.data.filters) ) {
+    for ( const filterCategory of Object.keys(data.filters) ) {
       // Add tracking Sets for when filters are selected.
-      for ( const filterChoice of Object.keys(this.data.filters[filterCategory]) ) {
-        const obj = { combatants: new Set(), checked: false, filterCategory, filterChoice };
+      for ( const filterChoice of Object.keys(data.filters[filterCategory]) ) {
+        const obj = { combatantIds: new Set(), checked: false, filterCategory, filterChoice };
         const filterKey = `filter.${filterCategory}.${filterChoice}`;
-        this.combatantFilters.set(filterKey, obj);
+        combatantFilters.set(filterKey, obj);
       }
 
-      for ( const c of this.data.combatants ) {
-        const filterChoice = c[filterCategory] || "n/a"; // "" => "n/a"
+      for ( const c of data.combatants ) {
+        const filterChoice = c[filterCategory] ?? `${MODULE_ID}.phrases.NA`;
         const filterKey = `filter.${filterCategory}.${filterChoice}`;
-        this.combatantFilters.get(filterKey).combatants.add(c);
+        combatantFilters.get(filterKey).combatantIds.add(c.id);
       }
     }
+    return combatantFilters;
   }
 
-  /** @inheritdoc */
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      width: 420,
-      height: "auto"
-    });
-  }
-
-  async getData(options={}) {
-    const data = await super.getData(options);
-    data.content = await renderTemplate(`modules/${MODULE_ID}/templates/multiple-combatant-config.html`, this.data);
-    return data;
-  }
-
-  /**
-   * Activate additional listeners to display/hide spell levels and weapon properties
+ /**
+   * Activate additional listeners to operate the search filters.
    */
-  activateListeners(html) {
-    super.activateListeners(html);
-    html.on("change", ".filterChoice", this._filterChanged.bind(this));
-    html.on("change", "#combatantSelectAll", this._selectAll.bind(this));
-    html.on("change", ".combatantChoice", this._combatantChanged.bind(this));
+  _attachFrameListeners() {
+    super._attachFrameListeners();
+    this.element.addEventListener("change", this._handleChangeEvent.bind(this));
+  }
+
+  _handleChangeEvent(event) {
+    const targetClasses = new Set(event.target.classList);
+    if ( targetClasses.has("actioninitiative-filterChoice") ) this._filterChanged(event);
+    if ( targetClasses.has("actioninitiative-combatantChoice") ) this._combatantChanged(event);
+    if ( targetClasses.has("actioninitiative-combatantSelectAll") ) this._selectAll(event);
   }
 
   _combatantChanged(_event) { this._syncFilters(); }
@@ -79,17 +126,18 @@ export class MultipleCombatantDialog extends Dialog {
   _syncFilters() {
     // Assume each filter is checked. If a combatant is unchecked, then
     // uncheck the associated filter(s).
-    const { combatantFilters, data } = this;
+    const { combatantFilters, combatants, filters } = this.options;
     combatantFilters.forEach(f => f.checked = true);
-    const filterCategories = Object.keys(data.filters);
+    const filterCategories = Object.keys(filters);
     let allCombatantsChecked = true;
-    data.combatants.forEach(c => {
-      const elem = document.getElementById(`combatant.${c.id}`);
-      allCombatantsChecked &&= elem.checked;
+    const na = `${MODULE_ID}.phrases.NA`;
+    combatants.forEach(c => {
+      const combatantElem = document.getElementById(`combatant.${c.id}`);
+      allCombatantsChecked &&= combatantElem.checked;
       filterCategories.forEach(filterCategory => {
-        const filterKey = `filter.${filterCategory}.${c[filterCategory] || "n/a"}`;
+        const filterKey = `filter.${filterCategory}.${c[filterCategory] ?? na}`;
         const obj = combatantFilters.get(filterKey);
-        if ( obj.combatants.has(c) ) obj.checked &&= elem.checked;
+        if ( obj.combatantIds.has(c.id) ) obj.checked &&= combatantElem.checked;
       });
     });
 
@@ -111,7 +159,7 @@ export class MultipleCombatantDialog extends Dialog {
    */
   _selectAll(event) {
     const selectAll = event.target.checked;
-    this.data.combatants.forEach(c => {
+    this.options.combatants.forEach(c => {
       const elem = document.getElementById(`combatant.${c.id}`);
       elem.checked = selectAll;
     });
@@ -122,17 +170,20 @@ export class MultipleCombatantDialog extends Dialog {
    * Handle the selection or de-selection of a filter.
    */
   _filterChanged(event) {
-    // E.g.: event.target.name ==> "filter.Race.Half Elf"
-    const filterName = event.target.name.split(".")[1];
-    const filterSelection = event.target.name.split(".")[2];
+    // E.g.: event.target.name ==> "filter.DND5E.CreatureType.beast"
+    const nameParts = event.target.name.split(".");
+    const filterSelection = nameParts.at(-1);
+    nameParts.shift();
+    nameParts.pop();
+    const filterName = nameParts.join(".");
     if ( !filterName || !filterSelection ) return;
 
     // Mark each combatant that meets the filter or should be removed b/c filter was removed.
     const filterChecked = event.target.checked;
-    this.data.combatants.forEach(c => {
+    this.options.combatants.forEach(c => {
       const elem = document.getElementById(`combatant.${c.id}`);
-      if ( !c[filterName] ) {
-        if ( filterSelection === "n/a" ) elem.checked = filterChecked;
+      if ( typeof c[filterName] === "undefined" ) {
+        if ( filterSelection === `${MODULE_ID}.phrases.NA` ) elem.checked = filterChecked;
       } else if ( c[filterName].toString() === filterSelection ) elem.checked = filterChecked;
     });
     this._syncFilters();
@@ -140,16 +191,14 @@ export class MultipleCombatantDialog extends Dialog {
 
   static categorizeCombatants(ids) {
     // Categorize by preset properties
-    const { filterProperties, filterSets } = CONFIG[MODULE_ID];
-    Object.values(filterSets).forEach(s => s.clear());
-
+    const filters = CONFIG[MODULE_ID].ActorInitiativeHandler.FILTERS;
+    const filterSets = new Map([...filters].map(f => [f, new Set()]));
     ids = new Set(ids);
     const data = {
       filters: {},
       combatants: game.combat.combatants
         .filter(c => ids.has(c.id))
         .map(c => {
-          const a = c.actor;
           const props = {
             tokenName: c.token.name,
             actorName: c.actor.name,
@@ -157,28 +206,22 @@ export class MultipleCombatantDialog extends Dialog {
             id: c.id,
             isNPC: c.isNPC
           };
-
-          filterProperties.forEach((value, key) => {
-            const attr = foundry.utils.getProperty(a, value);
-            props[key] = attr;
-            if ( !attr ) filterSets[key].add("n/a");
-            else filterSets[key].add(attr);
+          const actorLabels = c.actor[MODULE_ID].initiativeHandler.categorize();
+          filters.forEach(key => {
+            props[key] = actorLabels[key];
+            filterSets.get(key).add(actorLabels[key]);
           });
-
           return props;
         })
     };
-
-
-    for ( const [filterKey, filterSet] of Object.entries(filterSets) ) {
+    filterSets.forEach((filterSet, filterKey) => {
       // Drop filters with only a single option.
-      if ( filterSet.size < 2 ) continue;
+      if ( filterSet.size < 2 ) return;
 
       // Convert sets to object
       data.filters[filterKey] = {};
       filterSet.forEach(elem => data.filters[filterKey][elem] = elem);
-    }
-
+    })
     return data;
   }
 }

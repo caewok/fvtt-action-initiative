@@ -76,6 +76,27 @@ Hooks.once("ready", () => {
           `
     })
 
+    .addEntry({
+      version: "0.3.0",
+      title: "DialogV2, dnd5e v4, and a5e support",
+      body: `\
+          Fairly substantive refactor that provides for better support for alternative systems
+          going forward. Added dnd5e v4 and a5e (Level Up) support.
+
+          Initiative dialog workflow has been modified, so now you select basic actions first and
+          are only presented with a weapons selection dialog if necessary. Note that if the combatant
+          has only 1 (or no) eligible weapon, no dialog will show. If the combatant has 1+ weapons
+          of that type (melee/ranged) equipped, then only those weapons will be eligible.
+
+          If you were relying on setting a lot of values in "CONFIG.actioninitiative", you will
+          need to adjust your scripts. Most of the one-off properties are now in classes found
+          in that configuration object. This allows for more sophisticated property handling but
+          is a bit more complicated than the one-off definitions. The intent is for one or more
+          of these classes to be subclassed for use with additional systems. See the dnd5e and a5e
+          subclasses for examples.
+          `
+    })
+
     .build()
     ?.render(true);
 });

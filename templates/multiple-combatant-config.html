@@ -1,63 +1,67 @@
 <style>
-div.multi {
-  column-count: 2;
-  column-gap: 10px;
+h3.actioninitiative {
+  margin-top: 1px;
+  margin-bottom: 5px;
+  <!-- border: 1px dashed blue; -->
 }
 
-div.item {
-  display: inline-block;
-  margin-bottom: 10px;
+b.actioninitiative {
+  font-size: 120%;
 }
 
+label.actioninitiative {
+  margin: auto;
+  text-align: left;
+  width: 100%; <!-- Set to 100% so left align works -->
+  <!-- border: 1px dashed green; -->
+}
 
+span.actioninitiative {
+  margin: auto;
+  text-align: left;
+  width: 100%;
+  padding-left: 5px;
+  <!-- border: 1px dashed red; -->
+}
 </style>
 
-<form class="flexcol">
+<form>
+  <h3 class="actioninitiative">Filter</h3>
 
-  <h2>Filters</h2>
+  <div>
+    <!-- List filters the GM can use to select from combatants below -->
+    {{#each filters as |filterChoices filterKey|}}
 
-  <div class="multi">
+        <b class="actioninitiative">{{localize filterKey}}</b><br>
+        <div class="flexrow">
+          {{#each filterChoices as |filterLocal filterName|}}
+          <label class="actioninitiative">
+            <input class="actioninitiative-filterChoice" type="checkbox" name="{{concat 'filter' filterKey filterName join='.'}}" id="{{concat 'filter' filterKey filterName join='.'}}"/>
+            <span class="actioninitiative" style="padding-left: 0px;">{{filterLocal}}</span>
+            <!-- The checkboxes already have padding so move the text label closer by removing the left padding. -->
+          </label>
+          {{/each}}
+        </div>
+    {{/each}}
+  </div>
 
-  <!-- List filters the GM can use to select from combatants below -->
-  {{#each filters as |filterChoices filterKey|}}
-    <div class="item">
-      <h3>{{filterKey}}</h3>
+  <h3 class="actioninitiative">
+    <input type="checkbox" name="selectAll" class="actioninitiative-combatantSelectAll" id="combatantSelectAll"/>&nbsp{{ localize "actioninitiative.phrases.Combatants" }}
+  </h3>
 
-      {{#each filterChoices as |filterLocal filterName|}}
+  <div class="flexcol">
+    <!-- List the combatants by name, actor name, token image -->
+    {{#each combatants}}
 
-      <input class="filterChoice" type="checkbox" name="{{concat 'filter' filterKey filterName join='.'}}" id="{{concat 'filter' filterKey filterName join='.'}}"/>
-      &nbsp{{filterLocal}}
-      <br>
-
-      {{/each}}
+    <div>
+      <label class="actioninitiative">
+        <input type="checkbox" class="actioninitiative-combatantChoice" name="{{concat 'combatant.' this.id}}" id="{{concat 'combatant.' this.id}}"/>
+        <img src="{{this.img}}" width="24" height="24"/>
+        <span class="actioninitiative">{{this.tokenName}}</span>
+      </label>
     </div>
 
-    <br>
-  {{/each}}
-
+    {{/each}}
   </div>
-
-  <br>
-  <h2 style="text-align:left;">
-    <input type="checkbox" name="selectAll" id="combatantSelectAll"/>&nbsp{{ localize "actioninitiative.phrases.Combatants" }}
-  </h2>
-
-  <div class="multi">
-  <!-- List the combatants by name, actor name, token image -->
-  {{#each combatants}}
-
-  <div class="flexrow" style="align-items:baseline">
-    <input type="checkbox" class="combatantChoice" name="{{concat 'combatant.' this.id}}" id="{{concat 'combatant.' this.id}}" />
-    <img src="{{this.img}}" width="24" height="24" class="flex0"/>
-    <h4 style="align-self:center"> {{this.tokenName}} </h4>
-
-  </div>
-
-  {{/each}}
-
-  </div>
-
-  <br>
-  <br>
 
 </form>

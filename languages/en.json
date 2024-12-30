@@ -1,4 +1,5 @@
 {
+  "actioninitiative.legend": "Action Initiative",
   "actioninitiative.settings.variants.Name": "Weapon Variants",
   "actioninitiative.settings.variants.Hint": "Basic: melee/ranged/cast/other; Weapon Speed: Use weapon damage die; Weapon Type: Use weapon properties (e.g., light, heavy)",
   "actioninitiative.settings.variant-basic": "Basic",
@@ -19,7 +20,8 @@
   "actioninitiative.template.settings-config.tabs.weapons": "Weapons",
   "actioninitiative.template.settings-config.tabs.spell-levels": "Spell Levels",
 
-  "actioninitiative.template.combatant.intro": "Select one or more actions.",
+  "actioninitiative.template.combatant.intro": "Select one or more actions for: {combatantNames}",
+  "actioninitiative.template.weapons.intro": "Select one or more weapons for:  {combatantNames}",
 
   "actioninitiative.phrases.BasicVariant": "Basic Variant",
   "actioninitiative.phrases.RangedAttack": "Ranged Attack",
@@ -40,6 +42,8 @@
   "actioninitiative.template.settings-config.BonusAction.placeholder": "Leave blank if combatant should select die roll.",
 
   "actioninitiative.CombatTracker.addToInitiative": "Add to initiative",
-  "actioninitiative.CombatTracker.resetInitiative": "Reset initiative"
+  "actioninitiative.CombatTracker.resetInitiative": "Reset initiative",
+
+  "actioninitiative.phrases.NA": "N/A"
 
 }

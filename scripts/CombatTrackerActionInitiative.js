@@ -23,13 +23,17 @@ export class CombatTrackerActionInitiative extends CombatTracker {
     event.stopPropagation();
 
     const btn = event.currentTarget;
-    const combatantId = btn.closest(".combatant").dataset.combatantId;
+    const li = btn.closest(".combatant");
+    const combatantId = li.dataset.combatantId;
     const combatant = this.viewed.combatants.get(combatantId);
-    if ( (btn.dataset.control === "rollInitiative")
-      && combatant?.actor ) return combatant.actor.rollInitiativeDialog({combatantId});
-
-    if ( btn.dataset.control === "addToInitiative" ) return combatant.addToInitiative();
-    if ( btn.dataset.control === "resetInitiative" ) return combatant.resetInitiative();
+    const iH = combatant[MODULE_ID].initiativeHandler;
+    switch ( btn.dataset.control ) {
+      case "addToInitiative": {
+         const selections = await iH.initiativeDialogs();
+         return selections ? iH.addToInitiative(selections) : undefined;
+      }
+      case "resetInitiative": return iH.resetInitiative();
+    }
     return super._onCombatantControl(event);
   }
 
@@ -39,4 +43,3 @@ export class CombatTrackerActionInitiative extends CombatTracker {
     });
   }
 }
-

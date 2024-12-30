@@ -5,11 +5,11 @@ Roll
 "use strict";
 
 // Patches for the Actor5e class
-
+import { MODULE_ID } from "./const.js";
 import { Settings } from "./settings.js";
 
 export const PATCHES = {};
-PATCHES.BASIC = {};
+PATCHES.DND5E = {};
 
 // ----- NOTE: Overrides ----- //
 
@@ -23,42 +23,28 @@ PATCHES.BASIC = {};
  * @param {string} [options.combatantId]                Id of the combatant chosen
  * @returns {Promise<void>}
  */
-async function rollInitiativeDialog({advantageMode, combatantId} = {}) {
-  const selections = await this.actionInitiativeDialog(this, { advantageMode });
-  if ( !selections ) return; // Closed dialog.
+async function rollInitiativeDialog(rollOptions={}) {
+  // Removes the dialog; handled in Combat#rollInitiative
+  const iH = this[MODULE_ID].initiativeHandler;
+  const selections = await iH.initiativeDialogs();
+  if ( !selections ) return;
+  await iH.setInitiativeSelections(selections);
 
-  // Set initiative for either only active tokens or all
-  if ( Settings.get(Settings.KEYS.GROUP_ACTORS) ) combatantId = undefined;
-
-  // Retrieve the action choices made by the user for this actor.
-  // Ultimate tied to the combatant that represents the actor.
-  await this.setActionInitiativeSelections(selections, { combatantId });
-  await this.rollInitiative({createCombatants: true, initiativeOptions: { combatantId }});
+  this._cachedInitiativeRoll = this.getInitiativeRoll();
+  await this.rollInitiative({ createCombatants: true, actioninitiativeSkipActorDialog: true });
 }
-
-PATCHES.BASIC.OVERRIDES = { rollInitiativeDialog };
 
 
 /**
- * Mixed wrap of Actor5e.prototype.getInitiativeRoll
+ * Override Actor5e.prototype.getInitiativeRoll
  * Construct the initiative formula for the combatant.
- * If combatant is not present, fall back on original.
  */
 function getInitiativeRoll(wrapped, options = {}) {
-  let c = this.token?.object?.combatant;
-  if ( !c ) {
-    // Hunt for tokens, use the first one that has a combatant.
-    for ( const t of this.getActiveTokens() ) {
-      c = t.object?.combatant;
-      if ( c ) break;
-    }
-  }
-  if ( !c ) return wrapped(options);
-
-  const formula = c._getInitiativeFormula();
+  const formula = this[MODULE_ID].initiativeHandler.constructInitiativeFormula();
   const rollData = this.getRollData();
   return Roll.create(formula, rollData);
 }
 
-PATCHES.BASIC.MIXES = { getInitiativeRoll };
+PATCHES.DND5E.MIXES = { getInitiativeRoll };
 
+PATCHES.DND5E.OVERRIDES = { rollInitiativeDialog };

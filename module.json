@@ -3,12 +3,11 @@
   "minimumCoreVersion": "10",
   "id": "actioninitiative",
   "title": "Action Initiative",
-  "version": "This is auto replaced",
+  "version": "#{VERSION}#",
   "library": false,
-  "manifestPlusVersion": "1.0.0",
   "compatibility": {
     "minimum": "12",
-    "verified": "12.324"
+    "verified": "12.331"
   },
   "authors": [
     {
@@ -38,9 +37,9 @@
       "description": "Initiative based on actions taken by the combatants."
     }
   ],
-  "url": "This is auto replaced",
-  "manifest": "This is auto replaced",
-  "download": "This is auto replaced",
+  "url": "#{URL}#",
+  "manifest": "#{MANIFEST}#",
+  "download": "#{DOWNLOAD}#",
   "license": "LICENSE",
   "readme": "README.md"
 }

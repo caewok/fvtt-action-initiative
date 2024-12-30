@@ -9,7 +9,7 @@ import { MODULE_ID, FORMULA_DEFAULTS } from "./const.js";
 import { ModuleSettingsAbstract } from "./ModuleSettingsAbstract.js";
 import { ActionConfigureMenu } from "./ActionConfigureMenu.js";
 
-export const SETTINGS = {
+const SETTINGS = {
   CHANGELOG: "changelog",
 
   VARIANTS: {
@@ -83,8 +83,9 @@ function expand(obj) {
  * Construct modifiers for default weapon properties, based on properties identified in CONFIG.
  * @returns {object}
  */
-function dnd5eDefaultWeaponProperties() {
-  const keys = Object.keys(CONFIG[MODULE_ID].weaponProperties).join(",");
+function defaultWeaponProperties() {
+  const wh = CONFIG[MODULE_ID].WeaponsHandler;
+  const keys = [...wh.weaponPropertiesMap.keys()].join(",");
   const props = expand({[`${keys}`]: "0"});
   for ( const [key, mod] of Object.entries(FORMULA_DEFAULTS.WEAPON_PROPERTIES) ) {
     if ( !Object.hasOwn(props, key) ) continue;
@@ -97,8 +98,9 @@ function dnd5eDefaultWeaponProperties() {
  * Construct modifiers for default weapon types, based on properties identified in CONFIG.
  * @returns {object}
  */
-function dnd5eDefaultWeaponTypes() {
-  const keys = Object.keys(CONFIG[MODULE_ID].weaponTypes).join(",");
+function defaultWeaponTypes() {
+  const wh = CONFIG[MODULE_ID].WeaponsHandler;
+  const keys = [...wh.weaponTypesMap.keys()].join(",");
   const props = expand({[`${keys}`]: "0"});
   for ( const [key, mod] of Object.entries(FORMULA_DEFAULTS.WEAPON_TYPES) ) {
     if ( !Object.hasOwn(props, key) ) continue;
@@ -111,7 +113,7 @@ function dnd5eDefaultWeaponTypes() {
  * Construct modifiers for default spell levels, based on properties identified in CONFIG.
  * @returns {object}
  */
-function dnd5eDefaultSpellLevels() {
+function defaultSpellLevels() {
   // Each spell level is 1d10 + spell_level
   // Take advantage of fact that DND5e keys spell levels by number
   const props = {};
@@ -174,9 +176,9 @@ export class Settings extends ModuleSettingsAbstract {
     });
 
     // Register defaults for weapon types and properties
-    FORMULA_DEFAULTS.WEAPON_TYPES = dnd5eDefaultWeaponTypes();
-    FORMULA_DEFAULTS.WEAPON_PROPERTIES = dnd5eDefaultWeaponProperties();
-    FORMULA_DEFAULTS.SPELL_LEVELS = dnd5eDefaultSpellLevels();
+    FORMULA_DEFAULTS.WEAPON_TYPES = defaultWeaponTypes();
+    FORMULA_DEFAULTS.WEAPON_PROPERTIES = defaultWeaponProperties();
+    FORMULA_DEFAULTS.SPELL_LEVELS = defaultSpellLevels();
     register(KEYS.DICE_FORMULAS, {
       name: `${KEYS.DICE_FORMULAS}.Name`,
       type: Object,
