@@ -1,5 +1,6 @@
 /* globals
 CONFIG,
+foundry,
 game
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
@@ -20,6 +21,25 @@ export class ActorInitiativeHandler {
   static ATTACK_TYPES = { MELEE: 1, RANGED: 2 };
 
   /**
+   * The filters that should be used when selecting multiple combatants.
+   * @type {Set<string>}
+   */
+  static FILTERS = new Set();
+
+  /**
+   * Categorize this actor by the filter properties.
+   * @returns {object<string: string>}
+   *  Key is one of the FILTERS set.
+   *  Value is the localization key for the property, or NA
+   */
+  categorize() {
+    const na = `${MODULE_ID}.phrases.NA`;
+    const res = {};
+    this.constructor.FILTER_PROPERTIES.forEach((value, key) => res[key]= na);
+    return res;
+  }
+
+  /**
    * Determine the init formula for a spell optionally using spell levels.
    * @param {object} params   Parameters chosen for initiative
    * @returns {string|null}
@@ -30,6 +50,16 @@ export class ActorInitiativeHandler {
     const chosenLevel = Object.entries(selections).find(([_key, value]) => value && spellLevels.has(value));
     return CONFIG[MODULE_ID].spellLevels[chosenLevel ? chosenLevel[1] : 9];
   }
+
+  /**
+   * Names and localizations of the filters used with MultipleCombatantDialog
+   * @returns {Set<string>} Localization key for each filter
+   */
+  static filterProperties() {
+    return new Set();
+  }
+
+
 
   /* ----- NOTE: Instantiation ----- */
 
@@ -216,3 +246,43 @@ export class ActorInitiativeHandler {
   /* ----- NOTE: Helper methods ----- */
 }
 
+export class ActorInitiativeHandlerDND5e extends ActorInitiativeHandler {
+  /**
+   * Where to find the filter properties in the actor data.
+   * For dnd5e, this is a fairly straightforward mapping.
+   * @type {Map<string, string>}
+   */
+  static FILTER_PROPERTIES = new Map(Object.entries({
+      ["TYPES.Item.race"]: "system.details.race",
+      ["DND5E.CreatureType"]: "system.details.type.value",
+      ["DND5E.Movement"]: "system.attributes.movement.walk",
+      ["DND5E.SenseDarkvision"]: "system.attributes.senses.darkvision"
+  }));
+
+  /**
+   * The filters that should be used when selecting multiple combatants.
+   * @type {Set<string>}
+   */
+  static FILTERS = new Set([
+    "TYPES.Item.race",
+    "DND5E.CreatureType",
+    "DND5E.Movement",
+    "DND5E.SenseDarkvision"
+  ]);
+
+  /**
+   * Categorize this actor by the filter properties.
+   * @returns {object<string: string>}
+   *  Key is one of the FILTERS set.
+   *  Value is the localization key for the property, or NA
+   */
+  categorize() {
+    const na = `${MODULE_ID}.phrases.NA`;
+    const res = {};
+    this.constructor.FILTER_PROPERTIES.forEach((value, key) => {
+      const attr = foundry.utils.getProperty(this.actor, value) ?? na;
+      res[key]= attr;
+    });
+    return res;
+  }
+}

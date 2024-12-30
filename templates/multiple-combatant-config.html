@@ -32,7 +32,7 @@ span.actioninitiative {
     <!-- List filters the GM can use to select from combatants below -->
     {{#each filters as |filterChoices filterKey|}}
 
-        <b class="actioninitiative">{{filterKey}}</b><br>
+        <b class="actioninitiative">{{localize filterKey}}</b><br>
         <div class="flexrow">
           {{#each filterChoices as |filterLocal filterName|}}
           <label class="actioninitiative">

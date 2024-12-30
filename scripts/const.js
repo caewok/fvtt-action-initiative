@@ -92,27 +92,15 @@ export function constructConfigObject() {
      */
     spellLevels: {},
 
-    /**
-     * Properties used for grouping combatants when using rollAll and rollNPCs in initiative
-     * Based on the actor class.
-     * @type {Map<string, string>}
-     */
-    filterProperties: new Map(),
   };
 
   switch ( game.system.id ) {
-    case "dnd5e": {
+    case "dnd5e":
       cfg.spellLevels = CONFIG.DND5E.spellLevels;
-      cfg.filterProperties = new Map(Object.entries({
-        Race: "system.details.race",
-        Type: "system.details.type.value",
-        Walk: "system.attributes.movement.walk",
-        Darkvision: "system.attributes.senses.darkvision"
-      }));
-    }
-    case "a5e": {
-
-    }
+      break;
+    case "a5e":
+      cfg.spellLevels = CONFIG.A5E.spellLevels;
+      break;
   }
   return cfg;
 }
