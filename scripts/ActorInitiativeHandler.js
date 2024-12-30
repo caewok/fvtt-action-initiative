@@ -255,7 +255,7 @@ export class ActorInitiativeHandlerDND5e extends ActorInitiativeHandler {
   static FILTER_PROPERTIES = new Map(Object.entries({
       ["TYPES.Item.race"]: "system.details.race",
       ["DND5E.CreatureType"]: "system.details.type.value",
-      ["DND5E.Movement"]: "system.attributes.movement.walk",
+      ["DND5E.Movement"]: "system.attributes.movement",
       ["DND5E.SenseDarkvision"]: "system.attributes.senses.darkvision"
   }));
 
@@ -280,7 +280,12 @@ export class ActorInitiativeHandlerDND5e extends ActorInitiativeHandler {
     const na = `${MODULE_ID}.phrases.NA`;
     const res = {};
     this.constructor.FILTER_PROPERTIES.forEach((value, key) => {
-      const attr = foundry.utils.getProperty(this.actor, value) ?? na;
+      // For movement, use the maximum value.
+      let attr = foundry.utils.getProperty(this.actor, value) ?? na;
+      if ( key === "DND5E.Movement" ) {
+        attr = Object.keys(CONFIG.DND5E.movementTypes).reduce((acc, curr) =>
+          Math.max(acc, foundry.utils.getProperty(this.actor, `${value}.${curr}`) || 0), 0);
+      }
       res[key]= attr;
     });
     return res;
