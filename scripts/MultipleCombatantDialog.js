@@ -16,7 +16,11 @@ export class MultipleCombatantDialog extends foundry.applications.api.DialogV2 {
     window: {
       title: `${MODULE_ID}.template.multiple-combatant-config.Title`,
       resizable: true,
-      width: "400px"
+      positioned: true
+    },
+    position: {
+      width: 500,
+      height: "auto"
     }
   };
 
@@ -95,14 +99,6 @@ export class MultipleCombatantDialog extends foundry.applications.api.DialogV2 {
       }
     }
     return combatantFilters;
-  }
-
-  /** @inheritdoc */
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      width: 420,
-      height: "auto"
-    });
   }
 
  /**

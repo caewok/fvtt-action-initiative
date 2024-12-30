@@ -36,8 +36,12 @@ export class ActionSelectionDialog extends foundry.applications.api.DialogV2 {
   static DEFAULT_OPTIONS = {
     window: {
       title: `${MODULE_ID}.legend`,
-      resizable: false,
-      width: "500px"
+      resizable: true,
+      positioned: true
+    },
+    position: {
+      width: 800,
+      height: "auto"
     }
   };
 
