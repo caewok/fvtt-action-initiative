@@ -33,7 +33,7 @@ export class ActorInitiativeHandler {
    *  Value is the localization key for the property, or NA
    */
   categorize() {
-    const na = `${MODULE_ID}.phrases.NA`;
+    const na = game.i18n.localize(`${MODULE_ID}.phrases.NA`);
     const res = {};
     this.constructor.FILTER_PROPERTIES.forEach((value, key) => res[key]= na);
     return res;
@@ -111,14 +111,15 @@ export class ActorInitiativeHandler {
    * @param {object} [opts]
    * @param {string} [opts.combatantId]   Limit to a single combatant id
    */
-  async setInitiativeSelections(selections, { combatantId } = {}) {
-    if ( !Settings.get(Settings.KEYS.GROUP_ACTORS) && !combatantId ) {
-      console.error("setInitiativeSelectionsForActor requires combatant id when GROUP_ACTORS is disabled.");
-    }
-    const combatants = this.combatants;
+  async setInitiativeSelections(selections, { combatantIds } = {}) {
+    let combatants = this.combatants;
     if ( !combatants.length ) return;
-    if ( combatantId ) return await combatants.find(c => c.id === combatantId)[MODULE_ID]
-      .initiativeHandler.setInitiativeSelections(selections);
+
+    if ( combatantIds ) {
+      if ( !(combatantIds instanceof Set) ) combatantIds = new Set(combatantIds);
+      combatants = combatants.filter(c => combatantIds.has(c.id));
+    }
+
     const promises = combatants.map(c => c[MODULE_ID]
       .initiativeHandler.setInitiativeSelections(selections));
     return Promise.allSettled(promises);
@@ -229,10 +230,10 @@ export class ActorInitiativeHandler {
         }
 
         case "BonusAction":
-          if ( selectedActions.BonusAction.Checkbox ) formula.push(selectedActions.BonusAction.Text);
+          if ( selectedActions.BonusAction.Checkbox ) formula.push(selectedActions.BonusAction.Text || getDiceValueForProperty("BASIC.BonusAction"));
           break;
         case "OtherAction":
-          if ( selectedActions.OtherAction.Checkbox ) formula.push(selectedActions.OtherAction.Text);
+          if ( selectedActions.OtherAction.Checkbox ) formula.push(selectedActions.OtherAction.Text || getDiceValueForProperty("BASIC.OtherAction"));
           break;
         default:
           formula.push(getDiceValueForProperty(`BASIC.${key}`) ?? "0");
@@ -277,7 +278,7 @@ export class ActorInitiativeHandlerDND5e extends ActorInitiativeHandler {
    *  Value is the localization key for the property, or NA
    */
   categorize() {
-    const na = `${MODULE_ID}.phrases.NA`;
+    const na = game.i18n.localize(`${MODULE_ID}.phrases.NA`);
     const res = {};
     this.constructor.FILTER_PROPERTIES.forEach((value, key) => {
       // For movement, use the maximum value.
