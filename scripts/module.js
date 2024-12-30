@@ -24,7 +24,7 @@ import { WeaponsHandler, WeaponsHandlerDND5e, WeaponsHandlerA5e } from "./Weapon
 import { CombatantInitiativeHandler, CombatantInitiativeHandlerDND5e } from "./CombatantInitiativeHandler.js";
 import { ActionSelectionDialog, ActionSelectionDialogDND5e } from "./ActionSelectionDialog.js";
 import { WeaponSelectionDialog } from "./WeaponSelectionDialog.js";
-import { ActorInitiativeHandler, ActorInitiativeHandlerDND5e } from "./ActorInitiativeHandler.js";
+import { ActorInitiativeHandler, ActorInitiativeHandlerDND5e, ActorInitiativeHandlerA5e } from "./ActorInitiativeHandler.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";
@@ -49,7 +49,7 @@ Hooks.once("init", () => {
     CombatantInitiativeHandler, CombatantInitiativeHandlerDND5e,
     WeaponsHandler, WeaponsHandlerDND5e,
     ActionSelectionDialog, ActionSelectionDialogDND5e,
-    ActorInitiativeHandler, ActorInitiativeHandlerDND5e,
+    ActorInitiativeHandler, ActorInitiativeHandlerDND5e, ActorInitiativeHandlerA5e,
     MultipleCombatantDialog
   };
 
@@ -84,6 +84,7 @@ Hooks.once("init", () => {
       break;
     case "a5e":
       CONFIG[MODULE_ID].WeaponsHandler = WeaponsHandlerA5e;
+      CONFIG[MODULE_ID].ActorInitiativeHandler = ActorInitiativeHandlerA5e;
       break;
   }
 

@@ -291,3 +291,52 @@ export class ActorInitiativeHandlerDND5e extends ActorInitiativeHandler {
     return res;
   }
 }
+
+export class ActorInitiativeHandlerA5e extends ActorInitiativeHandler {
+  /**
+   * Where to find the filter properties in the actor data.
+   * For dnd5e, this is a fairly straightforward mapping.
+   * @type {Map<string, string>}
+   */
+  static FILTER_PROPERTIES = new Map(Object.entries({
+      ["A5E.effects.keys.details.elite"]: "system.details.elite",
+      ["A5E.CreatureTypesLabel"]: "system.details.creatureTypes",
+      ["A5E.MovementSpeed"]: "system.attributes.movement",
+      ["A5E.SenseDarkvisionRange"]: "system.attributes.senses.darkvision.distance"
+  }));
+
+  /**
+   * The filters that should be used when selecting multiple combatants.
+   * @type {Set<string>}
+   */
+  static FILTERS = new Set([
+    "A5E.effects.keys.details.elite",
+    "A5E.CreatureTypesLabel",
+    "A5E.MovementSpeed",
+    "A5E.SenseDarkvisionRange"
+  ]);
+
+  /**
+   * Categorize this actor by the filter properties.
+   * @returns {object<string: string>}
+   *  Key is one of the FILTERS set.
+   *  Value is the localization key for the property, or NA
+   */
+  categorize() {
+    const na = game.i18n.localize(`${MODULE_ID}.phrases.NA`);
+    const res = {};
+    this.constructor.FILTER_PROPERTIES.forEach((value, key) => {
+      // For movement, use the maximum value.
+      let attr = foundry.utils.getProperty(this.actor, value);
+      if ( key === "A5E.MovementSpeed" ) {
+        attr = Object.keys(CONFIG.A5E.movement).reduce((acc, curr) =>
+          Math.max(acc, foundry.utils.getProperty(this.actor, `${value}.${curr}.distance`) || 0), 0);
+      } else if ( key === "A5E.CreatureTypesLabel" ) {
+        attr = attr[0]; // Pick the first type. TODO: Uses sets of values for categories instead of single string.
+      }
+      res[key]= attr ?? na;
+    });
+    return res;
+  }
+}
+
