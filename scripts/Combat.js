@@ -99,23 +99,20 @@ PATCHES.BASIC.OVERRIDES = { rollAll, rollNPC, _sortCombatants };
  */
 async function rollInitiative(wrapped, combatantIds, opts = {}) {
   combatantIds = new Set(combatantIds);
-  if ( combatantIds.size === 1 && Settings.get(Settings.KEYS.GROUP_ACTORS) ) {
-    // Locate every combatant with the same actor id.
+  if ( !opts.actor && combatantIds.size === 1 && Settings.get(Settings.KEYS.GROUP_ACTORS) ) {
+    // Locate every combatant with the same actor id that has not yet been given an initiative.
     const id = combatantIds.first()
     const combatant = game.combat.combatants.get(id);
     if ( combatant.actor.isToken ) {
-      const combatants = game.combat.combatants.filter(c => c.actor.id === combatant.actor.id);
-      combatants.forEach(c => combatantIds.add(c.id));
-      const res = await CONFIG[MODULE_ID].CombatantInitiativeHandler._setActionsForMultipleCombatants(combatantIds);
-      if ( !res ) return;
+      const combatants = game.combat.combatants.filter(c => c.actor.id === combatant.actor.id
+        && !c[MODULE_ID].initiativeHandler.initiativeSelection);
+      if ( combatants.length ) {
+        const newCombatantIds = combatants.map(c => c.id);
+        const res = await CONFIG[MODULE_ID].CombatantInitiativeHandler._setActionsForMultipleCombatants(newCombatantIds);
+        if ( !res ) return;
+        newCombatantIds.forEach(id => combatantIds.add(id));
+      }
     }
-  }
-
-  if ( opts.actor ) {
-    const iH = opts.actor[MODULE_ID].initiativeHandler;
-    const selections = await iH.initiativeDialogs();
-    if ( !selections ) return;
-    await iH.setInitiativeSelections(selections);
   }
 
   for ( const combatantId of combatantIds ) {

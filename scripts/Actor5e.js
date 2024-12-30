@@ -23,18 +23,28 @@ PATCHES.DND5E = {};
  * @param {string} [options.combatantId]                Id of the combatant chosen
  * @returns {Promise<void>}
  */
-async function rollInitiativeDialog({ advantageMode, combatantId } = {}) {
-  const initiativeHandler = this[MODULE_ID].initiativeHandler;
-  const selections = await initiativeHandler.initiativeDialogs({ advantageMode });
-  if ( !selections ) return; // Closed dialog.
+async function rollInitiativeDialog(rollOptions={}) {
+  // Removes the dialog; handled in Combat#rollInitiative
+  const iH = this[MODULE_ID].initiativeHandler;
+  const selections = await iH.initiativeDialogs();
+  if ( !selections ) return;
+  await iH.setInitiativeSelections(selections);
 
-  // Set initiative for either only active tokens or all
-  if ( Settings.get(Settings.KEYS.GROUP_ACTORS) ) combatantId = undefined;
-
-  // Retrieve the action choices made by the user for this actor.
-  // Ultimately tied to the combatant(s) that represents the actor.
-  await initiativeHandler.setInitiativeSelections(selections, { combatantId });
-  await this.rollInitiative({ createCombatants: true, initiativeOptions: { combatantId } });
+  this._cachedInitiativeRoll = this.getInitiativeRoll();
+  await this.rollInitiative({ createCombatants: true, actioninitiativeSkipActorDialog: true });
 }
+
+
+/**
+ * Override Actor5e.prototype.getInitiativeRoll
+ * Construct the initiative formula for the combatant.
+ */
+function getInitiativeRoll(wrapped, options = {}) {
+  const formula = this[MODULE_ID].initiativeHandler.constructInitiativeFormula();
+  const rollData = this.getRollData();
+  return Roll.create(formula, rollData);
+}
+
+PATCHES.DND5E.MIXES = { getInitiativeRoll };
 
 PATCHES.DND5E.OVERRIDES = { rollInitiativeDialog };

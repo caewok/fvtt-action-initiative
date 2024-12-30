@@ -6,7 +6,8 @@ game
 "use strict";
 
 import { MODULE_ID } from "./const.js";
-import { Settings } from "./settings.js";
+import { Settings, getDiceValueForProperty } from "./settings.js";
+import { simplifyRollFormula } from "./simplifyRollFormula.js";
 
 /**
  * Class to handle initiative.
@@ -17,6 +18,18 @@ import { Settings } from "./settings.js";
 export class ActorInitiativeHandler {
   /** @type {enum} */
   static ATTACK_TYPES = { MELEE: 1, RANGED: 2 };
+
+  /**
+   * Determine the init formula for a spell optionally using spell levels.
+   * @param {object} params   Parameters chosen for initiative
+   * @returns {string|null}
+   */
+  static chosenSpellLevel(selections) {
+    if ( !Settings.get(Settings.KEYS.SPELL_LEVELS) ) return null;
+    const spellLevels = new Set(Object.keys(CONFIG[MODULE_ID].spellLevels));
+    const chosenLevel = Object.entries(selections).find(([_key, value]) => value && spellLevels.has(value));
+    return CONFIG[MODULE_ID].spellLevels[chosenLevel ? chosenLevel[1] : 9];
+  }
 
   /* ----- NOTE: Instantiation ----- */
 
@@ -35,11 +48,15 @@ export class ActorInitiativeHandler {
    * @returns {string[]}
    */
   getCombatantNames(combatantId) {
+    const combatants = game.combat.combatants;
     if ( combatantId ) {
-      const name = game.combat.combatants.get(combatantId).name;
+      const name = combatants.get(combatantId).name;
       return name ? [name] : [];
     }
-    return game.combat.combatants.map(c => c.name);
+    const actorCombatants = Settings.get(Settings.KEYS.GROUP_ACTORS)
+      ? combatants.filter(c => c.actor.id === this.actor.id)
+      : combatants.filter(c => c.actor === this.actor);
+    return actorCombatants.map(c => c.name);
   }
 
   /**
@@ -132,6 +149,68 @@ export class ActorInitiativeHandler {
    */
   async weaponSelectionDialog(opts) {
     return this.actor[MODULE_ID].weaponsHandler.weaponSelectionDialog(opts);
+  }
+
+  /**
+   * Construct the initiative formula for a combatant based on user-selected actions.
+   * @param {object} [selections]   Optional returned object from ActionSelectionDialog.
+   * @returns {string} Cleaned dice formula
+   */
+  constructInitiativeFormula(selections) {
+    selections ??= this.combatants[0][MODULE_ID].initiativeHandler.initiativeSelections;
+    if ( !selections ) return "0";
+    const formula = this._constructInitiativeFormula(selections);
+
+    // Clean the roll last, and re-do
+    return simplifyRollFormula(formula) || "";
+  }
+
+  /**
+   * Construct the initiative formula for a combatant based on user-selected actions.
+   * @param {object} [selections]   Optional returned object from ActionSelectionDialog.
+   * @returns {string} Dice formula
+   */
+  _constructInitiativeFormula(selections) {
+    const { MELEE, RANGED } = this.constructor.ATTACK_TYPES;
+    const actor = this.actor;
+    const keyType = {
+      MeleeAttack: MELEE,
+      RangedAttack: RANGED
+    };
+
+    // Build the formula parts
+    const selectedActions = selections.actions;
+    const formula = [];
+    for ( const [key, value] of Object.entries(selectedActions) ) {
+      if ( !value ) continue;
+
+      switch ( key ) {
+        case "MeleeAttack":
+        case "RangedAttack":
+          formula.push(actor[MODULE_ID].weaponsHandler.attackFormula(selections, keyType[key]) ?? "0");
+          break;
+        case "CastSpell": {
+          const chosenLevel = this.constructor.chosenSpellLevel(selections);
+          const str = chosenLevel === null ? "BASIC.CastSpell"
+            : `SPELL_LEVELS.${Object.entries(CONFIG[MODULE_ID].spellLevels)
+              .find(([_key, value]) => value === chosenLevel)[0]}`
+          formula.push(getDiceValueForProperty(str));
+          break;
+        }
+
+        case "BonusAction":
+          if ( selectedActions.BonusAction.Checkbox ) formula.push(selectedActions.BonusAction.Text);
+          break;
+        case "OtherAction":
+          if ( selectedActions.OtherAction.Checkbox ) formula.push(selectedActions.OtherAction.Text);
+          break;
+        default:
+          formula.push(getDiceValueForProperty(`BASIC.${key}`) ?? "0");
+      }
+    }
+
+    // Combine the parts
+    return formula.join("+");
   }
 
   /* ----- NOTE: Helper methods ----- */
