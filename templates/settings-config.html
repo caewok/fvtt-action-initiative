@@ -1,25 +1,23 @@
 <form class="flexcol" autocomplete="off">
   <nav class="sheet-tabs tabs" data-group="sections">
     <a class="item" data-tab="basic">
-      {{localize "actioninitiative.template.settings-config.tabs.basic"}}
+      {{localize "actioninitiative.settings.tabs.basic.tabName"}}
     </a>
 
     <a class="item" data-tab="weapons">
-      {{localize "actioninitiative.template.settings-config.tabs.weapons"}}
+      {{localize "actioninitiative.settings.tabs.weapons.tabName"}}
     </a>
 
     <a class="item" data-tab="spell-levels">
-      {{localize "actioninitiative.template.settings-config.tabs.spell-levels"}}
+      {{localize "actioninitiative.settings.tabs.spells.tabName"}}
     </a>
   </nav>
 
   <section class="content">
-    <div class="tab" data-tab="basic" data-group="sections">
-      <p> Combatants will select their appropriate action(s) from these categories
-      when rolling initiative. Delete to return to default. Entering "0" will cause the action
-      to not affect initiative. </p>
 
-      <h2> {{localize "actioninitiative.phrases.BasicVariant"}} </h2>
+    <!-- Basic Tab -->
+    <div class="tab" data-tab="basic" data-group="sections">
+      <p> {{ localize "actioninitiative.settings.tabs.basic.description" }} </p>
 
       {{#each basic as |basicFormula basicKey|}}
 
@@ -34,13 +32,11 @@
 
     </div>
 
+    <!-- Weapon Types Tab -->
     <div class="tab" data-tab="weapons" data-group="sections">
-      <p> The following controls the dice used for the Weapon Type variant. When using this variant,
-      a combatant that selects ranged or melee attack will be asked to select one or more weapons
-      to use for the attack. The weapon types and properties will be automatically determined based
-      on the weapon chosen </p>
 
-      <h2> {{localize "actioninitiative.phrases.WeaponTypes"}} </h2>
+      <p> {{ localize "actioninitiative.settings.tabs.weapons.description" }} </p>
+      <h3> {{ localize "actioninitiative.phrases.WeaponTypes" }} </h3>
 
       {{#each weaponTypes as |weaponTypeFormula weaponType|}}
 
@@ -53,7 +49,7 @@
 
       {{/each}}
 
-      <h2> {{localize "actioninitiative.phrases.WeaponProperties"}} </h2>
+      <h3> {{localize "actioninitiative.phrases.WeaponProperties"}} </h3>
 
       {{#each weaponProperties as |weaponPropsFormula weaponProp|}}
 
@@ -68,16 +64,16 @@
 
     </div>
 
-
+    <!-- Spells Tab -->
     <div class="tab" data-tab="spell-levels" data-group="sections">
-      <p> The following controls the dice used when the "Use Spell Levels" preference is enabled.
-      A combatant that selects the Use Spell action will be given an opportunity to select spell level.
-      If spell level is not selected, the default will be the highest level (9).</p>
+
+      <h2> {{ localize "actioninitiative.settings.tabs.spells.heading" }} </h2>
+      <p> {{ localize "actioninitiative.settings.tabs.spells.description" }}</p>
 
       {{#each spellLevels as |spellLevelFormula spellLevel|}}
 
       <div class="form-group">
-        <label> {{localize (lookup ../localized.spellLevels spellLevel)}} </label>
+        <label> {{ localize (lookup ../localized.spellLevels spellLevel) }} </label>
         <div class="form-fields">
           <input class="actioninitiative-actionTextbox" type="text" name="{{concat 'SPELL_LEVELS.' spellLevel}}" id="{{concat 'SPELL_LEVELS.' spellLevel}}" value="{{spellLevelFormula}}" placeholder="{{lookup ../placeholder.SPELL_LEVELS spellLevel}}">
         </div>
@@ -90,7 +86,7 @@
   </section>
 
   <footer class="sheet-footer flexrow">
-    <p class="hint">Input a valid dice formula (or numeric value) for each type.</p>
+    <p class="hint"> {{ localize "actioninitiative.settings.tabs.footer" }}</p>
     <br>
     <button type='submit' name='submit' value='1'><i class='far fa-floppy-disk'></i>{{submitText}}</button>
   </footer>

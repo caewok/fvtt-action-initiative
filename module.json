@@ -1,13 +1,12 @@
 {
   "name": "actioninitiative",
-  "minimumCoreVersion": "10",
   "id": "actioninitiative",
   "title": "Action Initiative",
   "version": "#{VERSION}#",
   "library": false,
   "compatibility": {
     "minimum": "12",
-    "verified": "12.331"
+    "verified": "12.343"
   },
   "authors": [
     {

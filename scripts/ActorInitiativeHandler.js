@@ -46,9 +46,7 @@ export class ActorInitiativeHandler {
    */
   static chosenSpellLevel(selections) {
     if ( !Settings.get(Settings.KEYS.SPELL_LEVELS) ) return null;
-    const spellLevels = new Set(Object.keys(CONFIG[MODULE_ID].spellLevels));
-    const chosenLevel = Object.entries(selections).find(([_key, value]) => value && spellLevels.has(value));
-    return CONFIG[MODULE_ID].spellLevels[chosenLevel ? chosenLevel[1] : 9];
+    return selections.spellLevels ?? null;
   }
 
   /**
@@ -58,7 +56,6 @@ export class ActorInitiativeHandler {
   static filterProperties() {
     return new Set();
   }
-
 
 
   /* ----- NOTE: Instantiation ----- */
@@ -222,9 +219,7 @@ export class ActorInitiativeHandler {
           break;
         case "CastSpell": {
           const chosenLevel = this.constructor.chosenSpellLevel(selections);
-          const str = chosenLevel === null ? "BASIC.CastSpell"
-            : `SPELL_LEVELS.${Object.entries(CONFIG[MODULE_ID].spellLevels)
-              .find(([_key, value]) => value === chosenLevel)[0]}`
+          const str = chosenLevel === null ? "BASIC.CastSpell" : `SPELL_LEVELS.${chosenLevel}`;
           formula.push(getDiceValueForProperty(str));
           break;
         }

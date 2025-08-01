@@ -2,9 +2,9 @@
   "actioninitiative.legend": "Action Initiative",
   "actioninitiative.settings.variants.Name": "Weapon Variants",
   "actioninitiative.settings.variants.Hint": "Basic: melee/ranged/cast/other; Weapon Speed: Use weapon damage die; Weapon Type: Use weapon properties (e.g., light, heavy)",
-  "actioninitiative.settings.variant-basic": "Basic",
-  "actioninitiative.settings.variant-weapon-damage": "Weapon Damage",
-  "actioninitiative.settings.variant-weapon-type": "Weapon Type",
+  "actioninitiative.settings.variant-basic": "Basic Variant",
+  "actioninitiative.settings.variant-weapon-damage": "Weapon Damage Variant",
+  "actioninitiative.settings.variant-weapon-type": "Weapon Type Variant",
   "actioninitiative.settings.configure-menu.Name": "Advanced Configuration",
   "actioninitiative.settings.configure-menu.Hint": "Configure specific die combinations used for the variants. Options will vary based on choices here.",
   "actioninitiative.settings.configure-menu.Label": "Configure",
@@ -13,12 +13,24 @@
   "actioninitiative.settings.group-actors.Name": "Default to Group by Actor",
   "actioninitiative.settings.group-actors.Hint": "When enabled, setting actions for one combatant will use the same actions for all combatants with that same actor id. When disabled, combatants with unlinked actors will request actions separately. You can change also change this using the Combat Tracker configuration.",
 
+  "actioninitiative.settings.tabs.basic.tabName": "Basic",
+  "actioninitiative.settings.tabs.basic.heading": "Basic Variant",
+  "actioninitiative.settings.tabs.basic.description": "Combatants will select their appropriate action(s) from these categories when rolling initiative. Delete to return to default. Entering `0` will cause the action to not affect initiative.",
+
+  "actioninitiative.settings.tabs.weapons.tabName": "Weapons",
+  "actioninitiative.settings.tabs.weapons.heading": "Weapon Type Variant",
+  "actioninitiative.settings.tabs.weapons.description": "The following controls the dice used for the Weapon Type variant. When using this variant, a combatant that selects ranged or melee attack will be asked to select one or more weapons to use for the attack. The weapon types and properties will be automatically determined based on the weapon chosen.",
+
+  "actioninitiative.settings.tabs.spells.tabName": "Spells",
+  "actioninitiative.settings.tabs.spells.heading": "Spell Levels",
+  "actioninitiative.settings.tabs.spells.description": "The following controls the dice used when the `Use Spell Levels` preference is enabled. A combatant that selects the Use Spell action will be given an opportunity to select spell level. If spell level is not selected, the default will be the highest level (9).",
+
+  "actioninitiative.settings.tabs.footer": "Input a valid dice formula (or numeric value) for each type.",
+
+
   "actioninitiative.CombatTrackerConfig.LegendTitle": "Action Initiative",
   "actioninitiative.CombatTrackerConfig.groupActors.Name": "Group by Actor",
 
-  "actioninitiative.template.settings-config.tabs.basic": "Basic",
-  "actioninitiative.template.settings-config.tabs.weapons": "Weapons",
-  "actioninitiative.template.settings-config.tabs.spell-levels": "Spell Levels",
 
   "actioninitiative.template.combatant.intro": "Select one or more actions for: {combatantNames}",
   "actioninitiative.template.weapons.intro": "Select one or more weapons for:  {combatantNames}",

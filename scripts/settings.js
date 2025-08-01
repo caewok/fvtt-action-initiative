@@ -25,7 +25,7 @@ const SETTINGS = {
   SPELL_LEVELS: "spell-levels",
   GROUP_ACTORS: "group-actors",
 
-  DICE_FORMULAS: "dice-formulas"
+  DICE_FORMULAS: "dice-formulas",
 };
 
 /* Dice Formulas
