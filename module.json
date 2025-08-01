@@ -1,6 +1,5 @@
 {
   "name": "actioninitiative",
-  "minimumCoreVersion": "10",
   "id": "actioninitiative",
   "title": "Action Initiative",
   "version": "#{VERSION}#",
