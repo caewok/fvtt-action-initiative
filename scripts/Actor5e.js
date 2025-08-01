@@ -6,7 +6,6 @@ Roll
 
 // Patches for the Actor5e class
 import { MODULE_ID } from "./const.js";
-import { Settings } from "./settings.js";
 
 export const PATCHES = {};
 PATCHES.DND5E = {};
@@ -23,7 +22,7 @@ PATCHES.DND5E = {};
  * @param {string} [options.combatantId]                Id of the combatant chosen
  * @returns {Promise<void>}
  */
-async function rollInitiativeDialog(rollOptions={}) {
+async function rollInitiativeDialog(_rollOptions={}) {
   // Removes the dialog; handled in Combat#rollInitiative
   const iH = this[MODULE_ID].initiativeHandler;
   const selections = await iH.initiativeDialogs();
@@ -39,7 +38,7 @@ async function rollInitiativeDialog(rollOptions={}) {
  * Override Actor5e.prototype.getInitiativeRoll
  * Construct the initiative formula for the combatant.
  */
-function getInitiativeRoll(wrapped, options = {}) {
+function getInitiativeRoll(wrapped, _options = {}) {
   const formula = this[MODULE_ID].initiativeHandler.constructInitiativeFormula();
   const rollData = this.getRollData();
   return Roll.create(formula, rollData);

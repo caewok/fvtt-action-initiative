@@ -1,11 +1,13 @@
 /* globals
 CONFIG,
+dnd5e,
+FormDataExtended,
 foundry,
-game,
 renderTemplate,
-Roll
+Roll,
 */
 "use strict";
+/* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 
 import { MODULE_ID, FORMULA_DEFAULTS } from "./const.js";
 import { Settings, getDiceValueForProperty } from "./settings.js";
@@ -64,7 +66,7 @@ export class ActionSelectionDialog extends foundry.applications.api.DialogV2 {
    * Create the button(s) for the dialog submission.
    * @returns {DialogV2Button[]}
    */
-  static constructButtons(opt) {
+  static constructButtons(_opt) {
     const save = {
       action: "save",
       label: "Save",
@@ -108,7 +110,7 @@ export class ActionSelectionDialog extends foundry.applications.api.DialogV2 {
     return data;
   }
 
-  static onDialogCancel(event, dialog) { return null; }
+  static onDialogCancel(_event, _dialog) { return null; }
 
 
 // ----- NOTE: Helper functions ----- //

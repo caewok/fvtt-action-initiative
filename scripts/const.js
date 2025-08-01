@@ -1,6 +1,5 @@
 /* globals
 CONFIG,
-foundry,
 game,
 */
 "use strict";
@@ -54,21 +53,6 @@ export const FORMULA_DEFAULTS = {
 
   SPELL_BASE: "1d10"
 };
-
-const MELEE_WEAPONS = [
-  "simpleM",
-  "martialM",
-  "natural",
-  "improv"
-];
-
-const RANGED_WEAPONS = [
-  "simpleR",
-  "martialR",
-  "natural",
-  "improv",
-  "siege"
-];
 
 // TODO: Use CONFIG.DND5E.validProperties.weapon instead of CONFIG.DND5E.weaponProperties
 
