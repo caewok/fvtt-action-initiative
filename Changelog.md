@@ -1,5 +1,6 @@
 ## 0.3.1
 Correct listing of weapon types and properties in the config menu. Closes issue #13.
+Correct spell selection so that it does not alway report "Cantrip." Closes issue #14.
 
 ## 0.3.0
 Switch to Foundry v12 DialogV2.
