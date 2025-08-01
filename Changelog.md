@@ -1,3 +1,6 @@
+## 0.3.1
+Correct listing of weapon types and properties in the config menu. Closes issue #13.
+
 ## 0.3.0
 Switch to Foundry v12 DialogV2.
 Refactor to use helper classes to handle initiative for combatants, actors, and to handle weapon categorization for actors. Most properties that were standalone in `CONFIG.actioninitiative` are now in classes in `CONFIG.actioninitiative`
