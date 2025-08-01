@@ -330,6 +330,11 @@ export class WeaponsHandlerDND5e extends WeaponsHandler {
    */
   static weaponDamageKey = "labels.damage";
 
+  static weaponProperties(weapon) {
+    const props = foundry.utils.getProperty(weapon, this.weaponPropertiesKey);
+    return new Set(props.map(prop => prop.abbr));
+  }
+
   /* ----- NOTE: Static filter functions ----- */
 
   /**
@@ -437,7 +442,9 @@ export class WeaponsHandlerA5e extends WeaponsHandler {
    * @returns {Set<string>} The weaponProperties key(s)
    */
   static weaponProperties(weapon) {
-    return new Set(foundry.utils.getProperty(weapon, this.weaponPropertiesKey)); }
+    const props = foundry.utils.getProperty(weapon, this.weaponPropertiesKey);
+    return new Set(props.map(prop => prop.abbr));
+  }
 
   /**
    * Get the weapon's types.
