@@ -40,10 +40,16 @@ export class ActionConfigureMenu extends FormApplication {
     data.spellLevels = formulaeObj.SPELL_LEVELS;
     data.placeholder = FORMULA_DEFAULTS;
 
+    const wh = CONFIG[MODULE_ID].WeaponsHandler;
+    const weaponTypes = {};
+    const weaponProperties = {};
+    wh.weaponTypesMap.forEach((value, key) => weaponTypes[key] = value);
+    wh.weaponPropertiesMap.forEach((value, key) => weaponProperties[key] = value);
+
     data.localized = {
       spellLevels: CONFIG[MODULE_ID].spellLevels,
-      weaponTypes: CONFIG[MODULE_ID].weaponTypes,
-      weaponProperties: CONFIG[MODULE_ID].weaponProperties
+      weaponTypes,
+      weaponProperties,
     };
 
     return data;
