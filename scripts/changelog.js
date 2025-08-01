@@ -163,7 +163,7 @@ class ChangelogBuilder {
         dont_show_again: {
           icon: `<i class="fas fa-times"></i>`,
           label: "Don't show again",
-          callback: () => Settings.get(CHANGELOG, next)
+          callback: () => Settings.set(Settings.KEYS.CHANGELOG, next)
         }
       },
       default: "dont_show_again"
