@@ -276,7 +276,7 @@ export class CombatantInitiativeHandler {
 
     let text = `<br><b>Actions:</b> ${actions.join(", ")}`;
     if ( weaponVariant ) text += this.combatant.actor[MODULE_ID].weaponsHandler.summarizeWeaponsChoices(selections);
-    if ( spellLevel ) text += `<br><b>Maximum Spell Level:</b> ${spellLevel}`;
+    if ( spellLevel ) text += `<br><b>Maximum Spell Level:</b> ${CONFIG[MODULE_ID].spellLevels[spellLevel]}`;
     return text;
   }
 
