@@ -1,6 +1,7 @@
 ## 0.3.1
 Correct listing of weapon types and properties in the config menu. Closes issue #13.
 Correct spell selection so that it does not alway report "Cantrip." Closes issue #14.
+Handle dnd5e weapon property arrays so that weapon property dice modifiers are correctly applied. Closes issue #16.
 
 ## 0.3.0
 Switch to Foundry v12 DialogV2.
