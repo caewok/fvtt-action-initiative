@@ -1,9 +1,10 @@
 /* globals
+FormDataExtended,
 foundry,
-game,
-renderTemplate
+renderTemplate,
 */
 "use strict";
+/* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 
 import { MODULE_ID } from "./const.js";
 
@@ -58,7 +59,7 @@ export class WeaponSelectionDialog extends foundry.applications.api.DialogV2 {
    * Create the button(s) for the dialog submission.
    * @returns {DialogV2Button[]}
    */
-  static constructButtons(opts) {
+  static constructButtons(_opts) {
     const save = {
       action: "save",
       label: "Save",
@@ -75,7 +76,7 @@ export class WeaponSelectionDialog extends foundry.applications.api.DialogV2 {
    * @param {D20Roll.ADV_MODE} advantageMode
    * @returns {object} Object representing user selections for actions.
    */
-  static onDialogSubmit(event, button, dialog) {
+  static onDialogSubmit(_event, button, dialog) {
     const form = dialog.querySelector("form");
     const data = new FormDataExtended(form);
     const res = {
@@ -85,7 +86,7 @@ export class WeaponSelectionDialog extends foundry.applications.api.DialogV2 {
     return this.validateSelection(res);
   }
 
-  static onDialogCancel(event, dialog) { return null; }
+  static onDialogCancel(_event, _dialog) { return null; }
 
   static validateSelection(data) { return data; }
 

@@ -50,7 +50,6 @@ Hooks.once("init", () => {
     WeaponsHandler, WeaponsHandlerDND5e,
     ActionSelectionDialog, ActionSelectionDialogDND5e,
     ActorInitiativeHandler, ActorInitiativeHandlerDND5e, ActorInitiativeHandlerA5e,
-    MultipleCombatantDialog
   };
 
   // Add the extra buttons to the combat tracker.
