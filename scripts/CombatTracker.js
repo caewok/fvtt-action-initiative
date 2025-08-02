@@ -43,17 +43,57 @@ Hooks.once("renderCombatTracker", async (_app, _html, _context, _options) => {
  * @param {ApplicationRenderOptions} options   The application rendering options
  */
 function renderCombatTracker(app, html, context, options) {
-  // Each combatant that has rolled will have a ".initiative" class
-  const elems = html.getElementsByClassName("initiative");
+  // Add to (single combatant) initiative button
+  const addToInitButton = document.createElement("button");
+  addToInitButton.classList.add("inline-control", "combatant-control", "icon", "fa-regular", "fa-square-plus");
+  addToInitButton.setAttribute("data-action", "toggleHidden");
+  addToInitButton.setAttribute("data-tooltip", "actioninitiative.CombatTracker.addToInitiative");
+  addToInitButton.setAttribute("data-control", "addToInitiative");
+  // addToInitButton.setAttribute("aria-label", "Add To Initiative");
 
-  let i = 0;
-  context.turns.forEach(turn => {
-    if ( !turn.hasRolled || i >= elems.length ) return;
+  // Reset (single combatant) initiative button
+  const resetInitButton = document.createElement("button");
+  resetInitButton.classList.add("inline-control", "combatant-control", "icon", "fa-solid", "fa-undo");
+  resetInitButton.setAttribute("data-action", "toggleHidden");
+  resetInitButton.setAttribute("data-tooltip", "actioninitiative.CombatTracker.resetInitiative");
+  resetInitButton.setAttribute("data-control", "resetInitiative");
+  // resetInitButton.setAttribute("aria-label", "Add To Initiative");
+
+  // Example combat button in v13:
+  // <button type="button" class="inline-control combatant-control icon fa-solid fa-eye-slash " data-action="toggleHidden" data-tooltip="" aria-label="Toggle Visibility"></button>
+
+  /* v12 buttons:
+  `
+  <a class="combatant-control" data-tooltip="actioninitiative.CombatTracker.addToInitiative" data-control="addToInitiative">
+    <i class="fa-regular fa-square-plus"></i>
+  </a>
+
+  <a class="combatant-control" data-tooltip="actioninitiative.CombatTracker.resetInitiative" data-control="resetInitiative">
+    <i class="fas fa-undo"></i>
+  </a>
+  `;
+  */
+
+  // Cycle through each combatant.
+  const elems = html.getElementsByClassName("combatant-controls");
+
+  for ( let i = 0, iMax = elems.length; i < iMax; i += 1 ) {
+    const turn = context.turns[i];
+    if ( turn.initiative === null ) continue;
+
     const c = game.combat.combatants.get(turn.id);
+    if ( !c ) continue;
+
+    // Add the initiative buttons.
+    if ( game.user.isGM || c.isOwner ) {
+      elems[i].appendChild(addToInitButton);
+      elems[i].appendChild(resetInitButton)
+    }
+
+    // Add the initiative summary data tooltip.
     const summary = c[MODULE_ID].initiativeHandler.initiativeSelectionSummary();
     elems[i].setAttribute("data-tooltip", summary);
-    i += 1;
-  });
+  }
 }
 
 PATCHES.BASIC.HOOKS = { renderCombatTracker };
@@ -86,41 +126,3 @@ async function _onCombatantControl(wrapped, event, target) {
 }
 
 PATCHES.BASIC.WRAPS = { _onCombatantControl };
-
-
-/**
- * An extension of the base CombatTracker class to provide ActionInitiative functionality.
- * Note that this replaces the 5e-specific version.
- * @extends {CombatTracker}
- */
-export class CombatTrackerActionInitiative extends CombatTracker {
-  /**
-   * Copied from 5e: https://github.com/foundryvtt/dnd5e/blob/9a81781990174eb0581f2135d0146cd74ea489cb/module/applications/combat/combat-tracker.mjs
-   * But pass the combatantId.
-   * @inheritdoc
-   */
-  async _onCombatantControl(event) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    const btn = event.currentTarget;
-    const li = btn.closest(".combatant");
-    const combatantId = li.dataset.combatantId;
-    const combatant = this.viewed.combatants.get(combatantId);
-    const iH = combatant[MODULE_ID].initiativeHandler;
-    switch ( btn.dataset.control ) {
-      case "addToInitiative": {
-         const selections = await iH.initiativeDialogs();
-         return selections ? iH.addToInitiative(selections) : undefined;
-      }
-      case "resetInitiative": return iH.resetInitiative();
-    }
-    return super._onCombatantControl(event);
-  }
-
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      template: `modules/${MODULE_ID}/templates/combat-tracker.html`
-    });
-  }
-}

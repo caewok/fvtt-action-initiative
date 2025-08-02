@@ -12,7 +12,6 @@ import { log } from "./util.js";
 
 // Patching
 import { PATCHER, initializePatching } from "./patching.js";
-import { CombatTrackerActionInitiative } from "./CombatTracker.js";
 
 // Settings
 import {
@@ -51,9 +50,6 @@ Hooks.once("init", () => {
     ActionSelectionDialog, ActionSelectionDialogDND5e,
     ActorInitiativeHandler, ActorInitiativeHandlerDND5e, ActorInitiativeHandlerA5e,
   };
-
-  // Add the extra buttons to the combat tracker.
-  // CONFIG.ui.combat = CombatTrackerActionInitiative;
 
   // Set configuration values used internally. May be modified by users.
   CONFIG[MODULE_ID] = constructConfigObject();
