@@ -19,7 +19,7 @@ const PATCHES = {
   ClientSettings: PATCHES_ClientSettings,
   Combat: PATCHES_Combat,
   Combatant: PATCHES_Combatant,
-  CombatTrackerConfig: PATCHES_CombatTrackerConfig
+  "foundry.applications.apps.CombatTrackerConfig": PATCHES_CombatTrackerConfig,
 };
 
 export const PATCHER = new Patcher();
