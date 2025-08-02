@@ -15,11 +15,11 @@ import { PATCHES as PATCHES_ClientSettings } from "./ModuleSettingsAbstract.js";
 import { PATCHES as PATCHES_CombatTracker } from "./CombatTracker.js";
 
 const PATCHES = {
-  Actor: PATCHES_Actor,
+  "CONFIG.Actor.documentClass": PATCHES_Actor,
   "dnd5e.documents.Actor5e": PATCHES_Actor5e,
   ClientSettings: PATCHES_ClientSettings,
   "CONFIG.Combat.documentClass": PATCHES_Combat,
-  Combatant: PATCHES_Combatant,
+  "CONFIG.Combatant.documentClass": PATCHES_Combatant,
   "foundry.applications.apps.CombatTrackerConfig": PATCHES_CombatTrackerConfig,
   "foundry.applications.sidebar.tabs.CombatTracker": PATCHES_CombatTracker,
 };
