@@ -68,8 +68,7 @@ export class MultipleCombatantDialog extends foundry.applications.api.DialogV2 {
    * @returns {ActionSelectionResult} Object representing user selections for actions.
    */
   static onDialogSubmit(event, button, dialog) {
-    const form = dialog.querySelector("form");
-    const data = new FormDataExtended(form);
+    const data = new FormDataExtended(button.form);
     return this.validateSelection(foundry.utils.expandObject(data.object));
   }
 
