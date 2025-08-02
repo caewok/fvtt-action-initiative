@@ -46,6 +46,7 @@ function renderCombatTracker(app, html, context, options) {
   // Add to (single combatant) initiative button
   const addToInitButton = document.createElement("button");
   addToInitButton.classList.add("inline-control", "combatant-control", "icon", "fa-regular", "fa-square-plus");
+  addToInitButton.setAttribute("type", "button");
   addToInitButton.setAttribute("data-action", "toggleHidden");
   addToInitButton.setAttribute("data-tooltip", "actioninitiative.CombatTracker.addToInitiative");
   addToInitButton.setAttribute("data-control", "addToInitiative");
@@ -54,6 +55,7 @@ function renderCombatTracker(app, html, context, options) {
   // Reset (single combatant) initiative button
   const resetInitButton = document.createElement("button");
   resetInitButton.classList.add("inline-control", "combatant-control", "icon", "fa-solid", "fa-undo");
+  addToInitButton.setAttribute("type", "button");
   resetInitButton.setAttribute("data-action", "toggleHidden");
   resetInitButton.setAttribute("data-tooltip", "actioninitiative.CombatTracker.resetInitiative");
   resetInitButton.setAttribute("data-control", "resetInitiative");
@@ -86,8 +88,8 @@ function renderCombatTracker(app, html, context, options) {
 
     // Add the initiative buttons.
     if ( game.user.isGM || c.isOwner ) {
-      elems[i].appendChild(addToInitButton);
-      elems[i].appendChild(resetInitButton)
+      elems[i].appendChild(addToInitButton.cloneNode(true));
+      elems[i].appendChild(resetInitButton.cloneNode(true));
     }
 
     // Add the initiative summary data tooltip.
