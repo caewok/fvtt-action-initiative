@@ -1,3 +1,7 @@
+## 0.4.0
+Foundry v13 compatibility. Tested on dnd5e 5.0.4.
+Limited testing; apologies for the inevitable bugs!
+
 ## 0.3.1
 Correct listing of weapon types and properties in the config menu. Closes issue #13.
 Correct spell selection so that it does not alway report "Cantrip." Closes issue #14.
