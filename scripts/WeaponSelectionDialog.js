@@ -77,8 +77,7 @@ export class WeaponSelectionDialog extends foundry.applications.api.DialogV2 {
    * @returns {object} Object representing user selections for actions.
    */
   static onDialogSubmit(_event, button, dialog) {
-    const form = dialog.querySelector("form");
-    const data = new FormDataExtended(form);
+    const data = new FormDataExtended(button.form);
     const res = {
       checked: foundry.utils.expandObject(data.object),
       button: button.dataset.action

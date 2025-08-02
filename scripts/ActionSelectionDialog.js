@@ -79,13 +79,13 @@ export class ActionSelectionDialog extends foundry.applications.api.DialogV2 {
 
   /**
    * Helper to handle the return from ActionSelectionDialog
-   * @param {object} html   Dialog html
-   * @param {D20Roll.ADV_MODE} advantageMode
+   * @param {PointerEvent} event
+   * @param {html} button
+   * @param {ActionSelectionDialog} dialog
    * @returns {ActionSelectionResult} Object representing user selections for actions.
    */
   static onDialogSubmit(event, button, dialog) {
-    const form = dialog.querySelector("form");
-    const data = new FormDataExtended(form);
+    const data = new FormDataExtended(button.form);
     const res = {
       actions: foundry.utils.expandObject(data.object),
       button: button.dataset.action,
@@ -290,8 +290,9 @@ export class ActionSelectionDialogDND5e extends ActionSelectionDialog {
 
   /**
    * Helper to handle the return from ActionSelectionDialog
-   * @param {object} html   Dialog html
-   * @param {D20Roll.ADV_MODE} advantageMode
+   * @param {PointerEvent} event
+   * @param {html} button
+   * @param {ActionSelectionDialog} dialog
    * @returns {object} Object representing user selections for actions.
    */
   static onDialogSubmit(event, button, dialog) {
