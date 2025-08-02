@@ -17,34 +17,36 @@ PATCHES.BASIC = {};
 /**
  * Hook renderCombatTracker to insert the tracker template.
  */
-async function renderCombatTrackerConfigHook(app, html, data) {
+async function renderCombatTrackerConfig(app, html, data) {
+  // Add handler on close to store the group actors setting.
+  const oldHandler = app.options.form.handler;
+  app.options.form.handler = async (event, form, submitData) => {
+    await saveSettings(event, form, submitData);
+    await oldHandler(event, form, submitData);
+  }
+
+  // Add the data for the new group actor toggle.
+  data.groupActors = Settings.get(Settings.KEYS.GROUP_ACTORS);
+
+  // Add the toggle to the html.
   const template = `modules/${MODULE_ID}/templates/action-initiative-combat-tracker-config.html`;
   const myHTML = await renderTemplate(template, data);
-  html.find(".form-group").last().after(myHTML);
+
+  const newFormGroup = document.createElement('div');
+  newFormGroup.classList.add('form-group');
+  newFormGroup.innerHTML = myHTML;
+  const formGroups = html.getElementsByClassName("form-group");
+  formGroups[formGroups.length -1].appendChild(newFormGroup);
+
+  // html.find(".form-group").last().after(myHTML); // ApplicationV1
   app.setPosition(app.position);
 }
 
-PATCHES.BASIC.HOOKS = { renderCombatTrackerConfig: renderCombatTrackerConfigHook };
-
-// ----- NOTE: WRAPS -----
-
 /**
- * Wrap CombatTrackerConfig.prototype._updateObject
- * Update the actor groups.
+ * Called on application submission. Update the group actors.
  */
-async function _updateObject(wrapped, event, formData) {
-  await Settings.set(Settings.KEYS.GROUP_ACTORS, formData.groupActors);
-  return wrapped(event, formData);
+async function saveSettings(event, form, submitData) {
+  await Settings.set(Settings.KEYS.GROUP_ACTORS, submitData.groupActors);
 }
 
-/**
- * Wrap CombatTrackerConfig.prototype.getData
- * Update the actor groups.
- */
-async function getData(wrapped, options={}) {
-  const data = await wrapped(options);
-  data.groupActors = Settings.get(Settings.KEYS.GROUP_ACTORS);
-  return data;
-}
-
-PATCHES.BASIC.WRAPS = { _updateObject, getData };
+PATCHES.BASIC.HOOKS = { renderCombatTrackerConfig };
