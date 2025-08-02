@@ -18,7 +18,7 @@ const PATCHES = {
   Actor: PATCHES_Actor,
   "dnd5e.documents.Actor5e": PATCHES_Actor5e,
   ClientSettings: PATCHES_ClientSettings,
-  Combat: PATCHES_Combat,
+  "CONFIG.Combat.documentClass": PATCHES_Combat,
   Combatant: PATCHES_Combatant,
   "foundry.applications.apps.CombatTrackerConfig": PATCHES_CombatTrackerConfig,
   "foundry.applications.sidebar.tabs.CombatTracker": PATCHES_CombatTracker,
