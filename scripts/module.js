@@ -12,7 +12,7 @@ import { log } from "./util.js";
 
 // Patching
 import { PATCHER, initializePatching } from "./patching.js";
-import { CombatTrackerActionInitiative } from "./CombatTrackerActionInitiative.js";
+import { CombatTrackerActionInitiative } from "./CombatTracker.js";
 
 // Settings
 import {
@@ -53,7 +53,7 @@ Hooks.once("init", () => {
   };
 
   // Add the extra buttons to the combat tracker.
-  CONFIG.ui.combat = CombatTrackerActionInitiative;
+  // CONFIG.ui.combat = CombatTrackerActionInitiative;
 
   // Set configuration values used internally. May be modified by users.
   CONFIG[MODULE_ID] = constructConfigObject();
@@ -130,38 +130,7 @@ function preCreateChatMessageHook(document, data, _options, _userId) {
   document.updateSource({ flavor: data.flavor });
 }
 
-Hooks.once("renderCombatTracker", async (_app, _html, _data) => {
-  // Get the combatants for each combat and update flags as necessary.
-  const promises = [];
-  for ( const combat of game.combats ) {
-    for ( const combatant of combat.combatants ) {
-      const currVersion = combatant.getFlag(MODULE_ID, FLAGS.VERSION);
-      if ( currVersion ) continue;
 
-      // Wipe all the old initiative selections.
-      // Not a huge issue b/c these are fleeting.
-      promises.push(combatant.unsetFlag(MODULE_ID, FLAGS.COMBATANT.INITIATIVE_SELECTIONS));
-      promises.push(combatant.setFlag(MODULE_ID, FLAGS.VERSION, game.modules.get("actioninitiative").version));
-    }
-  }
-  await Promise.allSettled(promises);
-  Hooks.on("renderCombatTracker", renderCombatTrackerHook);
-});
-
-
-function renderCombatTrackerHook(app, html, data) {
-  // Each combatant that has rolled will have a ".initiative" class
-  const elems = html.find(".initiative");
-
-  let i = 0;
-  data.turns.forEach(turn => {
-    if ( !turn.hasRolled || i >= elems.length ) return;
-    const c = game.combat.combatants.get(turn.id);
-    const summary = c[MODULE_ID].initiativeHandler.initiativeSelectionSummary();
-    elems[i].setAttribute("data-tooltip", summary);
-    i += 1;
-  });
-}
 
 /* Foundry default initiative flow
 
